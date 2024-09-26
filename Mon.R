@@ -1,7 +1,6 @@
 
 library(tidyverse)
 library(ggplot2)
-library(performance)
 library(viridis)
 
 setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/Oysters/")
@@ -17,12 +16,23 @@ mon %>% select(area, location) %>% distinct() %>% arrange(location, area)
 mon_clean <- mon %>%  mutate( location_clean = case_when( location == "Savage Hbr" ~ "Savage Harbour" ,
                                                           location == "St. Peter's Bay" ~ "St. Peters Bay",
                                                           location == "Pinette" ~ "Pinette River",
-                                                          TRUE ~ location)) #%>%
+                                                          TRUE ~ location)) %>%
 # normalise all locations ?
-# mutate( area_clean = case_when( location == "Foxley - Gibb's Creek" ~ 1,
-#                                 location == "Foxley - Lot 6 Pt." ~ 1,
-#                                 
-# ))
+mutate( area_clean = case_when( location == "East River - MacWilliams Seafood" ~ 6,
+                                 location == "Foxley - Gibb's Creek" ~ 1,
+                                location == "Foxley - Goff Bridge" ~ 1,
+                                location == "Foxley - Lot 6 Pt." ~ 1,
+                                location == "Grand River" ~ 4,
+                                location == "Rustico" ~ 8,
+                                # we made decisions
+                                location == "Dunk River" ~ 9,
+                                location == "Wilmot River" ~ 9,
+                                location_clean == "Pinette River" ~ 7,
+                                location_clean == "St. Peters Bay" ~ 10,
+                                location_clean == "Savage Harbour" ~ 10,
+                                TRUE ~ area 
+
+))
 # or if more complicated (dependent on two factors?)
 # mutate( area_clean = case_when(location == "Savage Harbour" & area == 1 ~ 8, #?
 #                                      location == "Rustico" & area == 6 ~ 8, #?
@@ -37,8 +47,10 @@ mon_clean <- mon %>%  mutate( location_clean = case_when( location == "Savage Hb
 #                                      )) %>%
 
 
-mon_clean %>% select(area, location, location_clean) %>% distinct() %>% arrange(area, location)
+mon_clean %>% select(area, area_clean, location, location_clean) %>% distinct() %>% arrange(area, location)
+mon_clean %>% select(area_clean, location_clean) %>% distinct() %>% arrange( location_clean, area_clean)
 
+head(mon_clean)
 
 mon_prep <- mon_clean %>% 
   mutate( parsed_date = parse_datetime(date_collected, format= "%m/%d/%Y")) %>% 
@@ -53,29 +65,34 @@ head(mon_prep)
 # have a look at our timeline
 mon_prep %>% select(year) %>% distinct()
 mon_prep %>% select(month,day) %>% distinct() %>% arrange(month, day)
-mon_prep %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day)
+View( mon_prep %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day))
 summary(mon_prep)
 
 
 max_l <- mon_prep %>% group_by(location_clean, f_year) %>% filter( larvae_above_250_microns == max(larvae_above_250_microns))  %>%
-  select(location_clean, f_year, n_year, month_day, larvae_above_250_microns) 
+  select(location_clean, area_clean, f_year, n_year, month_day, larvae_above_250_microns) 
+
 max_l %>% filter(location_clean == "Dock River")
 
 
-ggplot(data = max_l %>% filter(location_clean == "Dock River")
+ggplot(data = max_l #%>% filter(location_clean == "Dock River")
        , aes( y= month_day, x = n_year, 
             group= location_clean, color = as.factor(location_clean) )) + 
-  facet_wrap(~location_clean) +
+  facet_wrap(~area_clean) +
   geom_point( ) +
   geom_line( ) + 
-  scale_x_continuous( breaks=c(2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024))+
+  scale_x_continuous( breaks=c(2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024)) +
   theme_classic()
 
 
 ggplot(data = max_l #%>% filter(location_clean == "Dock River")
-       , aes( y= month_day, x = n_year, group= location_clean, color = as.factor(location_clean) )) + 
+       , aes( y= month_day, x = n_year, group= location_clean, color = as.factor(location_clean)
+              )) + 
   facet_wrap(~location_clean) +
-  geom_point( ) +
-  geom_smooth(method = lm, se=FALSE) + 
+  #geom_point( ) +
+  geom_smooth(method = lm, se=TRUE) + 
   scale_x_continuous( breaks=c(2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024))+
   theme_classic()
+
+
+
