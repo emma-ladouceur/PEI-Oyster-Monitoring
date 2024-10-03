@@ -8,11 +8,12 @@ growth <- read.csv("Oyster Growth Temp 2021 - present.csv", header= TRUE)
 head(growth)
 
 
-# get locations
+# get locations, just have a look
 locations <- growth %>% select(latitude, longitude, name) %>% distinct()
 
 # clean it up
 area_locations <- growth %>% 
+  # use case when to change
   mutate( area = case_when( name == "Bideford River" ~ 3,
                             name == "Foxley River - Gibb's Creek" ~ 1,
                             name == "Foxley River - Lot 6 Point" ~ 1,
