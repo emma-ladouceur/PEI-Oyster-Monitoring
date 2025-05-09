@@ -5,16 +5,19 @@ library(tidyverse)
 library(ggplot2)
 library(viridis)
 library(lubridate)
+library(brms)
+library(patchwork)
+
 
 # set your own personal working directory below
 # Emma MBP
 setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/")
 # Leah PC
-setwd("C://Users//lrmeister//OneDrive - University of Prince Edward Island//ACC 3100//Oyster Code")
-# Camille PC
-setwd("T:/Biodiversity Oyster Data")
-# Courtney PC
-setwd("C://Users//cmcbride13723//Desktop//R Code Oysters//Oysters")
+# setwd("C://Users//lrmeister//OneDrive - University of Prince Edward Island//ACC 3100//Oyster Code")
+# # Camille PC
+# setwd("T:/Biodiversity Oyster Data")
+# # Courtney PC
+# setwd("C://Users//cmcbride13723//Desktop//R Code Oysters//Oysters")
 # Romy
 
 
@@ -22,7 +25,7 @@ setwd("C://Users//cmcbride13723//Desktop//R Code Oysters//Oysters")
 # load dataset you want
 mon <- read.csv("Oyster Monitoring Results 2013- present.csv", header= TRUE)
 
-head(mon)
+
 
 # have a look at monitoring data locations
 mon %>% select(area, location) %>% distinct() %>% arrange(location, area)
@@ -141,11 +144,11 @@ max_l_dat %>% filter(larvae_above_250_microns == 0)
 print(max_l_dat %>% ungroup() %>% select(julian_date, parsed_date) %>% distinct() %>% arrange(julian_date), n=50)
 
 # we ask, how does timing of max oyster spat vary across time.....(for every area and location)
-oyster_time <- brm( julian_date ~ n_year + (1 + n_year | area_clean/location_clean ), 
-                    data = max_l_dat, iter = 4000, warmup = 1000, control = list(adapt_delta = 0.99))
-
-
-save(oyster_time, file = '~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_time.Rdata')
+# oyster_time <- brm( julian_date ~ n_year + (n_year | area_clean/location_clean ), 
+#                     data = max_l_dat, iter = 5000, warmup = 1000, control = list(adapt_delta = 0.99))
+# 
+# 
+# save(oyster_time, file = '~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_time.Rdata')
 load("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_time.Rdata") 
 
 
@@ -167,7 +170,7 @@ oyster_time_nest <- max_l_dat %>%
   group_by(area_clean_group, area_clean) %>% 
   summarise(n_year = seq(min(n_year), max(n_year), length.out = 6 )) %>%
   nest(data = c(area_clean, n_year)) %>%
-  mutate(predicted = map(data, ~predict(oyster_time, newdata= .x, re_formula = ~(1 + n_year | area_clean) )))
+  mutate(predicted = map(data, ~predict(oyster_time, newdata= .x, re_formula = ~( n_year | area_clean) )))
 
 oyster_time.df<- oyster_time_nest %>% unnest(cols = c(data, predicted)) %>% mutate(area_clean = as.numeric(area_clean)) %>% arrange(area_clean)
 
@@ -198,7 +201,7 @@ oyster_time_fig <- ggplot() +
   #scale_fill_viridis(discrete = T, option="D")  + 
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.direction = "horizontal", legend.position="bottom")  +
-   labs(color = "Areas") +
+   labs(color = "Areas", subtitle = "a)") +
    ylab('Date of max oyster \n larvae > 250 microns') +  xlab("Year of monitoring") 
   # guides(col = guide_legend(ncol = 9))
 
@@ -207,18 +210,18 @@ oyster_time_fig
 
 
 head(mon_prep)
-# next we ask, is max oyster larvae above 250 microns different in different areas?
-oyster_max_abund <- brm( larvae_above_250_microns ~ n_year  + (1 +  n_year | area_clean/location_clean ), 
+#next we ask, is max oyster larvae above 250 microns different in different areas?
+oyster_max_abund <- brm( larvae_above_250_microns ~ n_year  + (1 +  n_year | area_clean/location_clean ),
                     data = max_l_dat , family = lognormal,  iter = 4000, warmup = 1000, control = list(adapt_delta = 0.99))
 
- save(oyster_max_abund, file = '~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_area.Rdata')
-load("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_area.Rdata") 
+ save(oyster_max_abund, file = '~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_max_abund.Rdata')
+load("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_max_abund.Rdata") 
 
-
+summary(oyster_area)
 summary(oyster_max_abund)
 
 pp_check(oyster_max_abund)
-conditional_effects(oyster_max_abund)
+conditional_effects(oyster_area)
 
 oyster_max_abund_fitted <- cbind(oyster_max_abund$data,
                             fitted(oyster_max_abund, re_formula = NA)) %>% 
@@ -237,7 +240,7 @@ oyster_max_abund_nest <- max_l_dat %>%
 
 oyster_max_abund.df<- oyster_max_abund_nest %>% unnest(cols = c(data, predicted)) %>% mutate(area_clean = as.numeric(area_clean)) %>% arrange(area_clean)
 
-head(oyster_area.df)
+head(oyster_max_abund.df)
 
 oyster_max_abund_fig <- ggplot() +
   # geom_point(data = max_l_dat,
@@ -263,14 +266,23 @@ oyster_max_abund_fig <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  + 
   #scale_fill_viridis(discrete = T, option="D")  + 
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.direction = "horizontal", legend.position="bottom")  +
-  labs(color = "Areas") +
+                                  legend.direction = "horizontal", legend.position="none")  +
+  labs(color = "Areas", subtitle ="b)") +
   ylab('log[ Abundance of max oyster \n larvae > 250 microns ]') +  xlab("Year of monitoring") 
 # guides(col = guide_legend(ncol = 9))
 
 
-library(patchwork)
-(oyster_time_fig + oyster_max_abund_fig)
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+area.legend <- g_legend(oyster_time_fig)
+
+
+( (oyster_time_fig +  theme(legend.position="none")) + (oyster_max_abund_fig) )/(area.legend) + plot_layout(heights = c(10,2)) 
 
 
 
