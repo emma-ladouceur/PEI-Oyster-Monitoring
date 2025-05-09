@@ -25,7 +25,7 @@ setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/")
 # load dataset you want
 mon <- read.csv("Oyster Monitoring Results 2013- present.csv", header= TRUE)
 
-
+head(mon)
 
 # have a look at monitoring data locations
 mon %>% select(area, location) %>% distinct() %>% arrange(location, area)
