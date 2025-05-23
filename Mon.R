@@ -18,7 +18,8 @@ setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/")
 # setwd("T:/Biodiversity Oyster Data")
 # # Courtney PC
 # setwd("C://Users//cmcbride13723//Desktop//R Code Oysters//Oysters")
-# Romy
+# Maddy
+setwd("~/Desktop/Data/Oysters/")
 
 
 
