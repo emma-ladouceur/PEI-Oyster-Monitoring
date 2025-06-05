@@ -12,15 +12,8 @@ library(patchwork)
 # set your own personal working directory below
 # Emma MBP
 setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/")
-# Leah PC
-# setwd("C://Users//lrmeister//OneDrive - University of Prince Edward Island//ACC 3100//Oyster Code")
-# # Camille PC
-# setwd("T:/Biodiversity Oyster Data")
-# # Courtney PC
-# setwd("C://Users//cmcbride13723//Desktop//R Code Oysters//Oysters")
 # Maddy
 setwd("~/Desktop/Data/Oysters/")
-
 
 
 # load dataset you want
@@ -36,6 +29,7 @@ mon %>% select(area, location) %>% distinct() %>% arrange(location, area)
 mon_clean <- mon %>%  mutate( location_clean = case_when( location == "Savage Hbr" ~ "Savage Harbour" ,
                                                           location == "St. Peter's Bay" ~ "St. Peters Bay",
                                                           location == "Pinette" ~ "Pinette River",
+                                                          location == "Bentick Cove" ~ "Bentinck Cove",
                                                           TRUE ~ location)) %>%
 # normalise areas of each location, also using case when
 mutate( area_clean = case_when( location == "East River - MacWilliams Seafood" ~ 6,
@@ -65,7 +59,7 @@ head(mon_clean)
 mon_prep <- mon_clean %>% 
   # parse the date time
   mutate( parsed_date = parse_datetime(date_collected, format= "%m/%d/%Y")) %>% 
-  # separate the column, dont remove the original
+  # separate the column, don't remove the original
   separate(parsed_date, c("year", "month", "day"), sep = "-", remove = F) %>%
   # change year to factor
   mutate(f_year = as.factor(year)) %>%
