@@ -11,28 +11,32 @@ library(patchwork)
 
 # set your own personal working directory below
 # Emma MBP
-setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/")
+# setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/")
 # Maddy
-setwd("~/Desktop/Data/Oysters/")
+setwd("~/Data/OMP/")
 
 
 # load dataset you want
-mon <- read.csv("Oyster Monitoring Results 2013- present.csv", header= TRUE)
+mon_2013_2024 <- read.csv("Oyster Monitoring Results 2013- present.csv", header= TRUE)
+mon_2025 <- read.csv("Oyster Monitoring Results (10)_2025.csv", header= TRUE)
 
-head(mon)
-
+head(mon_2013_2024)
+head(mon_2025)
 # have a look at monitoring data locations
-mon %>% select(area, location) %>% distinct() %>% arrange(location, area)
+mon_dat <- mon_2013_2024 %>% bind_rows(mon_2025)
+
+mon_dat %>% select(area, location) %>% distinct() %>% arrange(location, area)
 
 # clean it up
 # use case when to change location spelling
-mon_clean <- mon %>%  mutate( location_clean = case_when( location == "Savage Hbr" ~ "Savage Harbour" ,
+mon_clean <- mon_dat %>%
+  mutate( location_clean = case_when( location == "Savage Hbr" ~ "Savage Harbour" ,
                                                           location == "St. Peter's Bay" ~ "St. Peters Bay",
                                                           location == "Pinette" ~ "Pinette River",
                                                           location == "Bentick Cove" ~ "Bentinck Cove",
                                                           TRUE ~ location)) %>%
 # normalise areas of each location, also using case when
-mutate( area_clean = case_when( location == "East River - MacWilliams Seafood" ~ 6,
+mutate( river = case_when( location == "East River - MacWilliams Seafood" ~ 6,
                                  location == "Foxley - Gibb's Creek" ~ 1,
                                 location == "Foxley - Goff Bridge" ~ 1,
                                 location == "Foxley - Lot 6 Pt." ~ 1, 
@@ -50,7 +54,7 @@ mutate( area_clean = case_when( location == "East River - MacWilliams Seafood" ~
 
 # lets have a look at our work
 mon_clean %>% select(area, area_clean, location, location_clean) %>% distinct() %>% arrange(area, location)
-mon_clean %>% select(area_clean, location_clean) %>% distinct() %>% arrange( location_clean, area_clean)
+mon_clean %>% select( location_clean) %>% distinct() %>% arrange( location_clean)
 
 # look at the headers (top 6 rows)
 head(mon_clean)
