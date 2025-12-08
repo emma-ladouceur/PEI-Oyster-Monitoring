@@ -17,19 +17,53 @@ setwd("~/Data/OMP/")
 
 
 # load dataset you want
-mon_2013_2024 <- read.csv("Oyster Monitoring Results 2013- present.csv", header= TRUE)
+# mon_2013_2024 <- read.csv("Oyster Monitoring Results 2013- present.csv", header= TRUE)
 mon_2025 <- read.csv("Oyster Monitoring Results (10)_2025.csv", header= TRUE)
 
-head(mon_2013_2024)
+# head(mon_2013_2024)
 head(mon_2025)
-# have a look at monitoring data locations
-mon_dat <- mon_2013_2024 %>% bind_rows(mon_2025)
+view(mon_2025)
 
-mon_dat %>% select(area, location) %>% distinct() %>% arrange(location, area)
+# # lets prep the data for plotting
+# mon_date_2013_2024 <- mon_2013_2024 %>% 
+#   # parse the date time
+#   mutate( parsed_date = parse_datetime(date_collected, format= "%m/%d/%Y")) %>% 
+#   # separate the column, don't remove the original
+#   separate(parsed_date, c("year", "month", "day"), sep = "-", remove = F) %>%
+#   # change year to factor
+#   mutate(f_year = as.factor(year)) %>%
+#   # unite month and day back together
+#   unite("month_day", month:day, remove= F, sep="") %>% mutate( n_month_day = as.numeric(month_day)) %>%
+#   # create a numeric year and location clean as a factor
+#   mutate(n_year = as.numeric(year)) %>% #mutate(location_clean = as.factor(location_clean)) %>%
+#   # mutate( x. = as.Date(parsed_date)) %>% 
+#   mutate( julian_date = yday(parsed_date))
+
+# lets prep the data for plotting
+mon_date_2025 <- mon_2025 %>% 
+  # parse the date time
+  mutate( parsed_date = parse_datetime(date_collected, format= "%Y-%m-%d")) %>% 
+  # separate the column, don't remove the original
+  separate(parsed_date, c("year", "month", "day"), sep = "-", remove = F) %>%
+  # change year to factor
+  mutate(f_year = as.factor(year)) %>%
+  # unite month and day back together
+  unite("month_day", month:day, remove= F, sep="") %>% mutate( n_month_day = as.numeric(month_day)) %>%
+  # create a numeric year and location clean as a factor
+  mutate(n_year = as.numeric(year)) %>% #mutate(location_clean = as.factor(location_clean)) %>%
+  # mutate( x. = as.Date(parsed_date)) %>% 
+  mutate( julian_date = yday(parsed_date))
+head(mon_date_2025)
+mon_date_2025 %>% select(f_year) %>% distinct()
+
+# have a look at monitoring data locations
+# mon_dat <- mon_date_2013_2024 %>% bind_rows(mon_date_2025)
+
+mon_date_2025 %>% select(area, location) %>% distinct() %>% arrange(location, area)
 
 # clean it up
 # use case when to change location spelling
-mon_clean <- mon_dat %>%
+mon_clean <- mon_date_2025 %>%
   mutate( location_clean = case_when( location == "Savage Hbr" ~ "Savage Harbour" ,
                                       location == "St. Peter's Bay" ~ "St. Peters Bay",
                                       location == "Pinette" ~ "Pinette River",
@@ -45,93 +79,50 @@ mon_clean <- mon_dat %>%
                                       location == "Bideford - Station" ~ "Bideford River - Station",
                                       location == "Rustico" ~ "Rustico Bay",
                                                           TRUE ~ location)) %>%
-# unsure about apostrophe i.e. Clark's Bay or Clarks Bay, Goff's Bridge or Goff Bridge
-# also unsure about the period after St i.e. St. Peters Bay or St Peters Bay (google maps has it without the period)
-# should we follow google maps interpretation of names, keep everything consistent?
-# https://waterwaymap.org/river/region/CA-Prince%20Edward%20Island/
-  
-# normalise areas of each location, also using case when
-# mutate( river = case_when( location == "East River - MacWilliams Seafood" ~ 6,
-                                location == "Foxley - Gibb's Creek" ~ 1,
-                                location == "Foxley - Goff Bridge" ~ 1,
-                                location == "Foxley - Lot 6 Pt." ~ 1, 
-                                location == "Grand River" ~ 4,
-                                location == "Rustico" ~ 8,
-                                # we made decisions, created new areas for this section, and these locations
-                                location == "Dunk River" ~ 9,
-                                location == "Wilmot River" ~ 9,
-                                location_clean == "Pinette River" ~ 7,
-                                location_clean == "St. Peters Bay" ~ 10,
-                                location_clean == "Savage Harbour" ~ 10,
-                                TRUE ~ area ))
-
 # my take on numeric area IDs (locations are grouped according to what Bay they flow into)
-# 1 = Cascumpec Bay
-# 2 = Egmont Bay
-# 3 = Malpeque Bay
-# 4 = Bedeque Bay
-# 5 = Hillsborough Bay
-mutate( river = case_when( location == "Foxley River - Gibb's Creek" ~ 1,
-                           location == "Foxley River - Goff Bridge" ~ 1,
-                           location == "Foxley River - Lot 6 Pt." ~ 1,
-                           location == "Kildare River" ~ 1,
-                           location == "Montrose Bridge" ~ 1,
-                           location == "Enmore River" ~ 2,
-                           location == "Percival River" ~ 2,
-                           location == "Bideford River - Green Park" ~ 3,
-                           location == "Bideford River - Old Wharf" ~ 3,
-                           location == "Bideford River - Paugh's Creek" ~ 3,
-                           location == "Bideford River - Station" ~ 3,
-                           location == "Bentick Cove" ~ 3,
-                           location == "Grand River" ~ 3,
-                           location == "Darnley Basin" ~ 3,
-                           location == "Dunk River" ~ 4,
-                           location == "Wilmot River" ~ 4,
-                           location == "Bedeque Bay" ~ 4,
-                           location == "East River - Cranberry Wharf" ~ 5,
-                           location == "East River - MacWilliams Seafood" ~ 5,
-                           location == "North River" ~ 5,
-                           location == "West River" ~ 5,
-                           location == "Orwell River" ~ 5,
-                           location == "Pownal Bay" ~ 5,
-                           location == "Vernon River" ~ 5
-                           ))
+mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec",
+                         location_clean == "Foxley River - Goff Bridge" ~ "Cascumpec",
+                         location_clean == "Foxley River - Lot 6 Pt." ~ "Cascumpec",
+                         location_clean == "Kildare River" ~ "Cascumpec",
+                         location_clean == "Montrose Bridge" ~ "Cascumpec",
+                         location_clean == "Enmore River" ~ "Egmont",
+                         location_clean == "Percival River" ~ "Egmont",
+                         location_clean == "Bideford River - Green Park" ~ "Malpeque",
+                         location_clean == "Bideford River - Old Wharf" ~ "Malpeque",
+                         location_clean == "Bideford River - Paugh's Creek" ~ "Malpeque",
+                         location_clean == "Bideford River - Station" ~ "Malpeque",
+                         location_clean == "Bentick Cove" ~ "Malpeque",
+                         location_clean == "Grand River" ~ "Malpeque",
+                         location_clean == "Darnley Basin" ~ "Malpeque",
+                         location_clean == "Dunk River" ~ "Bedeque",
+                         location_clean == "Wilmot River" ~ "Bedeque",
+                         location_clean == "Bedeque Bay" ~ "Bedeque",
+                         location_clean == "East River - Cranberry Wharf" ~ "Hillsborough",
+                         location_clean == "East River - MacWilliams Seafood" ~ "Hillsborough",
+                         location_clean == "North River" ~ "Hillsborough",
+                         location_clean == "West River" ~ "Hillsborough",
+                         location_clean == "Orwell River" ~ "Hillsborough",
+                         location_clean == "Pownal Bay" ~ "Hillsborough",
+                         location_clean == "Vernon River" ~ "Hillsborough",
+                              TRUE ~ location_clean))
 
 # lets have a look at our work
-mon_clean %>% select(area, area_clean, location, location_clean) %>% distinct() %>% arrange(area, location)
-mon_clean %>% select( location_clean) %>% distinct() %>% arrange( location_clean)
+mon_clean %>% select( location_clean, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
 
 # look at the headers (top 6 rows)
 head(mon_clean)
 
-# lets prep the data for plotting
-mon_prep <- mon_clean %>% 
-  # parse the date time
-  mutate( parsed_date = parse_datetime(date_collected, format= "%m/%d/%Y")) %>% 
-  # separate the column, don't remove the original
-  separate(parsed_date, c("year", "month", "day"), sep = "-", remove = F) %>%
-  # change year to factor
-  mutate(f_year = as.factor(year)) %>%
-  # unite month and day back together
-  unite("month_day", month:day, remove= F, sep="") %>% mutate( n_month_day = as.numeric(month_day)) %>%
-  # create a numeric year and location clean as a factor
-  mutate(n_year = as.numeric(year)) %>% mutate(location_clean = as.factor(location_clean)) %>%
- # mutate( x. = as.Date(parsed_date)) %>% 
-  mutate( julian_date = yday(parsed_date))
-
-# have a look at our work
-head(mon_prep)
-
 # have a look at our timeline
-mon_prep %>% select(year) %>% distinct()
-mon_prep %>% select(month,day) %>% distinct() %>% arrange(month, day) # june 20 - sept 11
-View( mon_prep %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day))
-summary(mon_prep)
+mon_clean %>% select(year) %>% distinct()
+mon_clean %>% select(month,day) %>% distinct() %>% arrange(month, day) # june 20 - sept 11
+View( mon_clean %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day))
+summary(mon_clean)
 
+view(mon_clean)
 # take the max larvae above 250 microns for every location and year
-max_l <- mon_prep %>% group_by(location_clean, f_year) %>% # group by location and year
+max_l <- mon_clean %>% group_by(location_clean, f_year) %>% # group by location and year
   filter( larvae_above_250_microns == max(larvae_above_250_microns))  %>% # take max of larvae for each group specified above
-  select(location_clean, area_clean, f_year, n_year, month_day, larvae_above_250_microns, parsed_date, julian_date) %>% # select some columns
+  select(location_clean, area, bay, f_year, n_year, month_day, larvae_above_250_microns, parsed_date, julian_date) %>% # select some columns
   # create numeric month day
   mutate(n_month_day = as.numeric(month_day))
 
@@ -143,7 +134,7 @@ max_l %>% filter(location_clean == "Dock River")
 # lets use ggplot to make some plots!
 
 ggplot(data = max_l , aes( y= n_month_day, x = n_year,  group= location_clean, color = as.factor(location_clean) )) + 
-  facet_wrap(~area_clean) + #facet by each area
+  facet_wrap(~bay) + #facet by each area
   geom_point( ) + # plot raw data points
   geom_line( ) + # use geomline to connect the dots
   # below we manipulate the x and y axis to tell it what to show
@@ -153,8 +144,8 @@ ggplot(data = max_l , aes( y= n_month_day, x = n_year,  group= location_clean, c
   theme_classic()
 
 # this time we use geom_smooth to fit a very simple linear model for every area overall
-ggplot(data = max_l  , aes( y= n_month_day, x = n_year, group= area_clean )) + 
-  facet_wrap(~area_clean) +
+ggplot(data = max_l  , aes( y= n_month_day, x = n_year, group= bay )) + 
+  facet_wrap(~bay) +
   geom_point(  aes(  group= location_clean, color = as.factor(location_clean) ), alpha =0.5  ) +
   geom_line( aes(  group= location_clean, color = as.factor(location_clean) ), alpha =0.5 ) + 
   geom_smooth(method = lm, se=TRUE, color= "black", alpha =0.5 ) + 
@@ -163,8 +154,8 @@ ggplot(data = max_l  , aes( y= n_month_day, x = n_year, group= area_clean )) +
   theme_classic()
 
 # this time we use geom smooth to fit a line for every area and every location
-ggplot(data = max_l , aes( y= n_month_day, x = n_year, group= area_clean)  ) + 
-  facet_wrap(~area_clean) +
+ggplot(data = max_l , aes( y= n_month_day, x = n_year, group= bay)  ) + 
+  facet_wrap(~bay) +
   geom_point( aes(  group= location_clean, color = as.factor(location_clean) ) , alpha =0.5 ) +
   geom_smooth( method = lm, se=FALSE, aes(  group= location_clean, color = as.factor(location_clean) ), alpha =0.5 ) + 
   geom_smooth(method = lm, se=TRUE, color= "black") + 
@@ -176,9 +167,11 @@ head(max_l)
 
 # lets use a real model......
 library(brms)
+view(max_l)
+view(max_l %>% filter(larvae_above_250_microns == 0))
 summary(max_l)
 head(max_l)
-max_l_dat <- max_l %>% mutate(area_clean = as.factor(area_clean)) %>% 
+max_l_dat <- max_l %>% mutate(bay = as.factor(bay)) %>% 
   mutate(n_month_day = as.numeric(n_month_day)) %>% filter(larvae_above_250_microns > 0)
 
 head(max_l_dat)
@@ -188,12 +181,12 @@ max_l_dat %>% filter(larvae_above_250_microns == 0)
 print(max_l_dat %>% ungroup() %>% select(julian_date, parsed_date) %>% distinct() %>% arrange(julian_date), n=50)
 
 # we ask, how does timing of max oyster spat vary across time.....(for every area and location)
-# oyster_time <- brm( julian_date ~ n_year + (n_year | area_clean/location_clean ), 
+# oyster_time <- brm( julian_date ~ n_year + (n_year | bay/location_clean ),
 #                     data = max_l_dat, iter = 5000, warmup = 1000, control = list(adapt_delta = 0.99))
-# 
-# 
-# save(oyster_time, file = '~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_time.Rdata')
-load("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/Model_fits/oyster_time.Rdata") 
+
+
+save(oyster_time, file = "~/Model_fits/OMP/oyster_time.Rdata")
+load("~/Model_fits/OMP/oyster_time.Rdata")
 
 
 summary(oyster_time)
@@ -210,25 +203,25 @@ oyster_time_fitted <- cbind(oyster_time$data,
 head(oyster_time_fitted)
 
 oyster_time_nest <- max_l_dat %>% 
-  mutate(area_clean_group = area_clean) %>%
-  group_by(area_clean_group, area_clean) %>% 
+  mutate(bay_group = bay) %>%
+  group_by(bay_group, bay) %>% 
   summarise(n_year = seq(min(n_year), max(n_year), length.out = 6 )) %>%
-  nest(data = c(area_clean, n_year)) %>%
-  mutate(predicted = map(data, ~predict(oyster_time, newdata= .x, re_formula = ~( n_year | area_clean) )))
+  nest(data = c(bay, n_year)) %>%
+  mutate(predicted = map(data, ~predict(oyster_time, newdata= .x, re_formula = ~( n_year | bay) )))
 
-oyster_time.df<- oyster_time_nest %>% unnest(cols = c(data, predicted)) %>% mutate(area_clean = as.numeric(area_clean)) %>% arrange(area_clean)
+oyster_time.df<- oyster_time_nest %>% unnest(cols = c(data, predicted)) %>% arrange(bay)
 
 head(oyster_time.df)
 
 oyster_time_fig <- ggplot() +
   # geom_point(data = max_l_dat,
   #            aes(x = n_year, y = julian_date,
-  #                colour = `area_clean`),
+  #                colour = `bay`),
   #            size = 1.2, shape=1, position = position_jitter(width = 0.5, height=0.5) ) +
-  geom_line(data = oyster_time.df %>% mutate(area_clean =as.factor(`area_clean`)),
+  geom_line(data = oyster_time.df %>% mutate(bay =as.factor(`bay`)),
             aes(x = n_year, y= (predicted[,1]) ,
-                group = `area_clean`,
-                colour = `area_clean`),
+                group = `bay`,
+                colour = `bay`),
             size = 0.75) +
   # uncertainy in fixed effect
   geom_ribbon(data = oyster_time_fitted,
@@ -242,7 +235,10 @@ oyster_time_fig <- ggplot() +
   scale_x_continuous( breaks=c(2012, 2014,  2016,  2018,  2020,  2022,  2024))+
   #scale_color_manual(values = mycolors) +
   scale_color_viridis(discrete = T, option="D")  + 
-  #scale_fill_viridis(discrete = T, option="D")  + 
+ 
+  coord_cartesian() +
+  
+   #scale_fill_viridis(discrete = T, option="D")  + 
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.direction = "horizontal", legend.position="bottom")  +
    labs(color = "Areas", subtitle = "a)") +
