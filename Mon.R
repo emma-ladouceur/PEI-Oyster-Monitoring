@@ -31,13 +31,28 @@ mon_dat %>% select(area, location) %>% distinct() %>% arrange(location, area)
 # use case when to change location spelling
 mon_clean <- mon_dat %>%
   mutate( location_clean = case_when( location == "Savage Hbr" ~ "Savage Harbour" ,
-                                                          location == "St. Peter's Bay" ~ "St. Peters Bay",
-                                                          location == "Pinette" ~ "Pinette River",
-                                                          location == "Bentick Cove" ~ "Bentinck Cove",
+                                      location == "St. Peter's Bay" ~ "St. Peters Bay",
+                                      location == "Pinette" ~ "Pinette River",
+                                      location == "River South Lake" ~ "South Lake",
+                                      location == "Clark's Bay" ~ "Clarks Bay",
+                                      location == "Foxley River - Goff's Bridge" ~ "Foxley River - Goff Bridge",
+                                      location == "Foxley - Goff Bridge" ~ "Foxley River - Goff Bridge",
+                                      location == "Foxley - Gibb's Creek" ~ "Foxley River - Gibb's Creek",
+                                      location == "Foxley - Lot 6 Pt." ~ "Foxley River - Lot 6 Pt.",
+                                      location == "Bideford - Green Park" ~ "Bideford River - Green Park",
+                                      location == "Bideford - Old Wharf" ~ "Bideford River - Old Wharf",
+                                      location == "Bideford - Paugh's Creek" ~ "Bideford River - Paugh's Creek",
+                                      location == "Bideford - Station" ~ "Bideford River - Station",
+                                      location == "Rustico" ~ "Rustico Bay",
                                                           TRUE ~ location)) %>%
+# unsure about apostrophe i.e. Clark's Bay or Clarks Bay, Goff's Bridge or Goff Bridge
+# also unsure about the period after St i.e. St. Peters Bay or St Peters Bay (google maps has it without the period)
+# should we follow google maps interpretation of names, keep everything consistent?
+# https://waterwaymap.org/river/region/CA-Prince%20Edward%20Island/
+  
 # normalise areas of each location, also using case when
 mutate( river = case_when( location == "East River - MacWilliams Seafood" ~ 6,
-                                 location == "Foxley - Gibb's Creek" ~ 1,
+                                location == "Foxley - Gibb's Creek" ~ 1,
                                 location == "Foxley - Goff Bridge" ~ 1,
                                 location == "Foxley - Lot 6 Pt." ~ 1, 
                                 location == "Grand River" ~ 4,
