@@ -11,7 +11,7 @@ library(patchwork)
 
 # set your own personal working directory below
 # Emma MBP
-# setwd("~/Dropbox/_Academic/Teaching/UPEI/Data/PEI - Oysters/")
+# setwd("~/Dropbox/_Projects/PEI Oysters/Data/")
 # Maddy
 setwd("~/Data/OMP/")
 
