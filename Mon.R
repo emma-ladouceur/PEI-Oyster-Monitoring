@@ -51,7 +51,7 @@ mon_clean <- mon_dat %>%
 # https://waterwaymap.org/river/region/CA-Prince%20Edward%20Island/
   
 # normalise areas of each location, also using case when
-mutate( river = case_when( location == "East River - MacWilliams Seafood" ~ 6,
+# mutate( river = case_when( location == "East River - MacWilliams Seafood" ~ 6,
                                 location == "Foxley - Gibb's Creek" ~ 1,
                                 location == "Foxley - Goff Bridge" ~ 1,
                                 location == "Foxley - Lot 6 Pt." ~ 1, 
@@ -63,9 +63,39 @@ mutate( river = case_when( location == "East River - MacWilliams Seafood" ~ 6,
                                 location_clean == "Pinette River" ~ 7,
                                 location_clean == "St. Peters Bay" ~ 10,
                                 location_clean == "Savage Harbour" ~ 10,
-                                TRUE ~ area 
+                                TRUE ~ area ))
 
-))
+# my take on numeric area IDs (locations are grouped according to what Bay they flow into)
+# 1 = Cascumpec Bay
+# 2 = Egmont Bay
+# 3 = Malpeque Bay
+# 4 = Bedeque Bay
+# 5 = Hillsborough Bay
+mutate( river = case_when( location == "Foxley River - Gibb's Creek" ~ 1,
+                           location == "Foxley River - Goff Bridge" ~ 1,
+                           location == "Foxley River - Lot 6 Pt." ~ 1,
+                           location == "Kildare River" ~ 1,
+                           location == "Montrose Bridge" ~ 1,
+                           location == "Enmore River" ~ 2,
+                           location == "Percival River" ~ 2,
+                           location == "Bideford River - Green Park" ~ 3,
+                           location == "Bideford River - Old Wharf" ~ 3,
+                           location == "Bideford River - Paugh's Creek" ~ 3,
+                           location == "Bideford River - Station" ~ 3,
+                           location == "Bentick Cove" ~ 3,
+                           location == "Grand River" ~ 3,
+                           location == "Darnley Basin" ~ 3,
+                           location == "Dunk River" ~ 4,
+                           location == "Wilmot River" ~ 4,
+                           location == "Bedeque Bay" ~ 4,
+                           location == "East River - Cranberry Wharf" ~ 5,
+                           location == "East River - MacWilliams Seafood" ~ 5,
+                           location == "North River" ~ 5,
+                           location == "West River" ~ 5,
+                           location == "Orwell River" ~ 5,
+                           location == "Pownal Bay" ~ 5,
+                           location == "Vernon River" ~ 5
+                           ))
 
 # lets have a look at our work
 mon_clean %>% select(area, area_clean, location, location_clean) %>% distinct() %>% arrange(area, location)
