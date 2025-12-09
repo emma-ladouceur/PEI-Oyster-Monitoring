@@ -118,11 +118,11 @@ mon_clean %>% select(month,day) %>% distinct() %>% arrange(month, day) # june 20
 View( mon_clean %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day))
 summary(mon_clean)
 
-view(mon_clean)
+head(mon_clean)
 # take the max larvae above 250 microns for every location and year
 max_l <- mon_clean %>% group_by(location_clean, f_year) %>% # group by location and year
   filter( larvae_above_250_microns == max(larvae_above_250_microns))  %>% # take max of larvae for each group specified above
-  select(location_clean, area, bay, f_year, n_year, month_day, larvae_above_250_microns, parsed_date, julian_date) %>% # select some columns
+  select(location_clean, area, bay, f_year, n_year, month_day, larvae_above_250_microns, parsed_date, julian_date, water_temp, salinity) %>% # select some columns
   # create numeric month day
   mutate(n_month_day = as.numeric(month_day))
 
@@ -181,12 +181,13 @@ max_l_dat %>% filter(larvae_above_250_microns == 0)
 print(max_l_dat %>% ungroup() %>% select(julian_date, parsed_date) %>% distinct() %>% arrange(julian_date), n=50)
 
 # we ask, how does timing of max oyster spat vary across time.....(for every area and location)
-# oyster_time <- brm( julian_date ~ n_year + (n_year | bay/location_clean ),
-#                     data = max_l_dat, iter = 5000, warmup = 1000, control = list(adapt_delta = 0.99))
+oyster_time <- brm( julian_date ~ n_year + (n_year | bay/location_clean ),
+                    data = max_l_dat, iter = 5000, warmup = 1000, control = list(adapt_delta = 0.99))
 
 
 save(oyster_time, file = "~/Model_fits/OMP/oyster_time.Rdata")
 load("~/Model_fits/OMP/oyster_time.Rdata")
+
 
 
 summary(oyster_time)
@@ -246,6 +247,21 @@ oyster_time_fig <- ggplot() +
   # guides(col = guide_legend(ncol = 9))
 
 oyster_time_fig
+
+# now we ask how does water temp affect oyster larvae > 250 microns
+oyster_temp <- brm( julian_date ~  water_temp * n_year  + (water_temp * n_year | bay/location_clean ) ,
+                    data = max_l_dat, iter = 5000, warmup = 1000, control = list(adapt_delta = 0.99))
+
+#Emma's paths
+save(oyster_temp, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_temp.Rdata")
+load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_temp.Rdata")
+
+summary(oyster_temp)
+pp_check(oyster_temp)
+conditional_effects(oyster_temp)
+
+
+
 
 
 

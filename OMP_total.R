@@ -24,20 +24,6 @@ mon_2025 <- read.csv("Oyster Monitoring Results (10)_2025.csv", header= TRUE)
 head(mon_2025)
 view(mon_2025)
 
-# # lets prep the data for plotting
-# mon_date_2013_2024 <- mon_2013_2024 %>% 
-#   # parse the date time
-#   mutate( parsed_date = parse_datetime(date_collected, format= "%m/%d/%Y")) %>% 
-#   # separate the column, don't remove the original
-#   separate(parsed_date, c("year", "month", "day"), sep = "-", remove = F) %>%
-#   # change year to factor
-#   mutate(f_year = as.factor(year)) %>%
-#   # unite month and day back together
-#   unite("month_day", month:day, remove= F, sep="") %>% mutate( n_month_day = as.numeric(month_day)) %>%
-#   # create a numeric year and location clean as a factor
-#   mutate(n_year = as.numeric(year)) %>% #mutate(location_clean = as.factor(location_clean)) %>%
-#   # mutate( x. = as.Date(parsed_date)) %>% 
-#   mutate( julian_date = yday(parsed_date))
 
 # lets prep the data for plotting
 mon_date_2025 <- mon_2025 %>% 
@@ -104,9 +90,21 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Orwell River" ~ "Hillsborough",
                            location_clean == "Pownal Bay" ~ "Hillsborough",
                            location_clean == "Vernon River" ~ "Hillsborough",
-                           TRUE ~ location_clean))
+                           TRUE ~ location_clean)) %>%
+  mutate(larvae_size = as.factor(larvae_size)) %>%
+  #see below line 101, I have got you started here
+  mutate( larvae_size_clean = case_when( larvae_size == "80*-150" ~ "80-150",
+                                         larvae_size == "95-350" ~ "100-350"
+                           TRUE ~ larvae_size)) %>%
 
 # lets have a look at our work
+mon_clean %>% select(larvae_size) %>% distinct()
+# need to clean column larval_size and put larval sizes into 3-5 groups
+# what will you classes be?
+# ask jesse: what are the size groups thta make sense? what is a size group of zero? (or maybe you know)
+
+
+
 mon_clean %>% select( location_clean, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
 
 # look at the headers (top 6 rows)
@@ -117,6 +115,15 @@ mon_clean %>% select(year) %>% distinct()
 mon_clean %>% select(month,day) %>% distinct() %>% arrange(month, day) # june 20 - sept 11
 View( mon_clean %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day))
 summary(mon_clean)
+head(mon_clean)
 
 
+larvae_size_mod <- brm( larvae_total ~ water_temp * larvae_size  + (water_temp * larvae_size | bay/location_clean ) + (1 | julian_date/f_year),
+                         data = mon_clean , family = lognormal,  iter = 4000, warmup = 1000, control = list(adapt_delta = 0.99))
+
+save(larvae_size_mod, file = '~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/larvae_size_mod.Rdata')
+load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/larvae_size_mod.Rdata") 
+
+pp_check(larvae_size_mod)
+conditional_effects(larvae_size_mod)
 

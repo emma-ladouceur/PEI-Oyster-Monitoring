@@ -70,13 +70,23 @@ head(av_temp)
 growth <- gather_gr %>%
   filter( stage != "Temp") %>%
   left_join(av_temp, by= c("Year", "location")) %>%
-  rename( reading_datetime = Year,
+  rename( year = Year,
           name = location,
           growth_rate_mm_per_day = growth_rate) %>%
-  select( reading_datetime, stage, name, growth_rate_mm_per_day, average_temp)
+  select( year, stage, name, growth_rate_mm_per_day, average_temp)
 
 View(growth)
+head(growth)
 
+growth_rates_mod <- brm( growth_rate_mm_per_day ~ average_temp * stage  + (average_temp * stage | name ) + (year),
+                         data = growth , family = lognormal,  iter = 4000, warmup = 1000, control = list(adapt_delta = 0.99))
+
+save(growth_rates_mod, file = '~/Dropbox/_Projects/PEI Oysters/Model_fits/Growth/growth_rates_mod.Rdata')
+load("~/Dropbox/_Projects/PEI Oysters/Model_fits/Growth/growth_rates_mod.Rdata") 
+
+summary(growth_rates_mod)
+pp_check(growth_rates_mod)
+conditional_effects(growth_rates_mod)
 
 
 
