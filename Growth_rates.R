@@ -56,28 +56,28 @@ head(gather_gr)
 View(gather_gr)
 gather_gr %>% select(variable) %>% distinct()
 
+av_temp <- gather_gr %>% 
+  filter( stage == "Temp") %>%
+  select(Year, location, stage, growth_rate) %>%
+  rename( average_temp = growth_rate) %>%
+  select(-c(stage))%>%
+  distinct() %>%
+  arrange(Year, location)
+
+head(av_temp)
 
 
-head(gr_dat)
-gr_dat %>% select(location) %>% distinct()
+growth <- gather_gr %>%
+  filter( stage != "Temp") %>%
+  left_join(av_temp, by= c("Year", "location")) %>%
+  rename( reading_datetime = Year,
+          name = location,
+          growth_rate_mm_per_day = growth_rate) %>%
+  select( reading_datetime, stage, name, growth_rate_mm_per_day, average_temp)
+
+View(growth)
 
 
-# clean it up
-area_locations <- growth %>% 
-  # use case when to change
-  mutate( area = case_when( name == "Bideford River" ~ 3,
-                            name == "Foxley River - Gibb's Creek" ~ 1,
-                            name == "Foxley River - Lot 6 Point" ~ 1,
-                            name == "Foxley River - Portage" ~ 1,
-                            name == "Foxley River - Roxbury" ~ 1,
-                            name == "Orwell River" ~ 7,
-                            name == "Percival River" ~ 7,
-                            name == "Savage Harbour" ~ 8,
-                            name == "Souris River" ~ 9,
-                            name == "Rustico Bay" ~ 8,
-                            )) %>%
- separate( reading_datetime, c( "date", "time" ) , sep = " " , remove = F) %>%
-  mutate( parsed_date = parse_datetime(date, format= "%m/%d/%Y")) %>% 
-  separate(parsed_date, c("year", "month", "day"), sep = "-", remove = F)
 
-head(area_locations)
+
+
