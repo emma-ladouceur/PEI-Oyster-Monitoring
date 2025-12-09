@@ -17,51 +17,46 @@ colnames(growth_rates)
 gather_gr <- growth_rates %>% select(-c(`...1`, `...43`, `...44`)) %>% 
   slice(-1) %>%
   mutate(across(2:41, as.numeric)) %>%
-pivot_longer(
+  rename_with(
+    ~ case_when(
+      .x == "Average Temp...6"  ~ "Portage Temp",
+      .x == "Average Temp...10" ~ "Lot 6 Pt Temp",
+      .x == "Average Temp...14" ~ "Dump Rd Temp",
+      .x == "Average Temp...18" ~ "Gibb's Creek Temp",
+      .x == "Average Temp...22" ~ "Bideford Temp",
+      .x == "Average Temp...26" ~ "Percival Temp",
+      .x == "Average Temp...30" ~ "Savage Temp",
+      .x == "Average Temp...34" ~ "Orwell Temp",
+      .x == "Average Temp...38" ~ "Souris Temp",
+      .x == "Average Temp...42" ~ "Rustico Temp",
+      TRUE ~ .x                 # keep original name if no match
+    )
+  ) %>% pivot_longer(
   cols = 2:41,
+  #cols = -matches("temp"),
   names_to = "variable",
   values_to = "value"
-)   
+)   %>% mutate(
+  stage = case_when(
+    str_detect(variable, "Seed") ~ "Seed",
+    str_detect(variable, "seed") ~ "Seed",
+    str_detect(variable, "1yr")  ~ "1-year",
+    str_detect(variable, "2yr")  ~ "2-year",
+    str_detect(variable, "Temp")  ~ "Temp",
+    TRUE ~ NA_character_
+  ),
+  stage = factor(stage, levels = c("Seed", "1-year", "2-year", "Temp")),
+  # remove those substrings from `variable`
+  variable = str_remove_all(variable, " Seed| seed| 1yr| 2yr| Temp|")
+) %>% mutate(location = variable, growth_rate = value) %>% select(-c(variable, value)) 
+
+
 
 head(gather_gr)
+View(gather_gr)
 gather_gr %>% select(variable) %>% distinct()
 
 
-av_temp <- gather_gr %>% filter(str_detect(variable, "Temp")) %>%
-  mutate(av_temp = value) %>%
-  mutate(
-    location = case_when(
-      variable == "Average Temp...6" ~ "Portage",
-      variable == "Average Temp...10" ~ "Lot 6 Pt",
-      variable == "Average Temp...14" ~ "Dump Rd",
-      variable == "Average Temp...18" ~ "AnotherSite",
-      variable == "Average Temp...22" ~ "AnotherSite",
-      variable == "Average Temp...26" ~ "AnotherSite",
-      variable == "Average Temp...30" ~ "AnotherSite",
-      variable == "Average Temp...34" ~ "AnotherSite",
-      variable == "Average Temp...38" ~ "AnotherSite",
-      variable == "Average Temp...42" ~ "AnotherSite",
-      TRUE ~ "Unknown"
-    ),
-    location = factor(location, levels = c("Portage", "AnotherSite", "Unknown"))
-  )
-
-head(av_temp)
-av_temp %>% select(variable) %>% distinct()
-
-gr_dat <- gather_gr %>% filter(!str_detect(variable, "Temp")) %>%
-  mutate(
-    stage = case_when(
-      str_detect(variable, "seed") ~ "Seed",
-      str_detect(variable, "1yr")  ~ "1-year",
-      str_detect(variable, "2yr")  ~ "2-year",
-      TRUE ~ NA_character_
-    ),
-    stage = factor(stage, levels = c("Seed", "1-year", "2-year")),
-    
-    # remove those substrings from `variable`
-    variable = str_remove_all(variable, " seed| 1yr| 2yr")
-  ) %>% mutate(location = variable, growth_rate= value) %>% select(-c(variable, value)) 
 
 head(gr_dat)
 gr_dat %>% select(location) %>% distinct()
