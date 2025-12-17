@@ -80,12 +80,13 @@ mon_clean <- mon_date_2025 %>%
                                       location == "Rustico" ~ "Rustico Bay",
                                       TRUE ~ location)) %>%
   
-  # my take on numeric area IDs (locations are grouped according to what Bay they flow into)
+  # locations are grouped according to what Bay they flow into
   mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec Bay",
                            location_clean == "Foxley River - Goff Bridge" ~ "Cascumpec Bay",
                            location_clean == "Foxley River - Lot 6 Pt." ~ "Cascumpec Bay",
                            location_clean == "Kildare River" ~ "Cascumpec Bay",
                            location_clean == "Montrose Bridge" ~ "Cascumpec Bay",
+                           location_clean == "Mill River" ~ "Cascumpec Bay",
                            location_clean == "Enmore River" ~ "Egmont Bay",
                            location_clean == "Percival River" ~ "Egmont Bay",
                            location_clean == "Bideford River - Green Park" ~ "Malpeque Bay",
@@ -120,10 +121,22 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Savage Harbour" ~ "Savage Harbour",
                            location_clean == "Dock River" ~ "Savage Harbour",
                            location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
+                           location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean))
 
+mon_clean %>% count(bay)
+
+# collapsing bays into counties / regions
+mon_clean <- mon_clean %>%
+mutate( county = case_when( bay %in% c("Cascumpec Bay", "Egmont Bay", "Malpeque Bay", "Bedeque Bay", "New London Bay") ~ "Prince County (West PEI)",
+                            bay %in% c("Hillsborough Bay", "Rustico Bay", "Brackley Bay", "Tracadie Bay", "Clarks Bay") ~ "Queens County (Central PEI)",
+                            bay %in% c("St. Peters Bay", "Cardigan Bay", "North Lake", "Colville Bay", "Savage Harbour") ~ "Kings County (East PEI)",
+                            TRUE ~ "Other"))
+
+mon_clean %>% count(county)
+
 # lets have a look at our work
-mon_clean %>% select( location_clean, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
+mon_clean %>% select( location_clean, county, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
 
 # look at the headers (top 6 rows)
 head(mon_clean)
