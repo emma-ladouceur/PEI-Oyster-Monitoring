@@ -24,20 +24,6 @@ mon_2025 <- read.csv("Oyster Monitoring Results (10)_2025.csv", header= TRUE)
 head(mon_2025)
 view(mon_2025)
 
-# # lets prep the data for plotting
-# mon_date_2013_2024 <- mon_2013_2024 %>% 
-#   # parse the date time
-#   mutate( parsed_date = parse_datetime(date_collected, format= "%m/%d/%Y")) %>% 
-#   # separate the column, don't remove the original
-#   separate(parsed_date, c("year", "month", "day"), sep = "-", remove = F) %>%
-#   # change year to factor
-#   mutate(f_year = as.factor(year)) %>%
-#   # unite month and day back together
-#   unite("month_day", month:day, remove= F, sep="") %>% mutate( n_month_day = as.numeric(month_day)) %>%
-#   # create a numeric year and location clean as a factor
-#   mutate(n_year = as.numeric(year)) %>% #mutate(location_clean = as.factor(location_clean)) %>%
-#   # mutate( x. = as.Date(parsed_date)) %>% 
-#   mutate( julian_date = yday(parsed_date))
 
 # lets prep the data for plotting
 mon_date_2025 <- mon_2025 %>% 
@@ -79,6 +65,7 @@ mon_clean <- mon_date_2025 %>%
                                       location == "Bideford - Station" ~ "Bideford River - Station",
                                       location == "Rustico" ~ "Rustico Bay",
                                       TRUE ~ location)) %>%
+<<<<<<< HEAD
   
   # locations are grouped according to what Bay they flow into
   mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec Bay",
@@ -123,6 +110,39 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean))
+=======
+  # my take on numeric area IDs (locations are grouped according to what Bay they flow into)
+  mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec",
+                           location_clean == "Foxley River - Goff Bridge" ~ "Cascumpec",
+                           location_clean == "Foxley River - Lot 6 Pt." ~ "Cascumpec",
+                           location_clean == "Kildare River" ~ "Cascumpec",
+                           location_clean == "Montrose Bridge" ~ "Cascumpec",
+                           location_clean == "Enmore River" ~ "Egmont",
+                           location_clean == "Percival River" ~ "Egmont",
+                           location_clean == "Bideford River - Green Park" ~ "Malpeque",
+                           location_clean == "Bideford River - Old Wharf" ~ "Malpeque",
+                           location_clean == "Bideford River - Paugh's Creek" ~ "Malpeque",
+                           location_clean == "Bideford River - Station" ~ "Malpeque",
+                           location_clean == "Bentick Cove" ~ "Malpeque",
+                           location_clean == "Grand River" ~ "Malpeque",
+                           location_clean == "Darnley Basin" ~ "Malpeque",
+                           location_clean == "Dunk River" ~ "Bedeque",
+                           location_clean == "Wilmot River" ~ "Bedeque",
+                           location_clean == "Bedeque Bay" ~ "Bedeque",
+                           location_clean == "East River - Cranberry Wharf" ~ "Hillsborough",
+                           location_clean == "East River - MacWilliams Seafood" ~ "Hillsborough",
+                           location_clean == "North River" ~ "Hillsborough",
+                           location_clean == "West River" ~ "Hillsborough",
+                           location_clean == "Orwell River" ~ "Hillsborough",
+                           location_clean == "Pownal Bay" ~ "Hillsborough",
+                           location_clean == "Vernon River" ~ "Hillsborough",
+                           TRUE ~ location_clean)) %>%
+  mutate(larvae_size = as.factor(larvae_size)) %>%
+  #see below line 101, I have got you started here
+  mutate( larvae_size_clean = case_when( larvae_size == "80*-150" ~ "80-150",
+                                         larvae_size == "95-350" ~ "100-350"
+                           TRUE ~ larvae_size)) %>%
+>>>>>>> 31c8db2981956776825c0fe415231cfc8a5be3a7
 
 mon_clean %>% count(bay)
 
@@ -134,7 +154,18 @@ mutate( county = case_when( bay %in% c("Cascumpec Bay", "Egmont Bay", "Malpeque 
                             TRUE ~ "Other"))
 
 # lets have a look at our work
+<<<<<<< HEAD
 mon_clean %>% select( location_clean, county, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
+=======
+mon_clean %>% select(larvae_size) %>% distinct()
+# need to clean column larval_size and put larval sizes into 3-5 groups
+# what will you classes be?
+# ask jesse: what are the size groups thta make sense? what is a size group of zero? (or maybe you know)
+
+
+
+mon_clean %>% select( location_clean, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
+>>>>>>> 31c8db2981956776825c0fe415231cfc8a5be3a7
 
 # look at the headers (top 6 rows)
 head(mon_clean)
@@ -144,6 +175,15 @@ mon_clean %>% select(year) %>% distinct()
 mon_clean %>% select(month,day) %>% distinct() %>% arrange(month, day) # june 20 - sept 11
 View( mon_clean %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day))
 summary(mon_clean)
+head(mon_clean)
 
 
+larvae_size_mod <- brm( larvae_total ~ water_temp * larvae_size  + (water_temp * larvae_size | bay/location_clean ) + (1 | julian_date/f_year),
+                         data = mon_clean , family = lognormal,  iter = 4000, warmup = 1000, control = list(adapt_delta = 0.99))
+
+save(larvae_size_mod, file = '~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/larvae_size_mod.Rdata')
+load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/larvae_size_mod.Rdata") 
+
+pp_check(larvae_size_mod)
+conditional_effects(larvae_size_mod)
 
