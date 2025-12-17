@@ -136,13 +136,23 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Pownal Bay" ~ "Hillsborough",
                            location_clean == "Vernon River" ~ "Hillsborough",
                            TRUE ~ location_clean)) %>%
-  mutate(larvae_size = as.factor(larvae_size)) %>%
+  
+  mon_clean %>% count(bay)
+
+# zeros are not true zeros, change to NA
+mon_clean <- mon_clean %>%  
+  mutate(larvae_size = as.character(larvae_size),
+         larvae_size = na_if(larvae_size, "0"))
+
+mon_clean <- mon_clean %>%
+   mutate(larvae_size = as.factor(larvae_size)) %>%
   #see below line 101, I have got you started here
   mutate( larvae_size_clean = case_when( larvae_size == "80*-150" ~ "80-150",
                                          larvae_size == "95-350" ~ "100-350",
-                           TRUE ~ larvae_size)) %>%
+                           TRUE ~ larvae_size))
 
-mon_clean %>% count(bay)
+view(mon_clean$larvae_size)
+   
 
 # collapsing bays into counties / regions
 mon_clean <- mon_clean %>%
