@@ -133,8 +133,6 @@ mutate( county = case_when( bay %in% c("Cascumpec Bay", "Egmont Bay", "Malpeque 
                             bay %in% c("St. Peters Bay", "Cardigan Bay", "North Lake", "Colville Bay", "Savage Harbour") ~ "Kings County (East PEI)",
                             TRUE ~ "Other"))
 
-mon_clean %>% count(county)
-
 # lets have a look at our work
 mon_clean %>% select( location_clean, county, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
 
