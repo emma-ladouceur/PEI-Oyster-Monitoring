@@ -65,7 +65,6 @@ mon_clean <- mon_date_2025 %>%
                                       location == "Bideford - Station" ~ "Bideford River - Station",
                                       location == "Rustico" ~ "Rustico Bay",
                                       TRUE ~ location)) %>%
-<<<<<<< HEAD
   
   # locations are grouped according to what Bay they flow into
   mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec Bay",
@@ -109,9 +108,9 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Dock River" ~ "Savage Harbour",
                            location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
-                           TRUE ~ location_clean))
-=======
-  # my take on numeric area IDs (locations are grouped according to what Bay they flow into)
+                           TRUE ~ location_clean)) %>%
+
+  # locations are grouped according to what Bay they flow into
   mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec",
                            location_clean == "Foxley River - Goff Bridge" ~ "Cascumpec",
                            location_clean == "Foxley River - Lot 6 Pt." ~ "Cascumpec",
@@ -140,9 +139,8 @@ mon_clean <- mon_date_2025 %>%
   mutate(larvae_size = as.factor(larvae_size)) %>%
   #see below line 101, I have got you started here
   mutate( larvae_size_clean = case_when( larvae_size == "80*-150" ~ "80-150",
-                                         larvae_size == "95-350" ~ "100-350"
+                                         larvae_size == "95-350" ~ "100-350",
                            TRUE ~ larvae_size)) %>%
->>>>>>> 31c8db2981956776825c0fe415231cfc8a5be3a7
 
 mon_clean %>% count(bay)
 
@@ -154,9 +152,7 @@ mutate( county = case_when( bay %in% c("Cascumpec Bay", "Egmont Bay", "Malpeque 
                             TRUE ~ "Other"))
 
 # lets have a look at our work
-<<<<<<< HEAD
 mon_clean %>% select( location_clean, county, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
-=======
 mon_clean %>% select(larvae_size) %>% distinct()
 # need to clean column larval_size and put larval sizes into 3-5 groups
 # what will you classes be?
@@ -165,7 +161,6 @@ mon_clean %>% select(larvae_size) %>% distinct()
 
 
 mon_clean %>% select( location_clean, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
->>>>>>> 31c8db2981956776825c0fe415231cfc8a5be3a7
 
 # look at the headers (top 6 rows)
 head(mon_clean)
