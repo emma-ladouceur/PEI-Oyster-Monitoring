@@ -22,6 +22,7 @@ con_2024 <- read_excel("Growth 2024 conditiona;.xlsx")
 
 # load dataset you want
 con_2025 <- read.csv("Growth 2025 conditional oyster data.xlsx", header= TRUE)
+con_2024 <- read.csv("Growth 2024 conditiona;.xlsx", header= TRUE)
 
 head(con_2025)
 summary(con_2025)
