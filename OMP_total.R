@@ -148,7 +148,16 @@ mon_clean <- mon_clean %>%
    mutate(larvae_size = as.factor(larvae_size)) %>%
   #see below line 101, I have got you started here
   mutate( larvae_size_clean = case_when( larvae_size == "80*-150" ~ "80-150",
-                                         larvae_size == "95-350" ~ "100-350",
+                                         larvae_size == "100-120/260-280" ~ "100-280",
+                                         larvae_size == "90-120, 260-290" ~ "20-290",
+                                         larvae_size == "664" ~ "0",
+                                         larvae_size == "90-120,270-300" ~ "90-300",
+                                         larvae_size == "90-140,280-300" ~ "90-300",
+                                         larvae_size == "100-140, 320" ~ "100-320",
+                                         larvae_size == "90-130, 250-300" ~ "30-300",
+                                         larvae_size == "100-110/280-300" ~ "100-300",
+                                         larvae_size == "90-130, 250-300" ~ "90-300",
+                                         larvae_size == "90-120, 250-330" ~ "90-330",
                            TRUE ~ larvae_size))
 
 view(mon_clean$larvae_size)
