@@ -109,33 +109,6 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean)) %>%
-
-  # locations are grouped according to what Bay they flow into
-  mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec",
-                           location_clean == "Foxley River - Goff Bridge" ~ "Cascumpec",
-                           location_clean == "Foxley River - Lot 6 Pt." ~ "Cascumpec",
-                           location_clean == "Kildare River" ~ "Cascumpec",
-                           location_clean == "Montrose Bridge" ~ "Cascumpec",
-                           location_clean == "Enmore River" ~ "Egmont",
-                           location_clean == "Percival River" ~ "Egmont",
-                           location_clean == "Bideford River - Green Park" ~ "Malpeque",
-                           location_clean == "Bideford River - Old Wharf" ~ "Malpeque",
-                           location_clean == "Bideford River - Paugh's Creek" ~ "Malpeque",
-                           location_clean == "Bideford River - Station" ~ "Malpeque",
-                           location_clean == "Bentick Cove" ~ "Malpeque",
-                           location_clean == "Grand River" ~ "Malpeque",
-                           location_clean == "Darnley Basin" ~ "Malpeque",
-                           location_clean == "Dunk River" ~ "Bedeque",
-                           location_clean == "Wilmot River" ~ "Bedeque",
-                           location_clean == "Bedeque Bay" ~ "Bedeque",
-                           location_clean == "East River - Cranberry Wharf" ~ "Hillsborough",
-                           location_clean == "East River - MacWilliams Seafood" ~ "Hillsborough",
-                           location_clean == "North River" ~ "Hillsborough",
-                           location_clean == "West River" ~ "Hillsborough",
-                           location_clean == "Orwell River" ~ "Hillsborough",
-                           location_clean == "Pownal Bay" ~ "Hillsborough",
-                           location_clean == "Vernon River" ~ "Hillsborough",
-                           TRUE ~ location_clean)) %>%
   
   mon_clean %>% count(bay)
 
@@ -162,7 +135,6 @@ mon_clean <- mon_clean %>%
 
 view(mon_clean$larvae_size)
    
-
 # collapsing bays into counties / regions
 mon_clean <- mon_clean %>%
 mutate( county = case_when( bay %in% c("Cascumpec Bay", "Egmont Bay", "Malpeque Bay", "Bedeque Bay", "New London Bay") ~ "Prince County (West PEI)",
