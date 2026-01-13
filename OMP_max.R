@@ -78,6 +78,8 @@ mon_clean <- mon_date_2025 %>%
                                       location == "Bideford - Paugh's Creek" ~ "Bideford River - Paugh's Creek",
                                       location == "Bideford - Station" ~ "Bideford River - Station",
                                       location == "Rustico" ~ "Rustico Bay",
+                                      location == "Oyster Bed Bridge" ~ "Rustico Bay",
+                                      location == "Kildare River" ~ "Montrose Bridge",
                                                           TRUE ~ location)) %>%
 # my take on numeric area IDs (locations are grouped according to what Bay they flow into)
 mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec",
@@ -255,6 +257,10 @@ oyster_temp <- brm( julian_date ~  water_temp * n_year  + (water_temp * n_year |
 #Emma's paths
 save(oyster_temp, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_temp.Rdata")
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_temp.Rdata")
+
+#Maddy's path
+save(oyster_temp, file = "~/Model_fits/OMP/oyster_temp.Rdata")
+load("~/Model_fits/OMP/oyster_temp.Rdata")
 
 summary(oyster_temp)
 pp_check(oyster_temp)
