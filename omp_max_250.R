@@ -65,8 +65,8 @@ max_temp_time_sal <- brm(
 )
 
 # Emma's paths
-save(max_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/max_temp_time_sal.Rdata")
-load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/max_temp_time_sal.Rdata")
+save(max_temp_time_sal, file = "~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
+load("~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
 
 # sanity checks 
 summary(max_temp_time_sal)

@@ -103,10 +103,10 @@ mon_clean %>% filter(water_temp == 247.00)
 colnames(mon_clean)
 
 bay_list <- mon_clean %>% select(bay, location_clean) %>% distinct() %>% arrange(bay, location_clean)
-write.csv(bay_list, "~/Dropbox/_Projects/PEI Oysters/Data/OMP/bay_list.csv", row.names = FALSE)
+write.csv(bay_list, "~/Data/OMP/bay_list.csv", row.names = FALSE)
 
 
-write.csv(mon_clean, "~/Dropbox/_Projects/PEI Oysters/Data/OMP/OMP_clean_2025.csv", row.names = FALSE)
+write.csv(mon_clean, "~/Data/OMP/OMP_clean_2025.csv", row.names = FALSE)
 
 
 
