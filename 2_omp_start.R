@@ -74,6 +74,7 @@ head(m2_first_l_dat)
 # Emma's paths
 #save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
 load("~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
+#load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/start_temp_time_sal.Rdata")
 
 summary(start_temp_time_sal)
 pp_check(start_temp_time_sal)
@@ -494,18 +495,20 @@ m2_first_fig1_spag + m2_first_fig_intercepts_mean
 # wouldn't run 
 # 10a) Draw-wise slopes per year and salinity
 m2_first_draw_slopes <- m2_first_ep2_long %>%
+  select(.draw, n_year, sal_label, water_temp, epred) %>%
   group_by(.draw, n_year, sal_label) %>%
   summarise(
-    # slope of epred (Julian day) vs water_temp (°C)
-    slope = {
-      wt <- water_temp
-      yy <- epred
-      if (dplyr::n() < 2 || sd(wt, na.rm = TRUE) == 0) NA_real_
-      else coef(lm(yy ~ wt))[["wt"]]
-    },
+    n_pts    = n_distinct(water_temp),
+    wt_var   = var(water_temp, na.rm = TRUE),
+    wt_mean  = mean(water_temp, na.rm = TRUE),
+    yy_mean  = mean(epred,     na.rm = TRUE),
+    wt_yy_cov = mean((water_temp - wt_mean) * (epred - yy_mean), na.rm = TRUE),
+    slope = wt_yy_cov / wt_var,
     .groups = "drop"
   ) %>%
-  filter(!is.na(slope))
+  filter(n_pts >= 2, wt_var > 0, is.finite(slope)) %>%
+  select(.draw, n_year, sal_label, slope)
+
 
 # 10b) Summarise slopes across draws: mean + 50% and 90% CrI
 m2_first_slope_summ <- m2_first_draw_slopes %>%
