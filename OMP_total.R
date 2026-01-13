@@ -64,6 +64,8 @@ mon_clean <- mon_date_2025 %>%
                                       location == "Bideford - Paugh's Creek" ~ "Bideford River - Paugh's Creek",
                                       location == "Bideford - Station" ~ "Bideford River - Station",
                                       location == "Rustico" ~ "Rustico Bay",
+                                      location == "Oyster Bed Bridge" ~ "Rustico Bay",
+                                      location == "Kildare River" ~ "Montrose Bridge",
                                       TRUE ~ location)) %>%
   
   # locations are grouped according to what Bay they flow into
