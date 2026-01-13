@@ -491,6 +491,7 @@ m2_first_fig1_spag + m2_first_fig_intercepts_mean
 #   Slopes are on the response scale: "days change in phenology per 1°C".
 # ------------------------------------------------------------
 
+# wouldn't run 
 # 10a) Draw-wise slopes per year and salinity
 m2_first_draw_slopes <- m2_first_ep2_long %>%
   group_by(.draw, n_year, sal_label) %>%
