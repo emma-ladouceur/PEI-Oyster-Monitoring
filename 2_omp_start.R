@@ -76,8 +76,23 @@ head(m2_first_l_dat)
 load("~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
 #load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/start_temp_time_sal.Rdata")
 
+# Maddy's path
+#save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
+load("~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
+
+
 summary(start_temp_time_sal)
 pp_check(start_temp_time_sal)
+
+color_scheme_set("darkgray")
+fig_pp_start <- pp_check(start_temp_time_sal) +   
+  xlab( "Julian date") + ylab("Density") + 
+  ggtitle('Date of start oyster larvae (Julian date)')+
+  labs(subtitle= "a)")+
+  theme_classic() +  theme( plot.title=element_text(size=18, hjust=0.5), legend.position= "none")# predicted vs. observed values
+fig_pp_start
+
+
 conditional_effects(start_temp_time_sal)
 # ============================================================
 # FIGURE WORKFLOW FOR start_temp_time_sal 

@@ -89,12 +89,13 @@ m3_dat <- m3_first %>%
 # ------------------------------------------------------------
 
 # oyster_first_last <- brm(
-#   diff_first_last ~ n_year.m + (n_year.m | bay/location_clean),
+#   diff_first_last ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + water_temp.m * n_year.m || bay/location_clean),
 #   data    = m3_dat,
 #   iter    = 5000,
 #   warmup  = 1000,
 #   family  = student(), #or gaussian
-#   control = list(adapt_delta = 0.99)
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
 # )
 
 save(oyster_first_last, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")

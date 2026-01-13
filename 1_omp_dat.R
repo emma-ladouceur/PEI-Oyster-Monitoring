@@ -1,3 +1,6 @@
+# how to clean your global environment
+rm(list = ls())
+
 
 # testing out git with students!
 library(tidyverse)

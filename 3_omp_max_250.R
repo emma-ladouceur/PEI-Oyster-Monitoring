@@ -52,20 +52,24 @@ view(m1_max_l_dat)
 # ============================================================
 # MODEL 1 (MAX larvae >250 µm): 
 # ============================================================
-
-# --- Fit model (keep these names exactly as requested) ---
-max_temp_time_sal <- brm( 
-  julian_date ~ water_temp.m * n_year.m * salinity.m +
-    (1 + water_temp.m * n_year.m || bay/location_clean),
-  data    = m1_max_l_dat,   
-  iter    = 5000,
-  warmup  = 1000,
-  family  = gaussian(),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# 
+# # --- Fit model (keep these names exactly as requested) ---
+# max_temp_time_sal <- brm( 
+#   julian_date ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + water_temp.m * n_year.m || bay/location_clean),
+#   data    = m1_max_l_dat,   
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = gaussian(),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 # Emma's paths
 save(max_temp_time_sal, file = "~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
+load("~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
+
+# Maddy's path
+#save(max_temp_time_sal, file = "~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
 load("~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
 
 # sanity checks 
@@ -75,12 +79,15 @@ conditional_effects(max_temp_time_sal)
 pp_check(max_temp_time_sal)
 
 color_scheme_set("darkgray")
-fig_s <- pp_check(max_temp_time_sal) +   
+fig_pp_max <- pp_check(max_temp_time_sal) +   
   xlab( "Julian date") + ylab("Density") + 
   ggtitle('Date of max oyster larvae \n> 250 μm (Julian date)')+
-  labs(subtitle= "a)")+
+  labs(subtitle= "b)")+
   theme_classic() +  theme( plot.title=element_text(size=18, hjust=0.5), legend.position= "none")# predicted vs. observed values
-fig_s
+fig_pp_max
+
+#patchwork
+fig_pp_start + fig_pp_max
 
 # ============================================================
 # FIGURE WORKFLOW FOR max_temp_time_sal
