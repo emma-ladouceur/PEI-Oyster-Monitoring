@@ -49,7 +49,7 @@ m2_first_l_dat <- m2_first_l %>%
   ) %>%
   group_by(bay) %>%
   mutate(
-    water_temp.m = water_temp - mean(water_temp, na.rm = TRUE),
+    water_temp.m = water_temp - mean(water_temp, na.rm = TRUE), #centering variables, to standarduze your data (no bias)
     salinity.m   = salinity   - mean(salinity,   na.rm = TRUE),
     n_year.m     = n_year     - mean(n_year,     na.rm = TRUE)
   )
@@ -60,20 +60,20 @@ head(m2_first_l_dat)
 # ------------------------------------------------------------
 # B) Fit model (KEEP THIS NAME)
 # ------------------------------------------------------------
-
-start_temp_time_sal <- brm(
-  julian_date ~ water_temp.m * n_year.m * salinity.m +
-    (1 + water_temp.m * n_year.m || bay/location_clean),
-  data    = m2_first_l_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = gaussian(),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# 
+# start_temp_time_sal <- brm(
+#   julian_date ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + water_temp.m * n_year.m || bay/location_clean),
+#   data    = m2_first_l_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = gaussian(),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 # Emma's paths
-save(start_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/start_temp_time_sal.Rdata")
-load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/start_temp_time_sal.Rdata")
+#save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
+load("~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
 
 summary(start_temp_time_sal)
 pp_check(start_temp_time_sal)

@@ -1,4 +1,5 @@
 
+
 # testing out git with students!
 library(tidyverse)
 library(ggplot2)
@@ -6,8 +7,6 @@ library(viridis)
 library(lubridate)
 library(brms)
 library(patchwork)
-library(tidybayes)
-
 
 
 # set your own personal working directory below
@@ -40,7 +39,6 @@ mon_date_2025 <- mon_2025 %>%
   mutate(n_year = as.numeric(year)) %>% #mutate(location_clean = as.factor(location_clean)) %>%
   # mutate( x. = as.Date(parsed_date)) %>% 
   mutate( julian_date = yday(parsed_date))
-
 head(mon_date_2025)
 mon_date_2025 %>% select(f_year) %>% distinct()
 
@@ -113,23 +111,67 @@ mon_clean <- mon_date_2025 %>%
                            #location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean)) %>%
-  filter(water_temp != 722.00) %>% filter(water_temp != 99.90) %>% filter(water_temp != 247.00)
+  
+  mon_clean %>% count(bay)
 
-# any other crazy values?
+# zeros are not true zeros, change to NA
+mon_clean <- mon_clean %>%  
+  mutate(larvae_size = as.character(larvae_size),
+         larvae_size = na_if(larvae_size, "0"))
+
+mon_clean <- mon_clean %>%
+   mutate(larvae_size = as.factor(larvae_size)) %>%
+  #see below line 101, I have got you started here
+  mutate( larvae_size_clean = case_when( larvae_size == "80*-150" ~ "80-150",
+                                         larvae_size == "100-120/260-280" ~ "100-280",
+                                         larvae_size == "90-120, 260-290" ~ "20-290",
+                                         larvae_size == "664" ~ "0",
+                                         larvae_size == "90-120,270-300" ~ "90-300",
+                                         larvae_size == "90-140,280-300" ~ "90-300",
+                                         larvae_size == "100-140, 320" ~ "100-320",
+                                         larvae_size == "90-130, 250-300" ~ "30-300",
+                                         larvae_size == "100-110/280-300" ~ "100-300",
+                                         larvae_size == "90-130, 250-300" ~ "90-300",
+                                         larvae_size == "90-120, 250-330" ~ "90-330",
+                           TRUE ~ larvae_size))
+
+view(mon_clean$larvae_size)
+   
+# collapsing bays into counties / regions
+mon_clean <- mon_clean %>%
+mutate( county = case_when( bay %in% c("Cascumpec Bay", "Egmont Bay", "Malpeque Bay", "Bedeque Bay", "New London Bay") ~ "Prince County (West PEI)",
+                            bay %in% c("Hillsborough Bay", "Rustico Bay", "Brackley Bay", "Tracadie Bay", "Clarks Bay") ~ "Queens County (Central PEI)",
+                            bay %in% c("St. Peters Bay", "Cardigan Bay", "North Lake", "Colville Bay", "Savage Harbour") ~ "Kings County (East PEI)",
+                            TRUE ~ "Other"))
+
+# lets have a look at our work
+mon_clean %>% select( location_clean, county, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
+mon_clean %>% select(larvae_size) %>% distinct()
+# need to clean column larval_size and put larval sizes into 3-5 groups
+# what will you classes be?
+# ask jesse: what are the size groups thta make sense? what is a size group of zero? (or maybe you know)
+
+
+
+mon_clean %>% select( location_clean, bay, location, area) %>% distinct() %>% arrange( location_clean, area)
+
+# look at the headers (top 6 rows)
+head(mon_clean)
+
+# have a look at our timeline
+mon_clean %>% select(year) %>% distinct()
+mon_clean %>% select(month,day) %>% distinct() %>% arrange(month, day) # june 20 - sept 11
+View( mon_clean %>% select(year, month, day) %>% distinct() %>% arrange(year, month, day))
 summary(mon_clean)
-mon_clean %>% filter(water_temp == 722.00)
-mon_clean %>% filter(water_temp == 99.90)
-mon_clean %>% filter(water_temp == 247.00)
-colnames(mon_clean)
-
-bay_list <- mon_clean %>% select(bay, location_clean) %>% distinct() %>% arrange(bay, location_clean)
-write.csv(bay_list, "~/Data/OMP/bay_list.csv", row.names = FALSE)
-
-view(bay_list)
-
-write.csv(mon_clean, "~/Data/OMP/OMP_clean_2025.csv", row.names = FALSE)
+head(mon_clean)
 
 
+larvae_size_mod <- brm( larvae_total ~ water_temp * larvae_size  + (water_temp * larvae_size | bay/location_clean ) + (1 | julian_date/f_year),
+                         data = mon_clean , family = lognormal,  iter = 4000, warmup = 1000, control = list(adapt_delta = 0.99))
 
+save(larvae_size_mod, file = '~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/larvae_size_mod.Rdata')
+load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/larvae_size_mod.Rdata") 
 
+pp_check(larvae_size_mod)
+conditional_effects(larvae_size_mod)
 
