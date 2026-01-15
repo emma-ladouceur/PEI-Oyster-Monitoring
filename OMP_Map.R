@@ -48,10 +48,6 @@ points_sf <- st_as_sf(
 canada <- ne_states(country = "Canada", returnclass = "sf")
 pei <- canada[canada$name == "Prince Edward Island", ]
 
-ggplot(pei) +
-  geom_sf(fill = "gray95", color = "gray60") +
-  theme_minimal()
-
 
 # plot PEI map
 ggplot(pei) +
