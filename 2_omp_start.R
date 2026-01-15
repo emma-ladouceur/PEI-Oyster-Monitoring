@@ -1,4 +1,5 @@
-
+# how to clean your global environment
+rm(list = ls())
 
 
 # testing out git with students!
@@ -49,7 +50,7 @@ m2_first_l_dat <- m2_first_l %>%
   ) %>%
   group_by(bay) %>%
   mutate(
-    water_temp.m = water_temp - mean(water_temp, na.rm = TRUE), #centering variables, to standarduze your data (no bias)
+    water_temp.m = water_temp - mean(water_temp, na.rm = TRUE), #centering variables, to standardize your data (no bias)
     salinity.m   = salinity   - mean(salinity,   na.rm = TRUE),
     n_year.m     = n_year     - mean(n_year,     na.rm = TRUE)
   )
@@ -87,7 +88,7 @@ pp_check(start_temp_time_sal)
 color_scheme_set("darkgray")
 fig_pp_start <- pp_check(start_temp_time_sal) +   
   xlab( "Julian date") + ylab("Density") + 
-  ggtitle('Date of start oyster larvae (Julian date)')+
+  ggtitle('First date of oyster larvae (Julian date)')+
   labs(subtitle= "a)")+
   theme_classic() +  theme( plot.title=element_text(size=18, hjust=0.5), legend.position= "none")# predicted vs. observed values
 fig_pp_start
@@ -282,7 +283,7 @@ m2_first_fig1_mid_start <- ggplot(
   labs(
     x = "Surface water temperature (°C)",
     y = "Julian date (first event)",
-    subtitle = "a) Date of first oyster larvae > 250 μm"
+    subtitle = "a) Date of first oyster larvae (> 250 μm)"
   ) +
   # NOTE:
   # If you want the same calendar labels as the max-event figure,
@@ -507,7 +508,7 @@ m2_first_fig1_spag + m2_first_fig_intercepts_mean
 #   Slopes are on the response scale: "days change in phenology per 1°C".
 # ------------------------------------------------------------
 
-# wouldn't run 
+# yes it runs now
 # 10a) Draw-wise slopes per year and salinity
 m2_first_draw_slopes <- m2_first_ep2_long %>%
   select(.draw, n_year, sal_label, water_temp, epred) %>%

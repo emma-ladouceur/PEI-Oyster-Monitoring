@@ -1,7 +1,5 @@
-
-
-
-
+# how to clean your global environment
+rm(list = ls())
 
 
 library(tidyverse)
@@ -14,8 +12,6 @@ library(tidybayes)
 library(scales)
 
 
-
-
 # set your own personal working directory below
 # Emma MBP
 setwd("~/Dropbox/_Projects/PEI Oysters/Data/OMP")
@@ -25,7 +21,6 @@ setwd("~/Data/OMP/")
 
 omp_dat <- read.csv("OMP_clean_2025.csv", header= TRUE)
 head(omp_dat)
-
 
 
 l_total_dat <- omp_dat %>%  # create numeric month day
@@ -45,25 +40,35 @@ l_total_dat <- omp_dat %>%  # create numeric month day
 View(l_total_dat)
 summary(l_total_dat)
 
+# ==================================================
+# MODEL
+# ==================================================
+
 #inspect high values
  #l_total_dat %>% filter(water_temp == 722.00)
 # l_total_dat %>% filter(water_temp == 99.90)
 # l_total_dat %>% filter(water_temp == 34.00)
 
-ltotal_temp_time_sal <- brm(
-  larvae_total ~ water_temp.m * n_year.m * salinity.m +
-    (1 + n_year.m * water_temp.m  || bay/location_clean) + (1 | julian_date.m),
-  data    = l_total_dat,                
-  iter    = 5000,
-  warmup  = 1000,
-  family  = lognormal(),
-  #prior   = prior(normal(0, 0.5), class = "sigma", lb = 0),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# ltotal_temp_time_sal <- brm(
+#   larvae_total ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + n_year.m * water_temp.m  || bay/location_clean) + (1 | julian_date.m),
+#   data    = l_total_dat,                
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = lognormal(),
+#   #prior   = prior(normal(0, 0.5), class = "sigma", lb = 0),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
+
+# ================================================
 
 # Emma's paths
 save(ltotal_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
+
+# Maddy's path
+#save(ltotal_temp_time_sal, file = "~/Data/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
+load("~/Data/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
 
 
 summary(ltotal_temp_time_sal)
@@ -750,7 +755,7 @@ ltT_fig_time_temp_spag <- ggplot() +
     x = "Monitoring year",
     y = "Total oyster larvae",
     title = "Temporal trends vary with temperature (median salinity)",
-    subtitle = "Thin lines = filtered posterior draws; thick lines = posterior medians"
+    subtitle = "(a) Thin lines = filtered posterior draws; thick lines = posterior medians"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -809,7 +814,7 @@ ltT_fig_time_temp_slopes <- ggplot(
     x = NULL,
     y = "Slope (change in total larvae per year)",
     title = "Temporal trends strengthen with temperature (median salinity)",
-    subtitle = "Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+    subtitle = "(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
   ) +
   theme_bw(base_size = 18) +
   theme(

@@ -1,3 +1,5 @@
+# how to clean your global environment
+rm(list = ls())
 
 
 # testing out git with students!
@@ -89,7 +91,7 @@ m3_dat <- m3_first %>%
 # ------------------------------------------------------------
 
 
-#old model
+#old model - model we will keep
 # oyster_first_last <- brm(
 #   diff_first_last ~ n_year.m + (n_year.m | bay/location_clean),
 #   data    = m3_dat,
@@ -100,7 +102,7 @@ m3_dat <- m3_first %>%
 # )
 
 
-# possible new model
+# possible new model - will NOT use
 # oyster_first_last <- brm(
 #   diff_first_last ~ water_temp.m * n_year.m * salinity.m +
 #     (1 + water_temp.m * n_year.m || bay/location_clean),
@@ -111,12 +113,20 @@ m3_dat <- m3_first %>%
 #   control = list(adapt_delta = 0.999, max_treedepth = 20)
 # )
 
+
+# Emma's path
 save(oyster_first_last, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")
+
+# Maddy's path
+#save(oyster_first_last, file = "~/Data/Model_fits/OMP/oyster_first_last.Rdata")
+load("~/Data/Model_fits/OMP/oyster_first_last.Rdata")
+
 
 summary(oyster_first_last)
 pp_check(oyster_first_last)
 conditional_effects(oyster_first_last)
+
 # ============================================================
 # POPULATION + BAY TRENDS (NATURAL YEAR SCALE)
 # Model is fit on n_year.m, but we PLOT on n_year

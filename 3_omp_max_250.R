@@ -1,4 +1,5 @@
-
+# how to clean your global environment
+rm(list = ls())
 
 
 library(tidyverse)
@@ -280,7 +281,7 @@ m1_max_fig1_mid_max <- ggplot(
   scale_colour_viridis_d(option = "viridis", guide = "none") +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Date of max oyster larvae > 250 μm (Julian date)",
+    y = "Date of max oyster larvae > 250 μm",
     subtitle = "a) Date of maximum oyster larvae > 250 μm"
   ) +
   scale_y_continuous(
