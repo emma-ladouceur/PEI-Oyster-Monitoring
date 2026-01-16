@@ -93,6 +93,10 @@ fig_pp_start <- pp_check(start_temp_time_sal) +
   theme_classic() +  theme( plot.title=element_text(size=18, hjust=0.5), legend.position= "none")# predicted vs. observed values
 fig_pp_start
 
+# understanding the figure... density should mean concentration, so does this mean im looking at number of larvae in the water
+# divided by the amount of water filtered? should this axis perhaps read abundance?
+# overall, the figure shows us the distribution of our data
+# it tells us when oyster larvae are first detected during the season, and how many are present at that time
 
 conditional_effects(start_temp_time_sal)
 # ============================================================
@@ -255,6 +259,7 @@ m2_first_fig1_panel <- ggplot(
 
 m2_first_fig1_panel
 
+
 # ============================================================
 # 7) MEAN-SALINITY PANEL ONLY (FOR MAIN TEXT FIGURE)
 # ------------------------------------------------------------
@@ -282,8 +287,8 @@ m2_first_fig1_mid_start <- ggplot(
   scale_colour_viridis_d(option = "viridis", guide = "none") +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Julian date (first event)",
-    subtitle = "a) Date of first oyster larvae (> 250 μm)"
+    y = "Julian date",
+    subtitle = "a) Date of first detection of oyster larvae (> 250 μm)"
   ) +
   # NOTE:
   # If you want the same calendar labels as the max-event figure,
@@ -293,6 +298,10 @@ m2_first_fig1_mid_start <- ggplot(
   theme(panel.grid.minor = element_blank())
 
 m2_first_fig1_mid_start
+
+# what does this figure tell us?
+# under average salinity coniditions warmer surface temps are associated with an earlier appearance of oyster larvae above 250um
+# the strenght (slope) and timing of this relationships vary from year to year
 
 
 # ------------------------------------------------------------
@@ -374,8 +383,8 @@ m2_first_fig1_spag <- ggplot() +
   coord_cartesian() +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Julian date (first event)",
-    title = "Temperature–phenology relationships at mean salinity",
+    y = "Julian date",
+    title = "Temperature effects on first oyster larvae appearance above 250um at mean salinity",
     subtitle = "FIRST EVENT: thick lines = posterior means by year; spaghetti = posterior draws filtered to central 80% region"
   ) +
   theme_bw(base_size = 18) +
@@ -383,6 +392,9 @@ m2_first_fig1_spag <- ggplot() +
 
 m2_first_fig1_spag
 
+# what is this figure telling us?
+# same at part 7)
+# under average salinity coniditions warmer surface temps are associated with an earlier appearance of oyster larvae above 250um
 
 # ------------------------------------------------------------
 # 9) Intercepts-by-year (temperature-averaged)
@@ -469,10 +481,10 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", guide = "none") +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))) +
+  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Monitoring year",
-    y = "Julian date (first event)",
+    y = "Julian date",
     subtitle = "b) Date of first oyster larvae > 250 μm (Intercept; temp-averaged)"
   ) +
   scale_y_continuous(
