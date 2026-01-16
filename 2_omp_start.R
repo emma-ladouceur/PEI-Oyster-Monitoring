@@ -495,7 +495,8 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   ) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank()) +
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 m2_first_fig1_spag + m2_first_fig_intercepts_mean
@@ -574,7 +575,8 @@ m2_first_fig_slopes_3panel <- ggplot(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank()
-  )
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 m2_first_fig_slopes_3panel
 
@@ -591,14 +593,15 @@ m2_first_fig_slopes_mean <- m2_first_slope_summ %>%
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", guide = "none") +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))) +
+  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Monitoring year",
     y = "Temperature slope (days per °C)",
     subtitle = "c) Temperature sensitivity of first larvae date (Slope; temp effect within-year)"
   ) +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank()) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 # Example combo:
 m2_first_fig1_spag + m2_first_fig_intercepts_mean + m2_first_fig_slopes_mean
