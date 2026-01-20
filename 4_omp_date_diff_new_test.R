@@ -111,8 +111,13 @@ m3_dat <- m3_first %>%
 #   control = list(adapt_delta = 0.999, max_treedepth = 20)
 # )
 
+# EMma's path
 save(oyster_first_last, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")
+
+# Maddy's path
+#save(oyster_first_last, file = "~/Data/Model_fits/OMP/oyster_first_last.Rdata")
+load("~/Data/Model_fits/OMP/oyster_first_last.Rdata")
 
 summary(oyster_first_last)
 pp_check(oyster_first_last)
