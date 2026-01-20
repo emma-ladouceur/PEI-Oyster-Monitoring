@@ -457,7 +457,7 @@ m2_first_fig_intercepts_3panel <- ggplot(
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))) +
+  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Monitoring year",
     y = "Julian date (temperature-averaged, population-level)",
@@ -469,7 +469,8 @@ m2_first_fig_intercepts_3panel <- ggplot(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank()
-  )
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 m2_first_fig_intercepts_3panel
 
