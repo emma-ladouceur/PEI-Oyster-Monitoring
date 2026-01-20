@@ -580,7 +580,7 @@ m1_max_fig_intercepts_3panel <- ggplot(
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_x_continuous(breaks = sort(unique(m1_max_l_dat$n_year))) +
+  scale_x_continuous(breaks = sort(unique(m1_max_l_dat$n_year))[seq(1, length(unique(m1_max_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Monitoring year",
     y = "Julian date (temperature-averaged, population-level)",
@@ -592,7 +592,8 @@ m1_max_fig_intercepts_3panel <- ggplot(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank()
-  )
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 m1_max_fig_intercepts_3panel
 
@@ -744,6 +745,7 @@ m1_max_alt_fig_year3temp_spag_thin <- ggplot() +
     labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
                "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
   ) +
+  scale_x_continuous(breaks = seq(2013, max(m1_max_alt_draws_thin$n_year), by = 2)) +
   labs(
     x = "Year",
     y = "Julian date",
