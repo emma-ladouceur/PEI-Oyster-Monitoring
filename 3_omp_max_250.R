@@ -66,8 +66,8 @@ view(m1_max_l_dat)
 # )
 
 # Emma's paths
-save(max_temp_time_sal, file = "~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
-load("~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
+save(max_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/max_temp_time_sal.Rdata")
+load("~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/max_temp_time_sal.Rdata")
 
 # Maddy's path
 #save(max_temp_time_sal, file = "~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
@@ -762,6 +762,253 @@ m1_max_alt_fig_year3temp_spag_thin <- ggplot() +
 m1_max_alt_fig_year3temp_spag_thin
 
 
+# ============================================================
+# m1 MAX: Ribbon fig + slopes + intercepts (matched to m2 START style)
+# For: max_temp_time_sal (data = m1_max_l_dat)
+# - no custom functions
+# - tidyverse + tidybayes
+# - ribbons = posterior uncertainty (80% + 50%)
+# ============================================================
+
+set.seed(123)
+
+# ------------------------------------------------------------
+# m1_max_01) References for centering + temp quantiles (UNCENTERED vars)
+# ------------------------------------------------------------
+m1_max_alt_ref <- m1_max_l_dat %>%
+  ungroup() %>%
+  summarise(
+    n_year_mean     = mean(n_year, na.rm = TRUE),
+    water_temp_mean = mean(water_temp, na.rm = TRUE),
+    sal_mean        = mean(salinity, na.rm = TRUE),
+    temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
+    temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
+    temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE)
+  )
+
+# ------------------------------------------------------------
+# m1_max_02) Temperature level lookup table
+# ------------------------------------------------------------
+m1_max_alt_temp_levels <- tibble(
+  temp_level = factor(c("Cool", "Median", "Warm"),
+                      levels = c("Cool", "Median", "Warm")),
+  water_temp = c(m1_max_alt_ref$temp_cool,
+                 m1_max_alt_ref$temp_med,
+                 m1_max_alt_ref$temp_warm)
+)
+
+# ------------------------------------------------------------
+# m1_max_03) Prediction grid (year sequence × temp levels), salinity fixed at mean
+# ------------------------------------------------------------
+m1_max_alt_newdat_year_temp <- crossing(
+  n_year = seq(min(m1_max_l_dat$n_year, na.rm = TRUE),
+               max(m1_max_l_dat$n_year, na.rm = TRUE),
+               length.out = 200),
+  temp_level = m1_max_alt_temp_levels$temp_level
+) %>%
+  left_join(m1_max_alt_temp_levels, by = "temp_level") %>%
+  mutate(
+    salinity     = m1_max_alt_ref$sal_mean,
+    salinity.m   = salinity   - m1_max_alt_ref$sal_mean,
+    n_year.m     = n_year     - m1_max_alt_ref$n_year_mean,
+    water_temp.m = water_temp - m1_max_alt_ref$water_temp_mean
+  )
+
+# ------------------------------------------------------------
+# m1_max_04) Posterior expected draws (population-level)
+# ------------------------------------------------------------
+m1_max_alt_draws <- max_temp_time_sal %>%
+  add_epred_draws(newdata = m1_max_alt_newdat_year_temp, re_formula = NA) %>%
+  ungroup() %>%
+  rename(m1_max_alt_epred = .epred)
+
+# ------------------------------------------------------------
+# m1_max_05) Summaries for ribbons:
+#   80% interval for wide ribbon + 50% interval for inner ribbon + median line
+# ------------------------------------------------------------
+m1_max_alt_summ80 <- m1_max_alt_draws %>%
+  group_by(n_year, temp_level) %>%
+  median_qi(m1_max_alt_epred, .width = 0.80) %>%
+  ungroup() %>%
+  rename(
+    m1_max_alt_med   = m1_max_alt_epred,
+    m1_max_alt_low80 = .lower,
+    m1_max_alt_up80  = .upper
+  )
+
+m1_max_alt_summ50 <- m1_max_alt_draws %>%
+  group_by(n_year, temp_level) %>%
+  median_qi(m1_max_alt_epred, .width = 0.50) %>%
+  ungroup() %>%
+  rename(
+    m1_max_alt_low50 = .lower,
+    m1_max_alt_up50  = .upper
+  )
+
+m1_max_alt_ribbon_dat <- m1_max_alt_summ80 %>%
+  left_join(
+    m1_max_alt_summ50 %>%
+      select(n_year, temp_level, m1_max_alt_low50, m1_max_alt_up50),
+    by = c("n_year", "temp_level")
+  )
+
+# ------------------------------------------------------------
+# m1_max_06) Ribbon figure (year × temp; salinity held at mean)
+# ------------------------------------------------------------
+m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
+  # outer ribbon (80%)
+  geom_ribbon(
+    aes(x = n_year, ymin = m1_max_alt_low80, ymax = m1_max_alt_up80, fill = temp_level),
+    alpha = 0.18,
+    colour = NA
+  ) +
+  # inner ribbon (50%)
+  geom_ribbon(
+    aes(x = n_year, ymin = m1_max_alt_low50, ymax = m1_max_alt_up50, fill = temp_level),
+    alpha = 0.32,
+    colour = NA
+  ) +
+  # median line
+  geom_line(
+    aes(x = n_year, y = m1_max_alt_med, colour = temp_level),
+    linewidth = 1.0
+  ) +
+  scale_colour_viridis_d(option = "viridis") +
+  scale_fill_viridis_d(option = "viridis") +
+  coord_cartesian(
+    ylim = quantile(
+      m1_max_l_dat$julian_date,
+      probs = c(0.01, 0.99),
+      na.rm = TRUE
+    )
+  ) +
+  # keep / edit this if your julian-date-to-calendar mapping differs
+  scale_y_continuous(
+    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
+    labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
+               "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+  ) +
+  labs(
+    x = "Year",
+    y = "Julian date",
+    title = "Time–phenology relationships at cool/median/warm temperatures (MAX)",
+    subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) CrI (salinity held at mean)"
+  ) +
+  theme_bw(base_size = 11) +
+  theme(panel.grid.minor = element_blank())
+
+m1_max_alt_fig_year3temp_ribbons
+
+
+# ============================================================
+# m1 MAX: SLOPE FIGURE (matched to ribbon figure)
+# - draw-by-draw slopes within temp_level
+# - summarises across draws (mean + 50%/90% CrI)
+# ============================================================
+
+m1_max_slope_draws <- m1_max_alt_draws %>%
+  group_by(.draw, temp_level) %>%
+  summarise(
+    slope = cov(n_year, m1_max_alt_epred) / var(n_year),
+    .groups = "drop"
+  )
+
+m1_max_slope_summ <- m1_max_slope_draws %>%
+  group_by(temp_level) %>%
+  summarise(
+    estimate = mean(slope),
+    lower50  = quantile(slope, 0.25),
+    upper50  = quantile(slope, 0.75),
+    lower90  = quantile(slope, 0.05),
+    upper90  = quantile(slope, 0.95),
+    .groups  = "drop"
+  )
+
+m1_max_fig_year3temp_slopes <- ggplot(
+  m1_max_slope_summ,
+  aes(x = temp_level, y = estimate, colour = temp_level)
+) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_point(size = 3) +
+  scale_colour_viridis_d(option = "viridis") +
+  coord_flip() +
+  labs(
+    x = NULL,
+    y = "Slope (change in predicted Julian date per year)",
+    title = "Temporal trends by temperature (MAX; salinity held at mean)",
+    subtitle = "(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+m1_max_fig_year3temp_slopes
+
+
+# ============================================================
+# m1 MAX: INTERCEPT FIGURE (matched to ribbons + slopes style)
+# - intercept = predicted value at reference year (mean year)
+# - summarises across draws (mean + 50%/90% CrI)
+# ============================================================
+
+m1_max_ref_year <- m1_max_alt_ref$n_year_mean
+
+m1_max_intercept_draws <- m1_max_alt_draws %>%
+  mutate(.dist = abs(n_year - m1_max_ref_year)) %>%
+  group_by(.draw, temp_level) %>%
+  slice_min(.dist, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  transmute(
+    .draw,
+    temp_level,
+    intercept = m1_max_alt_epred
+  )
+
+m1_max_intercept_summ <- m1_max_intercept_draws %>%
+  group_by(temp_level) %>%
+  summarise(
+    estimate = mean(intercept),
+    lower50  = quantile(intercept, 0.25),
+    upper50  = quantile(intercept, 0.75),
+    lower90  = quantile(intercept, 0.05),
+    upper90  = quantile(intercept, 0.95),
+    .groups  = "drop"
+  )
+
+m1_max_fig_year3temp_intercepts <- ggplot(
+  m1_max_intercept_summ,
+  aes(x = temp_level, y = estimate, colour = temp_level)
+) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_point(size = 3) +
+  scale_colour_viridis_d(option = "viridis") +
+  coord_flip() +
+  labs(
+    x = NULL,
+    y = "Intercept (predicted Julian date at reference year)",
+    title = "Baseline phenology by temperature (MAX; salinity held at mean)",
+    subtitle = paste0(
+      "(c) Intercepts evaluated at Year = ",
+      round(m1_max_ref_year, 1),
+      "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
+    )
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+m1_max_fig_year3temp_intercepts
+
+
+# Optional: show ribbons + intercepts + slopes together (requires patchwork loaded)
+# m1_max_alt_fig_year3temp_ribbons + m1_max_fig_year3temp_intercepts + m1_max_fig_year3temp_slopes
 
 
 

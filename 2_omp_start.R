@@ -74,7 +74,7 @@ head(m2_first_l_dat)
 
 # Emma's paths
 #save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
-load("~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
+load("~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/start_temp_time_sal.Rdata")
 #load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/start_temp_time_sal.Rdata")
 
 # Maddy's path
@@ -608,3 +608,430 @@ m2_first_fig_slopes_mean <- m2_first_slope_summ %>%
 m2_first_fig1_spag + m2_first_fig_intercepts_mean + m2_first_fig_slopes_mean
 
 
+
+
+# ============================================================
+# ALT spaghetti fig: year × temperature (salinity held at mean)
+# For: start_temp_time_sal (data = m2_first_l_dat)
+# - no custom functions
+# - tidyverse + tidybayes
+# - namespaced objects to avoid collisions
+# ============================================================
+
+set.seed(123)
+
+# --- references for centering + temp quantiles (UNCENTERED vars) ---
+m2_start_alt_ref <- m2_first_l_dat %>%
+  ungroup() %>%
+  summarise(
+    n_year_mean     = mean(n_year, na.rm = TRUE),
+    water_temp_mean = mean(water_temp, na.rm = TRUE),
+    sal_mean        = mean(salinity, na.rm = TRUE),
+    temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
+    temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
+    temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE)
+  )
+
+# --- temperature level lookup table ---
+m2_start_alt_temp_levels <- tibble(
+  temp_level = factor(c("Cool", "Median", "Warm"),
+                      levels = c("Cool", "Median", "Warm")),
+  water_temp = c(m2_start_alt_ref$temp_cool,
+                 m2_start_alt_ref$temp_med,
+                 m2_start_alt_ref$temp_warm)
+)
+
+# --- prediction grid (year sequence × temp levels), salinity fixed at mean ---
+m2_start_alt_newdat_year_temp <- crossing(
+  n_year = seq(min(m2_first_l_dat$n_year, na.rm = TRUE),
+               max(m2_first_l_dat$n_year, na.rm = TRUE),
+               length.out = 200),
+  temp_level = m2_start_alt_temp_levels$temp_level
+) %>%
+  left_join(m2_start_alt_temp_levels, by = "temp_level") %>%
+  mutate(
+    salinity     = m2_start_alt_ref$sal_mean,
+    salinity.m   = salinity   - m2_start_alt_ref$sal_mean,
+    n_year.m     = n_year     - m2_start_alt_ref$n_year_mean,
+    water_temp.m = water_temp - m2_start_alt_ref$water_temp_mean
+  )
+
+# --- posterior expected draws (population-level) ---
+m2_start_alt_draws <- start_temp_time_sal %>%
+  add_epred_draws(newdata = m2_start_alt_newdat_year_temp, re_formula = NA) %>%
+  ungroup() %>%
+  rename(m2_start_alt_epred = .epred)
+
+# --- summarise across draws (median + 80% interval) ---
+m2_start_alt_summ <- m2_start_alt_draws %>%
+  group_by(n_year, temp_level) %>%
+  median_qi(m2_start_alt_epred, .width = 0.80) %>%
+  ungroup()
+
+# --- thin spaghetti: sample N draws total (not per temp; consistent across temps) ---
+m2_start_alt_n_keep <- 60
+
+m2_start_alt_keep_draws <- m2_start_alt_draws %>%
+  distinct(.draw) %>%
+  slice_sample(n = min(m2_start_alt_n_keep, nrow(.)))
+
+m2_start_alt_draws_thin <- m2_start_alt_draws %>%
+  semi_join(m2_start_alt_keep_draws, by = ".draw")
+
+# --- optional: set y-limits to data-informed range (instead of hard-coding) ---
+m2_start_alt_ylim <- m2_first_l_dat %>%
+  summarise(
+    ymin = quantile(julian_date, 0.01, na.rm = TRUE),
+    ymax = quantile(julian_date, 0.99, na.rm = TRUE)
+  )
+
+
+# --- plot ---
+m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
+  geom_line(
+    data = m2_start_alt_draws_thin,
+    aes(
+      x = n_year, y = m2_start_alt_epred,
+      group = interaction(.draw, temp_level),
+      colour = temp_level
+    ),
+    linewidth = 0.35,
+    alpha = 0.10
+  ) +
+  geom_line(
+    data = m2_start_alt_summ,
+    aes(
+      x = n_year, y = m2_start_alt_epred,
+      group = temp_level,
+      colour = temp_level
+    ),
+    linewidth = 1.0
+  ) +
+  scale_colour_viridis_d(option = "viridis") +
+  coord_cartesian(
+    ylim = quantile(
+      m2_first_l_dat$julian_date,
+      probs = c(0.01, 0.99),
+      na.rm = TRUE
+    )
+  )+
+  # if you want the same "date labels" trick, keep this block and adjust breaks/labels if needed:
+  scale_y_continuous(
+    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
+    labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
+               "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+  ) +
+  labs(
+    x = "Year",
+    y = "Julian date",
+    title = "Time–phenology relationships at cool/median/warm temperatures",
+    subtitle = paste0(
+      "Thick lines = posterior medians; spaghetti = ",
+      m2_start_alt_n_keep,
+      " posterior draws (salinity held at mean)"
+    )
+  ) +
+  theme_bw(base_size = 11) +
+  theme(panel.grid.minor = element_blank())
+
+m2_start_alt_fig_year3temp_spag_thin
+
+
+
+
+
+# ============================================================
+# ALT ribbon fig: year × temperature (salinity held at mean)
+# For: start_temp_time_sal (data = m2_first_l_dat)
+# - no custom functions
+# - tidyverse + tidybayes
+# - ribbons = posterior uncertainty (80% + 50%)
+# ============================================================
+
+set.seed(123)
+
+# --- references for centering + temp quantiles (UNCENTERED vars) ---
+m2_start_alt_ref <- m2_first_l_dat %>%
+  ungroup() %>%
+  summarise(
+    n_year_mean     = mean(n_year, na.rm = TRUE),
+    water_temp_mean = mean(water_temp, na.rm = TRUE),
+    sal_mean        = mean(salinity, na.rm = TRUE),
+    temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
+    temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
+    temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE)
+  )
+
+# --- temperature level lookup table ---
+m2_start_alt_temp_levels <- tibble(
+  temp_level = factor(c("Cool", "Median", "Warm"),
+                      levels = c("Cool", "Median", "Warm")),
+  water_temp = c(m2_start_alt_ref$temp_cool,
+                 m2_start_alt_ref$temp_med,
+                 m2_start_alt_ref$temp_warm)
+)
+
+# --- prediction grid (year sequence × temp levels), salinity fixed at mean ---
+m2_start_alt_newdat_year_temp <- crossing(
+  n_year = seq(min(m2_first_l_dat$n_year, na.rm = TRUE),
+               max(m2_first_l_dat$n_year, na.rm = TRUE),
+               length.out = 200),
+  temp_level = m2_start_alt_temp_levels$temp_level
+) %>%
+  left_join(m2_start_alt_temp_levels, by = "temp_level") %>%
+  mutate(
+    salinity     = m2_start_alt_ref$sal_mean,
+    salinity.m   = salinity   - m2_start_alt_ref$sal_mean,
+    n_year.m     = n_year     - m2_start_alt_ref$n_year_mean,
+    water_temp.m = water_temp - m2_start_alt_ref$water_temp_mean
+  )
+
+# --- posterior expected draws (population-level) ---
+m2_start_alt_draws <- start_temp_time_sal %>%
+  add_epred_draws(newdata = m2_start_alt_newdat_year_temp, re_formula = NA) %>%
+  ungroup() %>%
+  rename(m2_start_alt_epred = .epred)
+
+# --- summarise across draws:
+#     80% interval for wide ribbon + 50% interval for inner ribbon + median line
+m2_start_alt_summ80 <- m2_start_alt_draws %>%
+  group_by(n_year, temp_level) %>%
+  median_qi(m2_start_alt_epred, .width = 0.80) %>%
+  ungroup() %>%
+  rename(
+    m2_start_alt_med   = m2_start_alt_epred,
+    m2_start_alt_low80 = .lower,
+    m2_start_alt_up80  = .upper
+  )
+
+m2_start_alt_summ50 <- m2_start_alt_draws %>%
+  group_by(n_year, temp_level) %>%
+  median_qi(m2_start_alt_epred, .width = 0.50) %>%
+  ungroup() %>%
+  rename(
+    m2_start_alt_med50 = m2_start_alt_epred,
+    m2_start_alt_low50 = .lower,
+    m2_start_alt_up50  = .upper
+  )
+
+# --- join 80 + 50 for plotting convenience ---
+m2_start_alt_ribbon_dat <- m2_start_alt_summ80 %>%
+  left_join(
+    m2_start_alt_summ50 %>%
+      select(n_year, temp_level, m2_start_alt_low50, m2_start_alt_up50),
+    by = c("n_year", "temp_level")
+  )
+
+# --- plot (ribbons + median line) ---
+m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
+  
+  # outer ribbon (80%)
+  geom_ribbon(
+    aes(
+      x = n_year,
+      ymin = m2_start_alt_low80,
+      ymax = m2_start_alt_up80,
+      fill = temp_level
+    ),
+    alpha = 0.18,
+    colour = NA
+  ) +
+  
+  # inner ribbon (50%)
+  geom_ribbon(
+    aes(
+      x = n_year,
+      ymin = m2_start_alt_low50,
+      ymax = m2_start_alt_up50,
+      fill = temp_level
+    ),
+    alpha = 0.32,
+    colour = NA
+  ) +
+  
+  # median line
+  geom_line(
+    aes(
+      x = n_year,
+      y = m2_start_alt_med,
+      colour = temp_level
+    ),
+    linewidth = 1.0
+  ) +
+  
+  scale_colour_viridis_d(option = "viridis") +
+  scale_fill_viridis_d(option = "viridis") +
+  
+  coord_cartesian(
+    ylim = quantile(
+      m2_first_l_dat$julian_date,
+      probs = c(0.01, 0.99),
+      na.rm = TRUE
+    )
+  ) +
+  
+  # keep / edit this if your julian-date-to-calendar mapping differs
+  scale_y_continuous(
+    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
+    labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
+               "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+  ) +
+  
+  labs(
+    x = "Year",
+    y = "Julian date",
+    title = "Time–phenology relationships at cool/median/warm temperatures",
+    subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) credible intervals (salinity held at mean)"
+  ) +
+  theme_bw(base_size = 11) +
+  theme(panel.grid.minor = element_blank())
+
+m2_start_alt_fig_year3temp_ribbons
+
+
+
+# ============================================================
+# m2 START: SLOPE FIGURE (matched to year × temp ribbons figure)
+# - uses draw-by-draw slopes within temp_level
+# - summarises across draws (mean + 50%/90% CrI)
+# ============================================================
+
+# -----------------------------
+# m2_start_14) Slopes within each draw × temp level
+# slope = cov(x,y)/var(x)  (simple linear slope, draw-by-draw)
+# -----------------------------
+m2_start_slope_draws <- m2_start_alt_draws %>%
+  group_by(.draw, temp_level) %>%
+  summarise(
+    slope = cov(n_year, m2_start_alt_epred) / var(n_year),
+    .groups = "drop"
+  )
+
+# -----------------------------
+# m2_start_15) Summarise slopes across draws (mean + 50%/90% CrI)
+# -----------------------------
+m2_start_slope_summ <- m2_start_slope_draws %>%
+  group_by(temp_level) %>%
+  summarise(
+    estimate = mean(slope),
+    lower50  = quantile(slope, 0.25),
+    upper50  = quantile(slope, 0.75),
+    lower90  = quantile(slope, 0.05),
+    upper90  = quantile(slope, 0.95),
+    .groups  = "drop"
+  )
+
+# -----------------------------
+# m2_start_16) Slope figure
+# -----------------------------
+m2_start_fig_year3temp_slopes <- ggplot(
+  m2_start_slope_summ,
+  aes(x = temp_level, y = estimate, colour = temp_level)
+) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_point(size = 3) +
+  scale_colour_viridis_d(option = "viridis") +
+  coord_flip() +
+  labs(
+    x = NULL,
+    y = "Slope (change in predicted Julian date per year)",
+    title = "Temporal trends by temperature (salinity held at mean)",
+    subtitle = "(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+m2_start_fig_year3temp_slopes
+
+# Optional: show ribbons + slopes together (requires patchwork loaded)
+# m2_start_alt_fig_year3temp_ribbons + m2_start_fig_year3temp_slopes
+
+
+# ============================================================
+# m2 START: INTERCEPT FIGURE (matched to ribbons + slopes style)
+# - draw-by-draw intercepts within temp_level
+# - intercept = predicted value at a chosen reference year
+# - summarises across draws (mean + 50%/90% CrI)
+# ============================================================
+
+# -----------------------------
+# m2_start_17) Choose the reference year for the intercept
+#   - using the mean year keeps it "central" and comparable
+# -----------------------------
+m2_start_ref_year <- m2_start_alt_ref$n_year_mean
+
+# -----------------------------
+# m2_start_18) Intercepts within each draw × temp level
+#   - estimate epred at the reference year
+#   - we use the existing draw grid; just filter to closest year
+# -----------------------------
+m2_start_intercept_draws <- m2_start_alt_draws %>%
+  mutate(.dist = abs(n_year - m2_start_ref_year)) %>%
+  group_by(.draw, temp_level) %>%
+  slice_min(.dist, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  transmute(
+    .draw,
+    temp_level,
+    intercept = m2_start_alt_epred
+  )
+
+# -----------------------------
+# m2_start_19) Summarise intercepts across draws (mean + 50%/90% CrI)
+# -----------------------------
+m2_start_intercept_summ <- m2_start_intercept_draws %>%
+  group_by(temp_level) %>%
+  summarise(
+    estimate = mean(intercept),
+    lower50  = quantile(intercept, 0.25),
+    upper50  = quantile(intercept, 0.75),
+    lower90  = quantile(intercept, 0.05),
+    upper90  = quantile(intercept, 0.95),
+    .groups  = "drop"
+  )
+
+# -----------------------------
+# m2_start_20) Intercept figure
+# -----------------------------
+m2_start_fig_year3temp_intercepts <- ggplot(
+  m2_start_intercept_summ,
+  aes(x = temp_level, y = estimate, colour = temp_level)
+) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_point(size = 3) +
+  scale_colour_viridis_d(option = "viridis") +
+  coord_flip() +
+  labs(
+    x = NULL,
+    y = "Intercept (predicted Julian date at reference year)",
+    title = "Baseline phenology by temperature (salinity held at mean)",
+    subtitle = paste0(
+      "(c) Intercepts evaluated at Year = ",
+      round(m2_start_ref_year, 1),
+      "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
+    )
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+m2_start_fig_year3temp_intercepts
+
+# Optional: show ribbons + slopes + intercepts together (requires patchwork loaded)
+# m2_start_alt_fig_year3temp_ribbons + m2_start_fig_year3temp_slopes + m2_start_fig_year3temp_intercepts
+
+
+
+
+
+m2_start_alt_fig_year3temp_ribbons + m2_start_fig_year3temp_intercepts + m2_start_fig_year3temp_slopes
+
+m2_start_alt_fig_year3temp_spag_thin+ m2_start_alt_fig_year3temp_ribbons

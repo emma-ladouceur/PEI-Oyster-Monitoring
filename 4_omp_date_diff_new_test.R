@@ -29,7 +29,7 @@ head(omp_dat)
 # ------------------------------------------------------------
 # 1) FIRST event (earliest non-zero larvae)
 # ------------------------------------------------------------
-
+head(omp_dat)
 m3_first <- omp_dat %>%
   ungroup() %>%
   filter(larvae_total > 0) %>%
@@ -38,15 +38,19 @@ m3_first <- omp_dat %>%
   ungroup() %>%
   select(
     area, bay, location_clean, f_year, n_year,
-    julian_date, larvae_total, larvae_size, larvae_above_250_microns
+    julian_date, larvae_total, larvae_size, larvae_above_250_microns,
+    water_temp, salinity
   ) %>%
   mutate(
     first_julian_date              = julian_date,
     first_larvae_total             = larvae_total,
     first_larvae_size              = larvae_size,
-    first_larvae_above_250_microns = larvae_above_250_microns
+    first_larvae_above_250_microns = larvae_above_250_microns,
+    first_water_temp = water_temp,
+    first_salinity   = salinity
+    
   ) %>%
-  select(-julian_date, -larvae_total, -larvae_size, -larvae_above_250_microns)
+  select(-c(julian_date, larvae_total, larvae_size, larvae_above_250_microns, water_temp, salinity))
 
 # ------------------------------------------------------------
 # 2) MAX event (max larvae >250 µm)  (using omp_dat, per your working version)
@@ -60,15 +64,18 @@ m3_max <- omp_dat %>%
   ungroup() %>%
   select(
     area, bay, location_clean, f_year, n_year,
-    julian_date, larvae_total, larvae_size, larvae_above_250_microns
+    julian_date, larvae_total, larvae_size, larvae_above_250_microns,
+    water_temp, salinity
   ) %>%
   mutate(
     max_julian_date              = julian_date,
     max_larvae_total             = larvae_total,
     max_larvae_size              = larvae_size,
-    max_larvae_above_250_microns = larvae_above_250_microns
+    max_larvae_above_250_microns = larvae_above_250_microns,
+    max_water_temp = water_temp,
+    max_salinity   = salinity
   ) %>%
-  select(-julian_date, -larvae_total, -larvae_size, -larvae_above_250_microns)
+  select(-c(julian_date, -larvae_total, -larvae_size, -larvae_above_250_microns, water_temp, salinity))
 
 # ------------------------------------------------------------
 # 3) JOIN + difference + center year within bay
@@ -79,11 +86,16 @@ m3_dat <- m3_first %>%
     m3_max,
     by = c("area", "bay", "location_clean", "f_year", "n_year")
   ) %>%
-  mutate(diff_first_last = max_julian_date - first_julian_date) %>%
+  mutate(diff_first_last = max_julian_date - first_julian_date,
+         diff_water_temp = max_water_temp - first_water_temp,
+         diff_salinity   = max_salinity - first_salinity
+         ) %>%
   group_by(bay) %>%
   mutate(n_year.m = n_year - mean(n_year, na.rm = TRUE)) %>%
   ungroup()
 
+
+view(m3_dat)
 # ------------------------------------------------------------
 # 4) FIT MODEL (KEEP NAME)
 # ------------------------------------------------------------
@@ -99,17 +111,17 @@ m3_dat <- m3_first %>%
 #   control = list(adapt_delta = 0.99)
 # )
 
-
+head(m3_dat)
 # possible new model
-# oyster_first_last <- brm(
-#   diff_first_last ~ water_temp.m * n_year.m * salinity.m +
-#     (1 + water_temp.m * n_year.m || bay/location_clean),
-#   data    = m3_dat,
-#   iter    = 5000,
-#   warmup  = 1000,
-#   family  = student(), #or gaussian
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+oyster_first_last <- brm(
+  diff_first_last ~ water_temp.m * n_year.m * salinity.m +
+    (1 + water_temp.m * n_year.m || bay/location_clean),
+  data    = m3_dat,
+  iter    = 5000,
+  warmup  = 1000,
+  family  = student(), #or gaussian
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 # EMma's path
 save(oyster_first_last, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")

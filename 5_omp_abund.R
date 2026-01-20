@@ -825,6 +825,396 @@ ltT_fig_time_temp_slopes <- ggplot(
 ltT_fig_time_temp_slopes
 
 
+
+
 # Optional: show spaghetti + slopes together (requires patchwork loaded)
  ltT_fig_time_temp_spag + ltT_fig_time_temp_slopes
 
+
+ 
+ 
+ 
+ # ============================================================
+ # ltotal: Ribbon fig + slopes + intercepts (year × temp; salinity held at mean)
+ # For: ltotal_temp_time_sal (data = l_total_dat)
+ # - no custom functions
+ # - tidyverse + tidybayes
+ # - ribbons = posterior uncertainty (80% + 50%)
+ # - family is lognormal(): epred is on the RESPONSE scale (positive)
+ # ============================================================
+ 
+ set.seed(123)
+ 
+ # ------------------------------------------------------------
+ # lt_01) References for centering + temp quantiles (UNCENTERED vars)
+ # ------------------------------------------------------------
+ lt_alt_ref <- l_total_dat %>%
+   ungroup() %>%
+   summarise(
+     n_year_mean     = mean(n_year, na.rm = TRUE),
+     water_temp_mean = mean(water_temp, na.rm = TRUE),
+     sal_mean        = mean(salinity, na.rm = TRUE),
+     temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
+     temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
+     temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE),
+     julian_m_mean   = mean(julian_date.m, na.rm = TRUE) # for random effect (1 | julian_date.m)
+   )
+ 
+ # ------------------------------------------------------------
+ # lt_02) Temperature level lookup table
+ # ------------------------------------------------------------
+ lt_alt_temp_levels <- tibble(
+   temp_level = factor(c("Cool", "Median", "Warm"),
+                       levels = c("Cool", "Median", "Warm")),
+   water_temp = c(lt_alt_ref$temp_cool,
+                  lt_alt_ref$temp_med,
+                  lt_alt_ref$temp_warm)
+ )
+ 
+ # ------------------------------------------------------------
+ # lt_03) Prediction grid (year sequence × temp levels),
+ #        salinity fixed at mean, julian_date.m fixed at mean
+ # ------------------------------------------------------------
+ lt_alt_newdat_year_temp <- crossing(
+   n_year = seq(min(l_total_dat$n_year, na.rm = TRUE),
+                max(l_total_dat$n_year, na.rm = TRUE),
+                length.out = 200),
+   temp_level = lt_alt_temp_levels$temp_level
+ ) %>%
+   left_join(lt_alt_temp_levels, by = "temp_level") %>%
+   mutate(
+     salinity       = lt_alt_ref$sal_mean,
+     julian_date.m  = lt_alt_ref$julian_m_mean,     # holds the julian RE at "typical" value
+     salinity.m     = salinity   - lt_alt_ref$sal_mean,
+     n_year.m       = n_year     - lt_alt_ref$n_year_mean,
+     water_temp.m   = water_temp - lt_alt_ref$water_temp_mean
+   )
+ 
+ # ------------------------------------------------------------
+ # lt_04) Posterior expected draws (population-level)
+ #   - IMPORTANT: we drop ALL random effects here (re_formula = NA)
+ #     so (1 | julian_date.m) is not included in the prediction.
+ #   - If you *want* the julian_date random effect included, set re_formula = NULL
+ #     AND ensure newdata supplies valid julian_date.m levels.
+ # ------------------------------------------------------------
+ lt_alt_draws <- ltotal_temp_time_sal %>%
+   add_epred_draws(newdata = lt_alt_newdat_year_temp, re_formula = NA) %>%
+   ungroup() %>%
+   rename(lt_alt_epred = .epred)
+ 
+ # ------------------------------------------------------------
+ # lt_05) Summaries for ribbons: 80% outer + 50% inner + median line
+ # ------------------------------------------------------------
+ lt_alt_summ80 <- lt_alt_draws %>%
+   group_by(n_year, temp_level) %>%
+   median_qi(lt_alt_epred, .width = 0.80) %>%
+   ungroup() %>%
+   rename(
+     lt_alt_med   = lt_alt_epred,
+     lt_alt_low80 = .lower,
+     lt_alt_up80  = .upper
+   )
+ 
+ lt_alt_summ50 <- lt_alt_draws %>%
+   group_by(n_year, temp_level) %>%
+   median_qi(lt_alt_epred, .width = 0.50) %>%
+   ungroup() %>%
+   rename(
+     lt_alt_low50 = .lower,
+     lt_alt_up50  = .upper
+   )
+ 
+ lt_alt_ribbon_dat <- lt_alt_summ80 %>%
+   left_join(
+     lt_alt_summ50 %>%
+       select(n_year, temp_level, lt_alt_low50, lt_alt_up50),
+     by = c("n_year", "temp_level")
+   )
+ 
+ # ------------------------------------------------------------
+ # lt_06) Ribbon figure
+ # ------------------------------------------------------------
+ lt_alt_fig_year3temp_ribbons <- ggplot(lt_alt_ribbon_dat) +
+   geom_ribbon(
+     aes(x = n_year, ymin = lt_alt_low80, ymax = lt_alt_up80, fill = temp_level),
+     alpha = 0.18, colour = NA
+   ) +
+   geom_ribbon(
+     aes(x = n_year, ymin = lt_alt_low50, ymax = lt_alt_up50, fill = temp_level),
+     alpha = 0.32, colour = NA
+   ) +
+   geom_line(
+     aes(x = n_year, y = lt_alt_med, colour = temp_level),
+     linewidth = 1.0
+   ) +
+   scale_colour_viridis_d(option = "viridis") +
+   scale_fill_viridis_d(option = "viridis") +
+   coord_cartesian(
+     ylim = quantile(
+       lt_alt_draws$lt_alt_epred,
+       probs = c(0.01, 0.99),
+       na.rm = TRUE
+     )
+   ) +
+   labs(
+     x = "Year",
+     y = "Predicted total larvae (response scale)",
+     title = "Temporal trends in larvae abundance by temperature (salinity held at mean)",
+     subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) CrI"
+   ) +
+   theme_bw(base_size = 11) +
+   theme(panel.grid.minor = element_blank())
+ 
+ lt_alt_fig_year3temp_ribbons
+ 
+ 
+ # ============================================================
+ # lt: SLOPE FIGURE (matched to ribbons)
+ # - draw-by-draw slopes within temp_level
+ # - summarises across draws (mean + 50%/90% CrI)
+ # ============================================================
+ 
+ lt_slope_draws <- lt_alt_draws %>%
+   group_by(.draw, temp_level) %>%
+   summarise(
+     slope = cov(n_year, lt_alt_epred) / var(n_year),
+     .groups = "drop"
+   )
+ 
+ lt_slope_summ <- lt_slope_draws %>%
+   group_by(temp_level) %>%
+   summarise(
+     estimate = mean(slope),
+     lower50  = quantile(slope, 0.25),
+     upper50  = quantile(slope, 0.75),
+     lower90  = quantile(slope, 0.05),
+     upper90  = quantile(slope, 0.95),
+     .groups  = "drop"
+   )
+ 
+ lt_fig_year3temp_slopes <- ggplot(
+   lt_slope_summ,
+   aes(x = temp_level, y = estimate, colour = temp_level)
+ ) +
+   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+   geom_point(size = 3) +
+   scale_colour_viridis_d(option = "viridis") +
+   coord_flip() +
+   labs(
+     x = NULL,
+     y = "Slope (change in predicted larvae per year)",
+     title = "Temporal trends by temperature (salinity held at mean)",
+     subtitle = "(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+   ) +
+   theme_bw(base_size = 18) +
+   theme(
+     panel.grid.minor = element_blank(),
+     legend.position = "none"
+   )
+ 
+ lt_fig_year3temp_slopes
+ 
+ 
+ # ============================================================
+ # lt: INTERCEPT FIGURE (matched to ribbons + slopes style)
+ # - intercept = predicted value at reference year (mean year)
+ # - summarises across draws (mean + 50%/90% CrI)
+ # ============================================================
+ 
+ lt_ref_year <- lt_alt_ref$n_year_mean
+ 
+ lt_intercept_draws <- lt_alt_draws %>%
+   mutate(.dist = abs(n_year - lt_ref_year)) %>%
+   group_by(.draw, temp_level) %>%
+   slice_min(.dist, n = 1, with_ties = FALSE) %>%
+   ungroup() %>%
+   transmute(
+     .draw,
+     temp_level,
+     intercept = lt_alt_epred
+   )
+ 
+ lt_intercept_summ <- lt_intercept_draws %>%
+   group_by(temp_level) %>%
+   summarise(
+     estimate = mean(intercept),
+     lower50  = quantile(intercept, 0.25),
+     upper50  = quantile(intercept, 0.75),
+     lower90  = quantile(intercept, 0.05),
+     upper90  = quantile(intercept, 0.95),
+     .groups  = "drop"
+   )
+ 
+ lt_fig_year3temp_intercepts <- ggplot(
+   lt_intercept_summ,
+   aes(x = temp_level, y = estimate, colour = temp_level)
+ ) +
+   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+   geom_point(size = 3) +
+   scale_colour_viridis_d(option = "viridis") +
+   coord_flip() +
+   labs(
+     x = NULL,
+     y = "Intercept (predicted larvae at reference year)",
+     title = "Baseline larvae abundance by temperature (salinity held at mean)",
+     subtitle = paste0(
+       "(c) Intercepts evaluated at Year = ",
+       round(lt_ref_year, 1),
+       "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
+     )
+   ) +
+   theme_bw(base_size = 18) +
+   theme(
+     panel.grid.minor = element_blank(),
+     legend.position = "none"
+   )
+ 
+ lt_fig_year3temp_intercepts
+ 
+ 
+ # Optional: show ribbons + intercepts + slopes together (requires patchwork loaded)
+ # lt_alt_fig_year3temp_ribbons + lt_fig_year3temp_intercepts + lt_fig_year3temp_slopes
+ 
+ 
+ # ============================================================
+ # ltotal: FILTERED-DRAW "SPAGHETTI" VERSION IN RIBBON FORM
+ # (same logic as your ltT filtered draws, but rendered as ribbons)
+ # - no custom functions
+ # - tidyverse + tidybayes
+ # - lognormal model: epred is response scale (positive)
+ # ============================================================
+ 
+ # -----------------------------
+ # ltF_00) Start from the draws you already created
+ #   lt_alt_draws has: n_year, temp_level, .draw, lt_alt_epred
+ # -----------------------------
+ ltF_ep_long <- lt_alt_draws %>%
+   transmute(
+     .draw,
+     n_year,
+     temp_label = temp_level,
+     epred = lt_alt_epred
+   )
+ 
+ # -----------------------------
+ # ltF_10) Envelope (10–90%) at each (year × temp)
+ # -----------------------------
+ ltF_bounds80 <- ltF_ep_long %>%
+   group_by(n_year, temp_label) %>%
+   summarise(
+     q10 = quantile(epred, 0.10, na.rm = TRUE),
+     q90 = quantile(epred, 0.90, na.rm = TRUE),
+     .groups = "drop"
+   )
+ 
+ # -----------------------------
+ # ltF_11) Keep "well-behaved" draws (>=95% inside envelope)
+ # -----------------------------
+ ltF_draw_keep <- ltF_ep_long %>%
+   left_join(ltF_bounds80, by = c("n_year", "temp_label")) %>%
+   mutate(in80 = epred >= q10 & epred <= q90) %>%
+   group_by(.draw) %>%
+   summarise(prop_in80 = mean(in80, na.rm = TRUE), .groups = "drop") %>%
+   filter(prop_in80 >= 0.95)
+ 
+ # -----------------------------
+ # ltF_12) Filter the epred draws to only "kept" draws
+ # -----------------------------
+ ltF_ep_keep <- ltF_ep_long %>%
+   semi_join(ltF_draw_keep, by = ".draw")
+ 
+ # -----------------------------
+ # ltF_13) Summarise kept draws into ribbons + median line
+ #   - outer ribbon = 10–90%
+ #   - inner ribbon = 25–75%
+ #   - median line  = 50%
+ # -----------------------------
+ ltF_rib_1090 <- ltF_ep_keep %>%
+   group_by(n_year, temp_label) %>%
+   summarise(
+     med   = quantile(epred, 0.50, na.rm = TRUE),
+     low10 = quantile(epred, 0.10, na.rm = TRUE),
+     up90  = quantile(epred, 0.90, na.rm = TRUE),
+     .groups = "drop"
+   )
+ 
+ ltF_rib_2575 <- ltF_ep_keep %>%
+   group_by(n_year, temp_label) %>%
+   summarise(
+     low25 = quantile(epred, 0.25, na.rm = TRUE),
+     up75  = quantile(epred, 0.75, na.rm = TRUE),
+     .groups = "drop"
+   )
+ 
+ ltF_ribbon_dat <- ltF_rib_1090 %>%
+   left_join(ltF_rib_2575, by = c("n_year", "temp_label"))
+ 
+ # -----------------------------
+ # ltF_14) Optional plotting y-limits (robust)
+ #   - use kept draws so the plot focuses on the "well-behaved" range
+ # -----------------------------
+ ltF_ylim <- quantile(
+   ltF_ep_keep$epred,
+   probs = c(0.01, 0.99),
+   na.rm = TRUE
+ )
+ 
+ # -----------------------------
+ # ltF_15) Ribbon plot (filtered-draw version)
+ #   - If you want log scale like your ltT spaghetti figure, keep trans="log10"
+ # -----------------------------
+ ltF_fig_time_temp_ribbon_filtered <- ggplot(ltF_ribbon_dat) +
+   
+   # outer ribbon (10–90%)
+   geom_ribbon(
+     aes(x = n_year, ymin = low10, ymax = up90, fill = temp_label),
+     alpha = 0.18,
+     colour = NA
+   ) +
+   
+   # inner ribbon (25–75%)
+   geom_ribbon(
+     aes(x = n_year, ymin = low25, ymax = up75, fill = temp_label),
+     alpha = 0.32,
+     colour = NA
+   ) +
+   
+   # median line
+   geom_line(
+     aes(x = n_year, y = med, colour = temp_label),
+     linewidth = 1.1
+   ) +
+   
+   scale_colour_viridis_d(option = "viridis") +
+   scale_fill_viridis_d(option = "viridis") +
+   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+   
+   # match your ltT style: log axis (since larvae totals are usually heavy-tailed)
+   scale_y_continuous(
+     trans  = "log10",
+     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
+     labels = scales::label_number()
+   ) +
+   
+   coord_cartesian(ylim = ltF_ylim) +
+   
+   labs(
+     x = "Monitoring year",
+     y = "Total oyster larvae",
+     title = "Temporal trends vary with temperature (salinity held at mean)",
+     subtitle = "(a) Ribbons/line based on filtered posterior draws (>=95% inside the 10–90% envelope)"
+   ) +
+   
+   theme_bw(base_size = 18) +
+   theme(
+     panel.grid.minor = element_blank(),
+     legend.position = "bottom"
+   )
+ 
+ ltT_fig_time_temp_spag + ltF_fig_time_temp_ribbon_filtered
+ 
+ 
+ 
