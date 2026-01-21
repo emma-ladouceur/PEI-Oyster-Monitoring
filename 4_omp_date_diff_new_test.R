@@ -11,6 +11,9 @@ library(tidybayes)
 library(MetBrewer)
 
 
+library(stringr)
+library(viridisLite)
+
 
 # set your own personal working directory below
 # Emma MBP
@@ -280,12 +283,6 @@ m3_fig_trends
 # - Simple tidyverse + tidybayes approach (no RE-name parsing)
 # ============================================================
 
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(ggplot2)
-library(tidybayes)
-library(viridisLite)
 
 # ------------------------------------------------------------
 # 1) Exact data used to fit the model (avoids new-level problems)
