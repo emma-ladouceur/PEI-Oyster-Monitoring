@@ -322,7 +322,7 @@ ltA_W_fig_spag_med <- ggplot() +
     linewidth = 0.8
   ) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_viridis_d(option = "viridis") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
   scale_y_continuous(
     trans  = "log10",
@@ -333,8 +333,8 @@ ltA_W_fig_spag_med <- ggplot() +
   labs(
     x = "Surface water temperature (°C)",
     y = "Total oyster larvae",
-    title = "Temperature–abundance relationships at median salinity",
-    subtitle = "Thin lines = filtered posterior draws; thick lines = posterior medians (all from the same kept-draw set)"
+    # title = "Temperature–abundance relationships at median salinity",
+    subtitle = "a)"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -371,10 +371,11 @@ ltA_intercept_summ <- ltA_intercept_draws %>%
     .groups = "drop"
   )
 
-ltA_fig_intercepts <- ggplot(ltA_intercept_summ, aes(x = n_year, y = estimate)) +
+ltA_fig_intercepts <- ggplot(ltA_intercept_summ, aes(x = n_year, y = estimate, colour = year_group)) +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.6) +
+  scale_colour_viridis_d(option = "viridis", guide = "none") +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
@@ -384,12 +385,9 @@ ltA_fig_intercepts <- ggplot(ltA_intercept_summ, aes(x = n_year, y = estimate)) 
   labs(
     x = "Monitoring year",
     y = "Predicted total larvae at reference temperature",
-    title = "Intercept-like differences through time (median salinity)",
-    subtitle = paste0(
-      "Reference temperature = median observed water temp (",
-      round(ltA_temp_ref, 1), " °C). Thick = 50% CrI; thin = 90% CrI."
-    )
-  ) +
+    # title = "Intercept-like differences through time (median salinity)",
+    subtitle = "b)"
+    ) +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank())
 
@@ -416,17 +414,18 @@ ltA_slope_summ <- ltA_slope_draws %>%
     .groups = "drop"
   )
 
-ltA_fig_slopes <- ggplot(ltA_slope_summ, aes(x = n_year, y = estimate)) +
+ltA_fig_slopes <- ggplot(ltA_slope_summ, aes(x = n_year, y = estimate, colour = year_group)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.6) +
+  scale_colour_viridis_d(option = "viridis", guide = "none") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   labs(
     x = "Monitoring year",
     y = "Slope: d(log10(larvae))/d(°C)",
-    title = "Temperature sensitivity through time (median salinity)",
-    subtitle = "Computed from the same kept-draw set used for the spaghetti plot. Thick = 50% CrI; thin = 90% CrI."
+    # title = "Temperature sensitivity through time (median salinity)",
+    subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank())
@@ -435,6 +434,13 @@ ltA_fig_slopes
 
 # Optional combined view (patchwork)
 ltA_W_fig_spag_med + ltA_fig_intercepts + ltA_fig_slopes
+
+ltA_W_fig_spag_med +
+    ltA_fig_intercepts +
+    ltA_fig_slopes +
+  plot_layout(ncol = 3, guides = "collect") &
+  theme(legend.position = "bottom")
+
 
 # ============================================================
 # ltA_T) YEAR ON X × TEMP LEVELS @ MEDIAN SALINITY (aligned)
@@ -522,7 +528,8 @@ ltA_T_fig_time_temp <- ggplot(
  # scale_colour_viridis_d(option = "viridis") +
  #scale_fill_viridis_d(option = "viridis") +
   # --- Dark2 palette with explicit mapping ---
-  scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
+  scale_colour_manual(name = "Temp",
+    values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
                                   "Median temp"          = "#7570B3",  # purple (Dark2)
                                   "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
   ) ) +
@@ -530,6 +537,7 @@ ltA_T_fig_time_temp <- ggplot(
                                   "Median temp"          = "#7570B3",  # purple (Dark2)
                                   "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
   ) ) +
+  guides(fill = "none") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(
     trans  = "log10",
@@ -540,7 +548,7 @@ ltA_T_fig_time_temp <- ggplot(
   labs(
     x = "Monitoring year",
     y = "Total oyster larvae",
-    subtitle= "a)", colour= "Temp", fill= "Temp"
+    subtitle= "d)", colour= "Temp", fill= "Temp"
    # title = "Temporal trends vary with temperature (median salinity)",
    # subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 90% (outer) CrI"
   ) +
@@ -618,7 +626,7 @@ ltA_T_fig_intercepts <- ggplot(
     x = NULL,
     y = "Predicted larvae at reference year",
     #title = "Baseline larvae abundance by temperature (median salinity)",
-    subtitle = "b)"
+    subtitle = "e)"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -675,7 +683,7 @@ ltA_T_fig_slopes <- ggplot(
     x = NULL,
     y = "Slope:(log(larvae))/(year)",
     #title = "Temporal trends by temperature (median salinity)",
-    subtitle = "c)"
+    subtitle = "f)"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -687,23 +695,41 @@ ltA_T_fig_slopes <- ggplot(
 ltA_T_fig_slopes
 
 
-# Optional: combine with your year-on-x ribbon plot (patchwork)
- ltA_T_fig_time_temp + ltA_T_fig_intercepts + ltA_T_fig_slopes
+# Setting the legend from graph a) to be centered below the 3 graphs patchworked together
+ltA_W_fig_spag_med + ltA_fig_intercepts + ltA_fig_slopes
 
+final_top_row <- (ltA_W_fig_spag_med +
+                    ltA_fig_intercepts +
+                    ltA_fig_slopes) +
+  plot_layout(ncol = 3, guides = "collect") &
+  theme(legend.position = "bottom") 
+
+final_top_row
+
+# Setting the legend from graph d) to ve centered below the 3 graphs patchworked together
+ltA_T_fig_time_temp + ltA_T_fig_intercepts + ltA_T_fig_slopes
+ 
+ ltA_T_fig_intercepts <- ltA_T_fig_intercepts +
+   guides(colour = "none", fill = "none") +
+   theme(legend.position = "none")
+ 
+ ltA_T_fig_slopes <- ltA_T_fig_slopes +
+   guides(colour = "none", fill = "none") +
+   theme(legend.position = "none")
+ 
+ final_bottom_row <- (ltA_T_fig_time_temp +
+   ltA_T_fig_intercepts +
+   ltA_T_fig_slopes) +
+   plot_layout(ncol = 3, guides = "collect") &
+   theme(
+     legend.position = "bottom",
+     legend.justification = "center")
+ 
+ final_bottom_row
+
+
+ # Final combined figures
+ final_top_row / final_bottom_row
  
  
- g_legend<-function(a.gplot){
-   tmp <- ggplot_gtable(ggplot_build(a.gplot))
-   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-   legend <- tmp$grobs[[leg]]
-   return(legend)}
- 
- abund_temp_legend <- g_legend(ltA_T_fig_time_temp)
-
-bottom_row_abund <- ( (ltA_T_fig_time_temp + theme(legend.position="none") ) + ltA_T_fig_intercepts + ltA_T_fig_slopes)/abund_temp_legend + plot_layout(heights = c(10, 1))
-
-top_row_abund <- ( ltA_W_fig_spag_med + ltA_fig_intercepts + ltA_fig_slopes)
-
-
-top_row_abund / bottom_row_abund
 
