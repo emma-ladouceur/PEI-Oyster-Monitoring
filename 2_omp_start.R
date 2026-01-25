@@ -93,11 +93,6 @@ fig_pp_start <- pp_check(start_temp_time_sal) +
   theme_classic() +  theme( plot.title=element_text(size=18, hjust=0.5), legend.position= "none")# predicted vs. observed values
 fig_pp_start
 
-# understanding the figure... density should mean concentration, so does this mean im looking at number of larvae in the water
-# divided by the amount of water filtered? should this axis perhaps read abundance?
-# overall, the figure shows us the distribution of our data
-# it tells us when oyster larvae are first detected during the season, and how many are present at that time
-
 conditional_effects(start_temp_time_sal)
 # ============================================================
 # FIGURE WORKFLOW FOR start_temp_time_sal 
@@ -247,8 +242,8 @@ m2_first_fig1_panel <- ggplot(
   labs(
     x = "Surface water temperature (°C)",
     y = "Julian date",
-    title = "Temperature–phenology relationships vary through time and with salinity",
-    subtitle = "FIRST EVENT: population-level predictions at observed temperatures; shaded bands show 90% credible intervals"
+    # title = "Temperature–phenology relationships vary through time and with salinity",
+    # subtitle = "FIRST EVENT: population-level predictions at observed temperatures; shaded bands show 90% credible intervals"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -284,18 +279,22 @@ m2_first_fig1_mid_start <- ggplot(
     colour = NA
   ) +
   geom_line(linewidth = 0.7) +
-  scale_colour_viridis_d(option = "viridis", guide = "none") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  facet_wrap(~ sal_label, nrow = 1) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Julian date",
-    subtitle = "a) Date of first detection of oyster larvae (> 250 μm)"
+    subtitle = "a)" # Date of first detection of oyster larvae (> 250 μm)
   ) +
   # NOTE:
   # If you want the same calendar labels as the max-event figure,
   # keep/adjust the limits/breaks below to match the observed range for this event.
   coord_cartesian() +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank())
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face = "bold"),
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom")
 
 m2_first_fig1_mid_start
 
@@ -370,10 +369,10 @@ m2_first_fig1_spag <- ggplot() +
   ) +
   geom_line(
     data = m2_first_summ_mid,
-    aes(x = water_temp, y = estimate, group = year_group, colour = year_group),
+    aes(x = water_temp, y = estimate, group = factor(n_year), colour = factor(n_year)),
     linewidth = 0.7
   ) +
-  scale_colour_viridis_d(option = "viridis", guide = "none") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_y_continuous(
     limits = c(160, 230),
     breaks = c(166, 176, 186, 196, 206, 216, 226),
@@ -384,11 +383,12 @@ m2_first_fig1_spag <- ggplot() +
   labs(
     x = "Surface water temperature (°C)",
     y = "Julian date",
-    title = "Temperature effects on first oyster larvae appearance above 250um at mean salinity",
-    subtitle = "FIRST EVENT: thick lines = posterior means by year; spaghetti = posterior draws filtered to central 80% region"
+    # title = "Temperature effects on first oyster larvae appearance above 250um at mean salinity",
+    subtitle = "a)" # "FIRST EVENT: thick lines = posterior means by year; spaghetti = posterior draws filtered to central 80% region"
   ) +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "bottom")
 
 m2_first_fig1_spag
 
@@ -451,26 +451,27 @@ m2_first_int_summ <- m2_first_draw_means %>%
 
 m2_first_fig_intercepts_3panel <- ggplot(
   m2_first_int_summ,
-  aes(x = n_year, y = estimate)
+  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
 ) +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Monitoring year",
-    y = "Julian date (temperature-averaged, population-level)",
-    title = "Year-specific phenology across salinity regimes",
-    subtitle = "FIRST EVENT: points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nAveraged over observed temperatures within each year"
+    y = "Julian date",
+    # title = "Year-specific phenology across salinity regimes",
+    # subtitle = "FIRST EVENT: points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nAveraged over observed temperatures within each year"
   ) +
-  theme_bw(base_size = 11) +
+  theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank()
   ) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "bottom")
 
 m2_first_fig_intercepts_3panel
 
@@ -486,7 +487,7 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   labs(
     x = "Monitoring year",
     y = "Julian date",
-    subtitle = "b) Date of first oyster larvae > 250 μm (Intercept; temp-averaged)"
+    subtitle = "b)" # Date of first oyster larvae > 250 μm (Intercept; temp-averaged)
   ) +
   scale_y_continuous(
     limits = c(160, 230),
@@ -496,8 +497,7 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   ) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank()) +
-theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(panel.grid.minor = element_blank())
 
 
 m2_first_fig1_spag + m2_first_fig_intercepts_mean
@@ -555,7 +555,7 @@ m2_first_slope_summ <- m2_first_draw_slopes %>%
 # 10c) Slope figure: 3 salinity panels (like intercepts)
 m2_first_fig_slopes_3panel <- ggplot(
   m2_first_slope_summ,
-  aes(x = n_year, y = estimate)
+  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
 ) +
   geom_hline(yintercept = 0, linewidth = 0.4, alpha = 0.5) +
   geom_linerange(aes(ymin = lower90, ymax = upper90),
@@ -564,20 +564,23 @@ m2_first_fig_slopes_3panel <- ggplot(
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[
+    sort(unique(m2_first_l_dat$n_year)) %% 2 == 1 &
+      sort(unique(m2_first_l_dat$n_year)) >= 2013]) +
   labs(
     x = "Monitoring year",
-    y = "Temperature slope (days per °C)",
-    title = "Year-specific temperature sensitivity across salinity regimes",
-    subtitle = "FIRST EVENT: points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nSlope estimated within each draw using observed temperatures within each year"
+    y = "Temperature slope" # (days per °C)",
+    # title = "Year-specific temperature sensitivity across salinity regimes",
+    # subtitle = "FIRST EVENT: points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nSlope estimated within each draw using observed temperatures within each year"
   ) +
-  theme_bw(base_size = 11) +
+  theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
-    panel.grid.minor = element_blank()
-  ) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
 
 m2_first_fig_slopes_3panel
 
@@ -593,19 +596,31 @@ m2_first_fig_slopes_mean <- m2_first_slope_summ %>%
   geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group),
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
-  scale_colour_viridis_d(option = "viridis", guide = "none") +
+  scale_colour_viridis_d(option = "viridis", guide = "Monitoring year") +
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Monitoring year",
-    y = "Temperature slope (days per °C)",
-    subtitle = "c) Temperature sensitivity of first larvae date (Slope; temp effect within-year)"
+    y = "Temperature slope" # (days per °C)",
+    subtitle = "c)" # Temperature sensitivity of first larvae date (Slope; temp effect within-year)"
   ) +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank()) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(panel.grid.minor = element_blank())
 
 # Example combo:
-m2_first_fig1_spag + m2_first_fig_intercepts_mean + m2_first_fig_slopes_mean
+
+# Kill the legends for graph b) and c)
+m2_first_fig1_spag <- m2_first_fig1_spag + theme(legend.position = "none")
+m2_first_fig_intercepts_mean <- m2_first_fig_intercepts_mean + theme(legend.position = "none")
+
+
+(m2_first_fig1_spag +
+    m2_first_fig_intercepts_mean +
+    m2_first_fig_slopes_mean) +
+  plot_layout(ncol = 3, guides = "collect") &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center"
+  )
 
 
 
@@ -634,8 +649,8 @@ m2_start_alt_ref <- m2_first_l_dat %>%
 
 # --- temperature level lookup table ---
 m2_start_alt_temp_levels <- tibble(
-  temp_level = factor(c("Cool", "Median", "Warm"),
-                      levels = c("Cool", "Median", "Warm")),
+  temp_level = factor(c("Cool temp (25th pct)", "Median temp", "Warm temp (75th pct)"),
+                      levels = c("Cool temp (25th pct)", "Median temp", "Warm temp (75th pct)")),
   water_temp = c(m2_start_alt_ref$temp_cool,
                  m2_start_alt_ref$temp_med,
                  m2_start_alt_ref$temp_warm)
@@ -707,7 +722,23 @@ m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
     ),
     linewidth = 1.0
   ) +
-  scale_colour_viridis_d(option = "viridis") +
+  scale_colour_manual(
+    name = "Temp",
+    values = c(
+      "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
+      "Median temp"          = "#7570B3",  # purple (Dark2)
+      "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
+    )
+  ) +
+  #scale_colour_viridis_d(option = "viridis", name = "Temp") +
+  scale_x_continuous(
+    breaks = seq(
+      from = 2013,
+      to   = max(m2_start_alt_summ$n_year, na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1)
+  ) +
   coord_cartesian(
     ylim = quantile(
       m2_first_l_dat$julian_date,
@@ -716,23 +747,28 @@ m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
     )
   )+
   # if you want the same "date labels" trick, keep this block and adjust breaks/labels if needed:
+ # scale_y_continuous(
+  #  breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
+   # labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
+    #           "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+  #) +
   scale_y_continuous(
-    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-    labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-               "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+    breaks = scales::pretty_breaks(n = 6),
+    labels = scales::label_number(accuracy = 1)
   ) +
   labs(
     x = "Year",
     y = "Julian date",
-    title = "Time–phenology relationships at cool/median/warm temperatures",
-    subtitle = paste0(
-      "Thick lines = posterior medians; spaghetti = ",
-      m2_start_alt_n_keep,
-      " posterior draws (salinity held at mean)"
-    )
+    # title = "Time–phenology relationships at cool/median/warm temperatures",
+    subtitle = "a)" #paste0(
+      #"Thick lines = posterior medians; spaghetti = ",
+      #m2_start_alt_n_keep,
+      #" posterior draws (salinity held at mean)"
+    #)
   ) +
-  theme_bw(base_size = 11) +
-  theme(panel.grid.minor = element_blank())
+  theme_bw(base_size = 18) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "bottom")
 
 m2_start_alt_fig_year3temp_spag_thin
 
@@ -858,9 +894,33 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
     ),
     linewidth = 1.0
   ) +
-  
-  scale_colour_viridis_d(option = "viridis") +
-  scale_fill_viridis_d(option = "viridis") +
+  scale_x_continuous(
+    breaks = seq(
+      from = 2013,
+      to   = max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1)
+  ) +
+  scale_colour_manual(
+    name = "Temp",
+    values = c(
+      "Cool"   = "#1B9E77",  # green (Dark2)
+      "Median" = "#7570B3",  # purple (Dark2)
+      "Warm"   = "#D95F02"   # orange (Dark2)
+    )
+  ) +
+  scale_fill_manual(
+    name = "Temp",
+    values = c(
+      "Cool"   = "#1B9E77",
+      "Median" = "#7570B3",
+      "Warm"   = "#D95F02"
+    )
+  ) +
+
+  #scale_colour_viridis_d(option = "viridis") +
+  #scale_fill_viridis_d(option = "viridis") +
   
   coord_cartesian(
     ylim = quantile(
@@ -871,20 +931,26 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
   ) +
   
   # keep / edit this if your julian-date-to-calendar mapping differs
+  #scale_y_continuous(
+   # breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
+    #labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
+     #          "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+  #) +
   scale_y_continuous(
-    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-    labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-               "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+    breaks = scales::pretty_breaks(n = 6),
+    labels = scales::label_number(accuracy = 1)
   ) +
-  
   labs(
     x = "Year",
     y = "Julian date",
-    title = "Time–phenology relationships at cool/median/warm temperatures",
-    subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) credible intervals (salinity held at mean)"
-  ) +
-  theme_bw(base_size = 11) +
-  theme(panel.grid.minor = element_blank())
+    # title = "Time–phenology relationships at cool/median/warm temperatures",
+    subtitle = "a)", #"Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) credible intervals (salinity held at mean)"
+  colour = "Temp",
+  fill = "Temp"
+    ) +
+  theme_bw(base_size = 18) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "bottom")
 
 m2_start_alt_fig_year3temp_ribbons
 
@@ -926,19 +992,36 @@ m2_start_slope_summ <- m2_start_slope_draws %>%
 # -----------------------------
 m2_start_fig_year3temp_slopes <- ggplot(
   m2_start_slope_summ,
-  aes(x = temp_level, y = estimate, colour = temp_level)
+  aes(y = temp_level, x = estimate, colour = temp_level)
 ) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
-  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
-  scale_colour_viridis_d(option = "viridis") +
+  scale_colour_manual(
+    name = "Temp",
+    values = c(
+      "Cool"   = "#1B9E77",  # green (Dark2)
+      "Median" = "#7570B3",  # purple (Dark2)
+      "Warm"   = "#D95F02"   # orange (Dark2)
+    )
+  ) +
+  scale_fill_manual(
+    name = "Temp",
+    values = c(
+      "Cool"   = "#1B9E77",
+      "Median" = "#7570B3",
+      "Warm"   = "#D95F02"
+    )
+  ) +
+
+  #scale_colour_viridis_d(option = "viridis") +
   coord_flip() +
   labs(
-    x = NULL,
-    y = "Slope (change in predicted Julian date per year)",
-    title = "Temporal trends by temperature (salinity held at mean)",
-    subtitle = "(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+    y = NULL,
+    x = "Slope", # (change in predicted Julian date per year)",
+    #title = "Temporal trends by temperature (salinity held at mean)",
+    subtitle = "c)" # Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -1000,23 +1083,26 @@ m2_start_intercept_summ <- m2_start_intercept_draws %>%
 # -----------------------------
 m2_start_fig_year3temp_intercepts <- ggplot(
   m2_start_intercept_summ,
-  aes(x = temp_level, y = estimate, colour = temp_level)
+  aes(y = temp_level, x = estimate, colour = temp_level)
 ) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
-  scale_colour_viridis_d(option = "viridis") +
-  coord_flip() +
-  labs(
-    x = NULL,
-    y = "Intercept (predicted Julian date at reference year)",
-    title = "Baseline phenology by temperature (salinity held at mean)",
-    subtitle = paste0(
-      "(c) Intercepts evaluated at Year = ",
-      round(m2_start_ref_year, 1),
-      "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
+  #scale_colour_viridis_d(option = "viridis") +
+  scale_colour_manual(
+    values = c(
+      "Cool"   = "#1B9E77",  # green (Dark2)
+      "Median" = "#7570B3",  # purple (Dark2)
+      "Warm"   = "#D95F02"   # orange (Dark2)
     )
   ) +
+  coord_flip() +
+  labs(
+    x = "Intercept (predicted Julian date at reference year)",
+    y = NULL,
+    #title = "Baseline phenology by temperature (salinity held at mean)",
+    subtitle = "b)"
+    ) +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
@@ -1028,10 +1114,22 @@ m2_start_fig_year3temp_intercepts
 # Optional: show ribbons + slopes + intercepts together (requires patchwork loaded)
 # m2_start_alt_fig_year3temp_ribbons + m2_start_fig_year3temp_slopes + m2_start_fig_year3temp_intercepts
 
+#remove legend
+m2_start_fig_year3temp_intercepts <- m2_start_fig_year3temp_intercepts +
+guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
 
+#remove legend
+m2_start_fig_year3temp_slopes <- m2_start_fig_year3temp_slopes +
+guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
 
-
-
-m2_start_alt_fig_year3temp_ribbons + m2_start_fig_year3temp_intercepts + m2_start_fig_year3temp_slopes
+(m2_start_alt_fig_year3temp_ribbons +
+  m2_start_fig_year3temp_intercepts +
+  m2_start_fig_year3temp_slopes) +
+  plot_layout(ncol = 3, guides = "collect") &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center")
 
 m2_start_alt_fig_year3temp_spag_thin+ m2_start_alt_fig_year3temp_ribbons
