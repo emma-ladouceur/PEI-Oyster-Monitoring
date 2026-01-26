@@ -116,15 +116,16 @@ view(m3_dat)
 
 head(m3_dat)
 # possible new model
-oyster_first_last <- brm(
-  diff_first_last ~ water_temp.m * n_year.m * salinity.m +
-    (1 + water_temp.m * n_year.m || bay/location_clean),
-  data    = m3_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = student(), #or gaussian
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+
+# oyster_first_last <- brm(
+#   diff_first_last ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + water_temp.m * n_year.m || bay/location_clean),
+#   data    = m3_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = student(), #or gaussian
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 # EMma's path
 save(oyster_first_last, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")
@@ -260,6 +261,15 @@ m3_fig_trends <- ggplot() +
   
   scale_colour_manual(values = m3_bay_colors) +
   
+  scale_x_continuous(
+    breaks = seq(
+      from = 2013,
+      to   = max(c(m3_pop_fit$n_year, m3_bay_fit$n_year), na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1)
+  ) +
+  
   labs(
     x = "Monitoring year",
     y = "Difference in days (first → max)",
@@ -391,6 +401,7 @@ m3_fig_trends <- ggplot() +
   labs(
     x = "Monitoring year",
     y = "Difference in days (first → max)",
+    subtitle = "a)",
     colour = "Bay"
   ) +
   theme_bw(base_size = 18) +
@@ -529,9 +540,9 @@ m3_fig_slopes <- ggplot(
   scale_colour_manual(values = m3_bay_colors) +
   labs(
     x = NULL,
-    y = "Slope (days per year)",
-    title = "Temporal trends in first–max larval timing",
-    subtitle = "Bay-level slopes computed from posterior predictions at observed endpoint years\nPoints = posterior means; thick bars = 50% CrI; thin bars = 90% CrI"
+    y = "Slope",
+    # title = "Temporal trends in first–max larval timing",
+    subtitle = "b)" # Bay-level slopes computed from posterior predictions at observed endpoint years\nPoints = posterior means; thick bars = 50% CrI; thin bars = 90% CrI"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -539,9 +550,20 @@ m3_fig_slopes <- ggplot(
     legend.position = "none"
   )
 
+m3_fig_slopes
+
 # ------------------------------------------------------------
 # 15) Combine plots
 # ------------------------------------------------------------
-m3_fig_trends + m3_fig_slopes
+
+m3_fig_slopes <- m3_fig_slopes +
+  guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
+
+(m3_fig_trends + m3_fig_slopes) +
+plot_layout(ncol = 3, guides = "collect") &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center")
 
 
