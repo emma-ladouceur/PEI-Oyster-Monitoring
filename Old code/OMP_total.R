@@ -72,7 +72,7 @@ mon_clean <- mon_date_2025 %>%
   mutate( bay = case_when( location_clean == "Foxley River - Gibb's Creek" ~ "Cascumpec Bay",
                            location_clean == "Foxley River - Goff Bridge" ~ "Cascumpec Bay",
                            location_clean == "Foxley River - Lot 6 Pt." ~ "Cascumpec Bay",
-                           location_clean == "Kildare River" ~ "Cascumpec Bay",
+                           #location_clean == "Kildare River" ~ "Cascumpec Bay",
                            location_clean == "Montrose Bridge" ~ "Cascumpec Bay",
                            location_clean == "Mill River" ~ "Cascumpec Bay",
                            location_clean == "Enmore River" ~ "Egmont Bay",
@@ -108,7 +108,7 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Souris River" ~ "Colville Bay",
                            location_clean == "Savage Harbour" ~ "Savage Harbour",
                            location_clean == "Dock River" ~ "Savage Harbour",
-                           location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
+                           #location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean)) %>%
   

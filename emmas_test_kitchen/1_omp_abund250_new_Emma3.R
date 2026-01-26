@@ -26,7 +26,7 @@ head(omp_dat)
 l_total_dat <- omp_dat %>%  # create numeric month day
   group_by(bay, location_clean, f_year) %>% # group by location and year 
   filter( larvae_above_250_microns == max(larvae_above_250_microns))  %>% # take max of larvae for each group specified above
-  filter(larvae_total > 0) %>%      
+ # filter(larvae_total > 0) %>%      
   filter(larvae_above_250_microns > 0) %>% 
   mutate(n_month_day = as.numeric(month_day)) %>%
   mutate(bay = as.factor(bay)) %>% 
@@ -333,7 +333,7 @@ lstAm_W_fig_spag_med <- ggplot() +
     aes(x = water_temp, y = med, group = year_group, colour = year_group),
     linewidth = 0.8
   ) +
-  facet_wrap(~ sal_label, nrow = 1) +
+  #facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis") +
   scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
   scale_y_continuous(
@@ -344,16 +344,16 @@ lstAm_W_fig_spag_med <- ggplot() +
   coord_cartesian(ylim = c(lstAm_W_y_min_plot_med, lstAm_W_y_max_plot_med)) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Total oyster larvae",
-    title = "Temperature–abundance relationships at median salinity",
-    subtitle = "Thin lines = filtered posterior draws; thick lines = posterior medians (all from the same kept-draw set)"
+    y = "Total max oyster larvae\n >250 microns",
+    title = "",
+    subtitle = ""
   ) +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
+    legend.position = "none"
   )
 
 lstAm_W_fig_spag_med
@@ -551,7 +551,7 @@ lstAm_T_fig_time_temp <- ggplot(
   coord_cartesian(ylim = c(lstAm_T_y_min_plot, lstAm_T_y_max_plot)) +
   labs(
     x = "Monitoring year",
-    y = "Total oyster larvae",
+    y = "Max oyster larvae\n > 250 microns",
     subtitle= "a)", colour= "Temp", fill= "Temp"
     # title = "Temporal trends vary with temperature (median salinity)",
     # subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 90% (outer) CrI"
