@@ -117,7 +117,7 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean)) %>%
   filter(water_temp != 722.00) %>% filter(water_temp != 99.90) %>% filter(water_temp != 247.00) %>%
-  mon_clean %>% filter(water_temp != 0.0) %>% filter(water_temp != 34.0)
+  filter(water_temp != 0.0) %>% filter(water_temp != 34.0)
 
 # any other crazy values?
 summary(mon_clean)
