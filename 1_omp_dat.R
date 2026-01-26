@@ -133,6 +133,14 @@ view(bay_list)
 write.csv(mon_clean, "~/Data/OMP/OMP_clean_2025.csv", row.names = FALSE)
 write.csv(mon_clean, "~/Dropbox/_Projects/PEI Oysters/Data/OMP/OMP_clean_2025.csv", row.names = FALSE)
 
+omp_dat <- mon_clean
+
+omp_dat %>% select(bay, location_clean) %>% distinct() %>% arrange(bay, location_clean)  # 38 locations
+
+omp_dat %>% select(bay) %>% distinct() %>% arrange(bay) # 15 bays
+
+omp_dat %>% select(f_year) %>% distinct() %>% arrange(f_year) # 2013-2025
+omp_dat %>% select(julian_date) %>% distinct() %>% arrange(julian_date) # julian date 170 (june 18)- 254 (sept 11)
 
 
 
