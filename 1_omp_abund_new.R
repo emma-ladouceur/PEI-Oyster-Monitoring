@@ -49,16 +49,16 @@ summary(l_total_dat)
 # l_total_dat %>% filter(water_temp == 99.90)
 # l_total_dat %>% filter(water_temp == 34.00)
 
-# ltotal_temp_time_sal <- brm(
-#   larvae_total ~ water_temp.m * n_year.m * salinity.m +
-#     (1 + n_year.m * water_temp.m  || bay/location_clean) + (1 | julian_date.m),
-#   data    = l_total_dat,                
-#   iter    = 5000,
-#   warmup  = 1000,
-#   family  = lognormal(),
-#   #prior   = prior(normal(0, 0.5), class = "sigma", lb = 0),
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+ltotal_temp_time_sal <- brm(
+  larvae_total ~ water_temp.m * n_year.m * salinity.m +
+    (1 + n_year.m * water_temp.m  || bay/location_clean) + (1 | julian_date.m),
+  data    = l_total_dat,
+  iter    = 5000,
+  warmup  = 1000,
+  family  = lognormal(),
+  #prior   = prior(normal(0, 0.5), class = "sigma", lb = 0),
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 # ================================================
 
@@ -66,8 +66,8 @@ summary(l_total_dat)
 save(ltotal_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
 
-# Maddy's path
-#save(ltotal_temp_time_sal, file = "~/Data/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
+# Maddy's paths
+save(ltotal_temp_time_sal, file = "~/Data/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
 load("~/Data/Model_fits/OMP/ltotal_temp_time_sal.Rdata")
 
 

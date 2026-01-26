@@ -994,7 +994,7 @@ m2_start_fig_year3temp_slopes <- ggplot(
   m2_start_slope_summ,
   aes(y = temp_level, x = estimate, colour = temp_level)
 ) +
-  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
@@ -1004,14 +1004,6 @@ m2_start_fig_year3temp_slopes <- ggplot(
       "Cool"   = "#1B9E77",  # green (Dark2)
       "Median" = "#7570B3",  # purple (Dark2)
       "Warm"   = "#D95F02"   # orange (Dark2)
-    )
-  ) +
-  scale_fill_manual(
-    name = "Temp",
-    values = c(
-      "Cool"   = "#1B9E77",
-      "Median" = "#7570B3",
-      "Warm"   = "#D95F02"
     )
   ) +
 
