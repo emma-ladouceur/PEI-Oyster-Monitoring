@@ -45,11 +45,14 @@ m4_max_l_dat <- omp_dat %>% group_by(bay, location_clean, f_year) %>% # group by
   mutate(water_temp.m = water_temp - mean(water_temp, na.rm = TRUE),
          salinity.m = salinity - mean(salinity, na.rm = TRUE),
          n_year.m = n_year - mean(n_year, na.rm = TRUE)
-  ) %>% filter(bay != "Tracadie Bay") %>%
+  ) %>% #filter(bay != "Tracadie Bay") %>%
   mutate(bay_loc = interaction(bay, location_clean, drop = TRUE)) 
 
 summary(m4_max_l_dat)
 view(m4_max_l_dat)
+
+m4_max_l_dat %>% filter(bay == "Tracadie Bay")
+
 # ============================================================
 # MODEL 4 (MAX )
 # ============================================================

@@ -131,7 +131,7 @@ write.csv(bay_list, "~/Data/OMP/bay_list.csv", row.names = FALSE)
 view(bay_list)
 
 write.csv(mon_clean, "~/Data/OMP/OMP_clean_2025.csv", row.names = FALSE)
-
+write.csv(mon_clean, "~/Dropbox/_Projects/PEI Oysters/Data/OMP/OMP_clean_2025.csv", row.names = FALSE)
 
 
 
