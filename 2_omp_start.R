@@ -62,15 +62,15 @@ head(m2_first_l_dat)
 # B) Fit model (KEEP THIS NAME)
 # ------------------------------------------------------------
 # 
-start_temp_time_sal <- brm(
-  julian_date ~ water_temp.m * n_year.m * salinity.m +
-    (1 + n_year.m | bay/location_clean),
-  data    = m2_first_l_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = gaussian(),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# start_temp_time_sal <- brm(
+#   julian_date ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + n_year.m | bay/location_clean),
+#   data    = m2_first_l_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = gaussian(),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 # Emma's paths
 save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
@@ -238,7 +238,7 @@ m2_first_fig1_panel <- ggplot(
   ) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_viridis_d(option = "viridis", guide = "none") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   labs(
     x = "Surface water temperature (°C)",
     y = "Julian date",
@@ -249,8 +249,8 @@ m2_first_fig1_panel <- ggplot(
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
-    panel.grid.minor = element_blank()
-  )
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom")
 
 m2_first_fig1_panel
 
@@ -441,13 +441,16 @@ m2_first_draw_means <- m2_first_ep2_long %>%
 m2_first_int_summ <- m2_first_draw_means %>%
   group_by(n_year, sal_label) %>%
   summarise(
-    estimate = mean(epred_mean),
-    lower50  = quantile(epred_mean, 0.25),
-    upper50  = quantile(epred_mean, 0.75),
-    lower90  = quantile(epred_mean, 0.05),
-    upper90  = quantile(epred_mean, 0.95),
+    estimate = round(mean(epred_mean), 2),
+    lower50  = round(quantile(epred_mean, 0.25), 2),
+    upper50  = round(quantile(epred_mean, 0.75), 2),
+    lower90  = round(quantile(epred_mean, 0.05), 2),
+    upper90  = round(quantile(epred_mean, 0.95), 2),
     .groups  = "drop"
   )
+
+view(m2_first_int_summ)
+write.csv(m2_first_int_summ, "~/Data/Results/m2_first_int_summ.csv", row.names = FALSE)
 
 m2_first_fig_intercepts_3panel <- ggplot(
   m2_first_int_summ,
