@@ -192,7 +192,7 @@ ltW_fig_panel <- ggplot(
   geom_ribbon(aes(ymin = lower90, ymax = upper90), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_viridis_d(option = "viridis") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
   scale_y_continuous(
     trans  = "log10",
@@ -203,8 +203,8 @@ ltW_fig_panel <- ggplot(
   labs(
     x = "Surface water temperature (°C)",
     y = "Total oyster larvae",
-    title = "Temperature–abundance relationships vary through time and with salinity",
-    subtitle = "Population-level medians; shaded bands show 90% credible intervals"
+    # title = "Temperature–abundance relationships vary through time and with salinity",
+    subtitle = "a)" #Population-level medians; shaded bands show 90% credible intervals"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -369,8 +369,8 @@ ltW_fig_spag_med <- ggplot() +
     ),
     linewidth = 0.8
   ) +
-  facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_viridis_d(option = "viridis") +
+  # facet_wrap(~ sal_label, nrow = 1) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
   scale_y_continuous(
     trans  = "log10",
@@ -381,13 +381,13 @@ ltW_fig_spag_med <- ggplot() +
   labs(
     x = "Surface water temperature (°C)",
     y = "Total oyster larvae",
-    title = "Temperature–abundance relationships at median salinity",
-    subtitle = "Thin lines = filtered posterior draws; thick lines = posterior medians"
+    # title = "Temperature–abundance relationships at median salinity",
+    subtitle = "a)" #Thin lines = filtered posterior draws; thick lines = posterior medians"
   ) +
   theme_bw(base_size = 18) +
   theme(
-    strip.background = element_blank(),
-    strip.text = element_text(face = "bold"),
+    # strip.background = element_blank(),
+    # strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
     legend.position = "bottom"
   )
@@ -443,28 +443,37 @@ ltW_intercept_summ <- ltW_intercept_draws %>%
 # ------------------------------------------------------------
 ltW_fig_intercepts <- ggplot(
   ltW_intercept_summ,
-  aes(x = n_year, y = estimate)
+  aes(x = n_year, y = estimate, colour = factor(n_year))
 ) +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.6) +
+  
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
     labels = scales::label_number()
   ) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+    scale_x_continuous(
+      breaks = seq(
+        from = 2013,
+        to   = max(ltW_intercept_summ$n_year, na.rm = TRUE),
+        by   = 2
+      ),
+      labels = scales::label_number(accuracy = 1)
+    ) +
+    #breaks = scales::pretty_breaks(n = 6)) +
   labs(
     x = "Monitoring year",
-    y = "Predicted total larvae at reference temperature",
-    title = "Intercept-like differences through time (median salinity)",
-    subtitle = paste0(
-      "Reference temperature = median observed water temp (",
-      round(ltW_temp_ref, 1), " °C). Points = posterior medians; thick bars = 50% CrI; thin bars = 90% CrI."
-    )
+    y = "Predicted total larvae at median temperature",
+    # title = "Intercept-like differences through time (median salinity)",
+    subtitle = "b)"
   ) +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "bottom")
 
 ltW_fig_intercepts
 
@@ -506,30 +515,57 @@ ltW_slope_summ <- ltW_slope_draws %>%
 # ------------------------------------------------------------
 ltW_fig_slopes <- ggplot(
   ltW_slope_summ,
-  aes(x = n_year, y = estimate)
+  aes(x = n_year, y = estimate, colour = factor(n_year))
 ) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.6) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  #scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_x_continuous(
+    breaks = seq(
+      from = 2013,
+      to   = max(ltW_slope_summ$n_year, na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1)
+  ) +
   labs(
     x = "Monitoring year",
     y = "Slope: d(log10(larvae))/d(°C)",
-    title = "Temperature sensitivity through time (median salinity)",
-    subtitle = "Within-year slopes. Points = posterior medians; thick bars = 50% CrI; thin bars = 90% CrI."
+    # title = "Temperature sensitivity through time (median salinity)",
+    subtitle = "c)" #"Within-year slopes. Points = posterior medians; thick bars = 50% CrI; thin bars = 90% CrI."
   ) +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "bottom")
 
 ltW_fig_slopes
 
 ltW_fig_spag_med + ltW_fig_intercepts + ltW_fig_slopes
 
+
+ltW_fig_intercepts <- ltW_fig_intercepts +
+  guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
+
+ltW_fig_slopes <- ltW_fig_slopes +
+  guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
+
+(ltW_fig_spag_med +
+    ltW_fig_intercepts +
+    ltW_fig_slopes) +
+  plot_layout(ncol = 3, guides = "collect") &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center")
+
 # ------------------------------------------------------------
 # 5) Optional: view side-by-side if patchwork is loaded
 # ------------------------------------------------------------
-# ltW_fig_intercepts + ltW_fig_slopes
+ltW_fig_intercepts + ltW_fig_slopes
 
 
 # ============================================================
@@ -657,10 +693,18 @@ ltT_fig_time_temp <- ggplot(
     colour = NA
   ) +
   geom_line(linewidth = 1.0) +
-  facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_brewer(name = "Surface Water\nTemperature (°C)", type = "qual", palette = "Dark2") +
-  scale_fill_brewer(name = "Surface Water\nTemperature (°C)", type = "qual", palette = "Dark2") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  #facet_wrap(~ sal_label, nrow = 1) +
+  scale_colour_brewer(name = "Temp", type = "qual", palette = "Dark2") +
+  scale_fill_brewer(name = "Temp", type = "qual", palette = "Dark2") +
+  scale_x_continuous(
+    breaks = seq(
+      from = 2013,
+      to   = max(ltT_summ_time$n_year, na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1)
+  ) +
+  # scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(24, 48, 96, 192),
@@ -670,13 +714,13 @@ ltT_fig_time_temp <- ggplot(
   labs(
     x = "Monitoring year",
     y = "Total oyster larvae",
-    title = "Temporal trends vary with temperature (median salinity)",
-    subtitle = "Population-level medians at cool/median/warm temperatures; ribbons show 90% credible intervals"
+    # title = "Temporal trends vary with temperature (median salinity)",
+    subtitle = "d)" #"Population-level medians at cool/median/warm temperatures; ribbons show 90% credible intervals"
   ) +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
-    strip.text = element_text(face = "bold"),
+    #strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
     legend.position = "bottom"
   )
@@ -742,9 +786,17 @@ ltT_fig_time_temp_spag <- ggplot() +
     aes(x = n_year, y = estimate, group = temp_label, colour = temp_label),
     linewidth = 1.1
   ) +
-  facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_brewer(name = "Surface Water\nTemperature (°C)", type = "qual", palette = "Dark2") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  #facet_wrap(~ sal_label, nrow = 1) +
+  scale_colour_brewer(name = "Temp", type = "qual", palette = "Dark2") +
+  scale_x_continuous(
+    breaks = seq(
+      from = 2013,
+      to   = max(ltT_summ_time$n_year, na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1)
+  ) +
+  #scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
@@ -754,13 +806,13 @@ ltT_fig_time_temp_spag <- ggplot() +
   labs(
     x = "Monitoring year",
     y = "Total oyster larvae",
-    title = "Temporal trends vary with temperature (median salinity)",
-    subtitle = "(a) Thin lines = filtered posterior draws; thick lines = posterior medians"
+    # title = "Temporal trends vary with temperature (median salinity)",
+    subtitle = "d)" #"(a) Thin lines = filtered posterior draws; thick lines = posterior medians"
   ) +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
-    strip.text = element_text(face = "bold"),
+    #strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
     legend.position = "bottom"
   )
@@ -802,19 +854,19 @@ ltT_slope_summ <- ltT_slope_draws %>%
 # -----------------------------
 ltT_fig_time_temp_slopes <- ggplot(
   ltT_slope_summ,
-  aes(x = temp_label, y = estimate, colour = temp_label)
+  aes(y = temp_label, x = estimate, colour = temp_label)
 ) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
-  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
-  scale_colour_brewer(name = "Surface Water\nTemperature (°C)", type = "qual", palette = "Dark2") +
+  scale_colour_brewer(name = "Temp", type = "qual", palette = "Dark2") +
   coord_flip() +
   labs(
-    x = NULL,
-    y = "Slope (change in total larvae per year)",
-    title = "Temporal trends strengthen with temperature (median salinity)",
-    subtitle = "(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+    y = NULL,
+    x = "Slope (change in total larvae per year)",
+    # title = "Temporal trends strengthen with temperature (median salinity)",
+    subtitle = "e)" #"(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -947,8 +999,32 @@ ltT_fig_time_temp_slopes
      aes(x = n_year, y = lt_alt_med, colour = temp_level),
      linewidth = 1.0
    ) +
-   scale_colour_viridis_d(option = "viridis") +
-   scale_fill_viridis_d(option = "viridis") +
+   scale_colour_manual(
+     name = "Temp",
+     values = c(
+       "Cool"   = "#1B9E77",  # green (Dark2)
+       "Median" = "#7570B3",  # purple (Dark2)
+       "Warm"   = "#D95F02"   # orange (Dark2)
+     )
+   ) +
+   scale_fill_manual(
+     name = "Temp",
+     values = c(
+       "Cool"   = "#1B9E77",
+       "Median" = "#7570B3",
+       "Warm"   = "#D95F02"
+     )
+   ) +
+  # scale_colour_viridis_d(option = "viridis") +
+   # scale_fill_viridis_d(option = "viridis") +
+   scale_x_continuous(
+     breaks = seq(
+       from = 2013,
+       to   = max(lt_alt_ribbon_dat$n_year, na.rm = TRUE),
+       by   = 2
+     ),
+     labels = scales::label_number(accuracy = 1)
+   ) +
    coord_cartesian(
      ylim = quantile(
        lt_alt_draws$lt_alt_epred,
@@ -959,8 +1035,8 @@ ltT_fig_time_temp_slopes
    labs(
      x = "Year",
      y = "Predicted total larvae (response scale)",
-     title = "Temporal trends in larvae abundance by temperature (salinity held at mean)",
-     subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) CrI"
+     # title = "Temporal trends in larvae abundance by temperature (salinity held at mean)",
+     subtitle = "TBD" #Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) CrI"
    ) +
    theme_bw(base_size = 11) +
    theme(panel.grid.minor = element_blank())
@@ -994,19 +1070,26 @@ ltT_fig_time_temp_slopes
  
  lt_fig_year3temp_slopes <- ggplot(
    lt_slope_summ,
-   aes(x = temp_level, y = estimate, colour = temp_level)
+   aes(y = temp_level, x = estimate, colour = temp_level)
  ) +
    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
-   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+   geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
+   geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
    geom_point(size = 3) +
-   scale_colour_viridis_d(option = "viridis") +
+   scale_colour_manual(
+     values = c(
+       "Cool"   = "#1B9E77",  # green (Dark2)
+       "Median" = "#7570B3",  # purple (Dark2)
+       "Warm"   = "#D95F02"   # orange (Dark2)
+     )
+   ) +
+   #scale_colour_viridis_d(option = "viridis") +
    coord_flip() +
    labs(
-     x = NULL,
-     y = "Slope (change in predicted larvae per year)",
-     title = "Temporal trends by temperature (salinity held at mean)",
-     subtitle = "(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+     y = NULL,
+     x = "Slope (change in predicted larvae per year)",
+     # title = "Temporal trends by temperature (salinity held at mean)",
+     subtitle = "TBD" #(b) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
    ) +
    theme_bw(base_size = 18) +
    theme(
@@ -1049,22 +1132,25 @@ ltT_fig_time_temp_slopes
  
  lt_fig_year3temp_intercepts <- ggplot(
    lt_intercept_summ,
-   aes(x = temp_level, y = estimate, colour = temp_level)
+   aes(y = temp_level, x = estimate, colour = temp_level)
  ) +
-   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+   geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
+   geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
    geom_point(size = 3) +
-   scale_colour_viridis_d(option = "viridis") +
+   scale_colour_manual(
+     values = c(
+       "Cool"   = "#1B9E77",  # green (Dark2)
+       "Median" = "#7570B3",  # purple (Dark2)
+       "Warm"   = "#D95F02"   # orange (Dark2)
+     )
+   ) +
+   # scale_colour_viridis_d(option = "viridis") +
    coord_flip() +
    labs(
-     x = NULL,
-     y = "Intercept (predicted larvae at reference year)",
-     title = "Baseline larvae abundance by temperature (salinity held at mean)",
-     subtitle = paste0(
-       "(c) Intercepts evaluated at Year = ",
-       round(lt_ref_year, 1),
-       "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
-     )
+     y = NULL,
+     x = "Intercept (predicted larvae at reference year)",
+     # title = "Baseline larvae abundance by temperature (salinity held at mean)",
+     subtitle = "TBD"
    ) +
    theme_bw(base_size = 18) +
    theme(
@@ -1188,9 +1274,35 @@ ltT_fig_time_temp_slopes
      linewidth = 1.1
    ) +
    
-   scale_colour_viridis_d(option = "viridis") +
-   scale_fill_viridis_d(option = "viridis") +
-   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+   scale_colour_manual(
+     name = "Temp",
+     values = c(
+       "Cool" = "#1B9E77",  # green (Dark2)
+       "Median"         = "#7570B3",  # purple (Dark2)
+       "Warm"= "#D95F02"   # orange (Dark2)
+     )
+   ) +
+   scale_fill_manual(
+     name = "Temp",
+     values = c(
+       "Cool" = "#1B9E77",
+       "Median"         = "#7570B3",
+       "Warm"= "#D95F02"
+     )
+   ) +
+   
+   # scale_colour_viridis_d(option = "viridis") +
+   # scale_fill_viridis_d(option = "viridis") +
+   # scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+   
+   scale_x_continuous(
+     breaks = seq(
+       from = 2013,
+       to   = max(ltF_ribbon_dat$n_year, na.rm = TRUE),
+       by   = 2
+     ),
+     labels = scales::label_number(accuracy = 1)
+   ) +
    
    # match your ltT style: log axis (since larvae totals are usually heavy-tailed)
    scale_y_continuous(
@@ -1204,8 +1316,8 @@ ltT_fig_time_temp_slopes
    labs(
      x = "Monitoring year",
      y = "Total oyster larvae",
-     title = "Temporal trends vary with temperature (salinity held at mean)",
-     subtitle = "(a) Ribbons/line based on filtered posterior draws (>=95% inside the 10–90% envelope)"
+     # title = "Temporal trends vary with temperature (salinity held at mean)",
+     subtitle = "TBD" #(a) Ribbons/line based on filtered posterior draws (>=95% inside the 10–90% envelope)"
    ) +
    
    theme_bw(base_size = 18) +
@@ -1213,6 +1325,9 @@ ltT_fig_time_temp_slopes
      panel.grid.minor = element_blank(),
      legend.position = "bottom"
    )
+ 
+ ltF_fig_time_temp_ribbon_filtered
+ 
  
  ltT_fig_time_temp_spag + ltF_fig_time_temp_ribbon_filtered
  
