@@ -321,7 +321,7 @@ ltA_W_fig_spag_med <- ggplot() +
     aes(x = water_temp, y = med, group = year_group, colour = year_group),
     linewidth = 0.8
   ) +
-  facet_wrap(~ sal_label, nrow = 1) +
+  # facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
   scale_y_continuous(
@@ -339,7 +339,7 @@ ltA_W_fig_spag_med <- ggplot() +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
-    strip.text = element_text(face = "bold"),
+    # strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
     legend.position = "bottom"
   )
