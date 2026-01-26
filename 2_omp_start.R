@@ -73,7 +73,7 @@ start_temp_time_sal <- brm(
 )
 
 # Emma's paths
-save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
+save(start_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/start_temp_time_sal.Rdata")
 load("~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/start_temp_time_sal.Rdata")
 #load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/start_temp_time_sal.Rdata")
 
