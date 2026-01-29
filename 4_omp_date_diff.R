@@ -92,6 +92,7 @@ m3_dat <- m3_first %>%
 
 
 #old model - model we will keep
+# QUESTION: within our brackets, why isnt it (1 + n_year.m | bay/location_clean)
 # oyster_first_last <- brm(
 #   diff_first_last ~ n_year.m + (n_year.m | bay/location_clean),
 #   data    = m3_dat,

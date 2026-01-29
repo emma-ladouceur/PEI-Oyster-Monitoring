@@ -54,15 +54,15 @@ nrow(la_m_dat)
 
 
 
-la_m_mod <- brm(
-  larvae_total ~ water_temp.m * n_year.m * salinity.m +
-   # s(julian_date,  k = 10) + # if turn on then see commented out lines below for s(julian)
-    (1 + n_year.m | bay/location_clean),
-  data    = la_m_dat,
-  family  = lognormal(),
-  iter    = 5000, warmup = 1000,
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# la_m_mod <- brm(
+#   larvae_total ~ water_temp.m * n_year.m * salinity.m +
+#    # s(julian_date,  k = 10) + # if turn on then see commented out lines below for s(julian)
+#     (1 + n_year.m | bay/location_clean),
+#   data    = la_m_dat,
+#   family  = lognormal(),
+#   iter    = 5000, warmup = 1000,
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 
 # ================================================

@@ -61,7 +61,8 @@ head(m2_first_l_dat)
 # ------------------------------------------------------------
 # B) Fit model (KEEP THIS NAME)
 # ------------------------------------------------------------
-# 
+
+ 
 # start_temp_time_sal <- brm(
 #   julian_date ~ water_temp.m * n_year.m * salinity.m +
 #     (1 + n_year.m | bay/location_clean),
@@ -71,6 +72,9 @@ head(m2_first_l_dat)
 #   family  = gaussian(),
 #   control = list(adapt_delta = 0.999, max_treedepth = 20)
 # )
+
+
+# -----------------------------------------------------------
 
 # Emma's paths
 save(start_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/start_temp_time_sal.Rdata")

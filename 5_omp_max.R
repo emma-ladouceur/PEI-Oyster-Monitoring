@@ -58,16 +58,18 @@ m4_max_l_dat %>% filter(bay == "Tracadie Bay")
 # ============================================================
 # 
 # --- Fit model (keep these names exactly as requested) ---
-m4_max_temp_time_sal <- brm(
-  julian_date ~ water_temp.m * n_year.m * salinity.m +
-    #(1 + water_temp.m * n_year.m || bay/location_clean),
-    (1 + n_year.m | bay/location_clean),
-  data    = m4_max_l_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = gaussian(),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# m4_max_temp_time_sal <- brm(
+#   julian_date ~ water_temp.m * n_year.m * salinity.m +
+#     #(1 + water_temp.m * n_year.m || bay/location_clean),
+#     (1 + n_year.m | bay/location_clean),
+#   data    = m4_max_l_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = gaussian(),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
+
+# ==========================================================
 
 # Emma's paths
 save(m4_max_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/m4_max_temp_time_sal.Rdata")

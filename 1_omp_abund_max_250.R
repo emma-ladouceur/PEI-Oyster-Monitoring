@@ -67,7 +67,7 @@ save(la_me_mod, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/la_me_mod
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/la_me_mod.Rdata")
 
 # Maddy's path
-save(la_me_mod, file = "~/Data/Model_fits/OMP/la_me_mod.Rdata")
+#save(la_me_mod, file = "~/Data/Model_fits/OMP/la_me_mod.Rdata")
 load("~/Data/Model_fits/OMP/la_me_mod.Rdata")
 
 
