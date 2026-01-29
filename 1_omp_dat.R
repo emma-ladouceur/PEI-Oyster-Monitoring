@@ -117,7 +117,10 @@ mon_clean <- mon_date_2025 %>%
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean)) %>%
   filter(water_temp != 722.00) %>% filter(water_temp != 99.90) %>% filter(water_temp != 247.00) %>%
-  filter(water_temp != 0.0) %>% filter(water_temp != 34.0)
+  filter(water_temp != 0.0) %>% filter(water_temp != 34.0) %>% 
+  filter(salinity != 0.0) %>% filter(salinity != 90.0) %>% filter(salinity != 50.0) %>%
+  filter(salinity != 70.0) %>% filter(salinity != 95.0) %>% filter(salinity != 40.0) %>%
+  filter(salinity != 85.0) 
 
 # any other crazy values?
 summary(mon_clean)
@@ -126,7 +129,15 @@ mon_clean %>% filter(water_temp == 99.90)
 mon_clean %>% filter(water_temp == 247.00)
 mon_clean %>% filter(water_temp == 0.0)
 mon_clean %>% filter(water_temp == 34.0)
+mon_clean %>% filter(salinity == 0.0)
+mon_clean %>% filter(salinity == 90.0)
+mon_clean %>% filter(salinity == 50.0)
+mon_clean %>% filter(salinity == 70.0)
+mon_clean %>% filter(salinity == 95.0)
+mon_clean %>% filter(salinity == 40.0)
+mon_clean %>% filter(salinity == 85.0)
 colnames(mon_clean)
+
 
 bay_list <- mon_clean %>% select(bay, location_clean) %>% distinct() %>% arrange(bay, location_clean)
 write.csv(bay_list, "~/Data/OMP/bay_list.csv", row.names = FALSE)
@@ -145,6 +156,6 @@ omp_dat %>% select(bay) %>% distinct() %>% arrange(bay) # 15 bays
 
 omp_dat %>% select(f_year) %>% distinct() %>% arrange(f_year) # 2013-2025
 omp_dat %>% select(julian_date) %>% distinct() %>% arrange(julian_date) # julian date 170 (june 18)- 254 (sept 11)
-omp_dat %>% select(water_temp) %>% distinct() %>% arrange(water_temp) # 0 - 34
-omp_dat %>% select(salinity) %>% distinct() %>% arrange(salinity) # 0 - 95 -- what is our salinity unit? parts per thousand?
+omp_dat %>% select(water_temp) %>% distinct() %>% arrange(water_temp) # 0 - 34 -- units = deg C
+omp_dat %>% select(salinity) %>% distinct() %>% arrange(salinity) # 0 - 30.1 -- units = ppt (parts per thousand)
 
