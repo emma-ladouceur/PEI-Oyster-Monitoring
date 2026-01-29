@@ -419,14 +419,14 @@ la_me_fig_slopes <- la_me_fig_slopes +
 
 
 # combined first panel (graphs a, b, c)
-combo_abc <- (la_me_fig_med + la_me_fig_intercepts + la_me_fig_slopes) +
+fig_1_combo_abc <- (la_me_fig_med + la_me_fig_intercepts + la_me_fig_slopes) +
   plot_layout(ncol = 3, guides = "collect") &
   theme(
     legend.position = "bottom",
     legend.justification = "center"
   )
 
-combo_abc
+fig_1_combo_abc
 
 
 # ============================================================
@@ -713,7 +713,7 @@ la_me_T_fig_slopes <- la_me_T_fig_slopes +
 
 # Combined bottom panel
 
-combo_def <- (la_me_T_fig_time_temp + la_me_T_fig_intercepts + la_me_T_fig_slopes) +
+fig_1_combo_def <- (la_me_T_fig_time_temp + la_me_T_fig_intercepts + la_me_T_fig_slopes) +
     plot_layout(ncol = 3, guides = "collect") &
     theme(
       legend.position = "bottom",
@@ -721,11 +721,11 @@ combo_def <- (la_me_T_fig_time_temp + la_me_T_fig_intercepts + la_me_T_fig_slope
       legend.box.just = "center"
     )
 
-combo_def
+fig_1_combo_def
 
-# FINAL FIGURE ==============
+# FINAL FIGURE 1 ==============
 
-fig_1 <- (combo_abc / combo_def)
+fig_1 <- (fig_1_combo_abc / fig_1_combo_def)
 
 fig_1
 
