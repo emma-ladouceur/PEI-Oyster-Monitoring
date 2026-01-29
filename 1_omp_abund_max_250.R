@@ -49,15 +49,17 @@ nrow(la_me_dat)
 # ==================================================
 
 
-la_me_mod <- brm(
-  larvae_above_250_microns ~ water_temp.m * n_year.m * salinity.m +
-    #s(julian_date,  k = 10) +
-    (1 + n_year.m | bay/location_clean),
-  data    = la_me_dat,
-  family  = lognormal(),
-  iter    = 5000, warmup = 1000,
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# la_me_mod <- brm(
+#   larvae_above_250_microns ~ water_temp.m * n_year.m * salinity.m +
+#     #s(julian_date,  k = 10) +
+#     (1 + n_year.m | bay/location_clean),
+#   data    = la_me_dat,
+#   family  = lognormal(),
+#   iter    = 5000, warmup = 1000,
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
+
+
 # ================================================
 
 # Emma's paths
@@ -65,7 +67,7 @@ save(la_me_mod, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/la_me_mod
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/la_me_mod.Rdata")
 
 # Maddy's path
-#save(la_me_mod, file = "~/Data/Model_fits/OMP/la_me_mod.Rdata")
+save(la_me_mod, file = "~/Data/Model_fits/OMP/la_me_mod.Rdata")
 load("~/Data/Model_fits/OMP/la_me_mod.Rdata")
 
 

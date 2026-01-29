@@ -57,7 +57,7 @@ view(m1_max_l_dat)
 # # --- Fit model (keep these names exactly as requested) ---
 # max_temp_time_sal <- brm( 
 #   julian_date ~ water_temp.m * n_year.m * salinity.m +
-#     (1 + water_temp.m * n_year.m || bay/location_clean),
+#     (1 + n_year.m | bay/location_clean),
 #   data    = m1_max_l_dat,   
 #   iter    = 5000,
 #   warmup  = 1000,
