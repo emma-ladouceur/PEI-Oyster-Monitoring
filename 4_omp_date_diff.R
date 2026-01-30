@@ -94,7 +94,7 @@ m3_dat <- m3_first %>%
 #old model - model we will keep
 # QUESTION: within our brackets, why isnt it (1 + n_year.m | bay/location_clean)
 # oyster_first_last <- brm(
-#   diff_first_last ~ n_year.m + (n_year.m | bay/location_clean),
+#   diff_first_last ~ n_year.m + (1 + n_year.m | bay/location_clean),
 #   data    = m3_dat,
 #   iter    = 5000,
 #   warmup  = 1000,
@@ -120,7 +120,7 @@ save(oyster_first_last, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/o
 load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/oyster_first_last.Rdata")
 
 # Maddy's path
-#save(oyster_first_last, file = "~/Data/Model_fits/OMP/oyster_first_last.Rdata")
+save(oyster_first_last, file = "~/Data/Model_fits/OMP/oyster_first_last.Rdata")
 load("~/Data/Model_fits/OMP/oyster_first_last.Rdata")
 
 
@@ -250,6 +250,19 @@ m3_fig_trends <- ggplot() +
   ) +
   
   scale_colour_manual(values = m3_bay_colors) +
+ 
+   scale_x_continuous(
+    breaks = seq(
+      from = 2016,
+      to   = max(c(m3_pop_fit$n_year, m3_bay_fit$n_year), na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1),
+    limits = c(
+      2016,
+      max(c(m3_pop_fit$n_year, m3_bay_fit$n_year), na.rm = TRUE)
+    )
+  ) +
   
   labs(
     x = "Monitoring year",
@@ -385,10 +398,23 @@ m3_fig_trends <- ggplot() +
     alpha = 0.85
   ) +
   scale_colour_manual(values = m3_bay_colors) +
+  scale_x_continuous(
+    breaks = seq(
+      from = 2016,
+      to   = max(c(m3_pop_fit$n_year, m3_bay_fit$n_year), na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1),
+    limits = c(
+      2016,
+      max(c(m3_pop_fit$n_year, m3_bay_fit$n_year), na.rm = TRUE)
+    )
+  ) +
   labs(
     x = "Monitoring year",
     y = "Difference in days (first → max)",
-    colour = "Bay"
+    colour = "Bay",
+    subtitle = "a)"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -491,54 +517,119 @@ m3_slope_summ_pop <- oyster_first_last %>%
 # ------------------------------------------------------------
 # 14) FINAL BAY-LEVEL SLOPE FIGURE
 # ------------------------------------------------------------
+# m3_fig_slopes <- ggplot(
+#   m3_slope_summ_bay,
+#   aes(x = bay, y = estimate, colour = bay)
+# ) +
+#   annotate(
+#     "rect",
+#     xmin = -Inf, xmax = Inf,
+#     ymin = m3_slope_summ_pop$lower90,
+#     ymax = m3_slope_summ_pop$upper90,
+#     alpha = 0.12
+#   ) +
+#   annotate(
+#     "rect",
+#     xmin = -Inf, xmax = Inf,
+#     ymin = m3_slope_summ_pop$lower50,
+#     ymax = m3_slope_summ_pop$upper50,
+#     alpha = 0.25
+#   ) +
+#   geom_hline(
+#     yintercept = m3_slope_summ_pop$estimate,
+#     linewidth  = 1.2,
+#     colour     = "black"
+#   ) +
+#   geom_hline(
+#     yintercept = 0,
+#     linetype = "dashed",
+#     colour   = "grey40"
+#   ) +
+#   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9) +
+#   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+#   geom_point(size = 2.8) +
+#   coord_flip() +
+#   scale_colour_manual(values = m3_bay_colors) +
+#   labs(
+#     x = NULL,
+#     y = "Slope (days per year)",
+#     # title = "Temporal trends in first–max larval timing",
+#     subtitle = "c)" # "Bay-level slopes computed from posterior predictions at observed endpoint years\nPoints = posterior means; thick bars = 50% CrI; thin bars = 90% CrI"
+#   ) +
+#   theme_bw(base_size = 18) +
+#   theme(
+#     panel.grid.minor = element_blank(),
+#     legend.position = "none"
+#   )
+# m3_fig_slopes
+
 m3_fig_slopes <- ggplot(
   m3_slope_summ_bay,
-  aes(x = bay, y = estimate, colour = bay)
+  aes(x = estimate, y = bay, colour = bay)
 ) +
   annotate(
     "rect",
-    xmin = -Inf, xmax = Inf,
-    ymin = m3_slope_summ_pop$lower90,
-    ymax = m3_slope_summ_pop$upper90,
+    ymin = -Inf, ymax = Inf,
+    xmin = m3_slope_summ_pop$lower90,
+    xmax = m3_slope_summ_pop$upper90,
     alpha = 0.12
   ) +
   annotate(
     "rect",
-    xmin = -Inf, xmax = Inf,
-    ymin = m3_slope_summ_pop$lower50,
-    ymax = m3_slope_summ_pop$upper50,
+    ymin = -Inf, ymax = Inf,
+    xmin = m3_slope_summ_pop$lower50,
+    xmax = m3_slope_summ_pop$upper50,
     alpha = 0.25
   ) +
-  geom_hline(
-    yintercept = m3_slope_summ_pop$estimate,
+  geom_vline(
+    xintercept = m3_slope_summ_pop$estimate,
     linewidth  = 1.2,
     colour     = "black"
   ) +
-  geom_hline(
-    yintercept = 0,
-    linetype = "dashed",
-    colour   = "grey40"
+  geom_vline(
+    xintercept = 0,
+    linetype   = "dashed",
+    colour     = "grey40"
   ) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9) +
+  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
   geom_point(size = 2.8) +
-  coord_flip() +
-  scale_colour_manual(values = m3_bay_colors) +
+  scale_colour_manual(
+    values = m3_bay_colors,
+    name   = "Bay"
+  ) +
   labs(
-    x = NULL,
-    y = "Slope (days per year)",
-    title = "Temporal trends in first–max larval timing",
-    subtitle = "Bay-level slopes computed from posterior predictions at observed endpoint years\nPoints = posterior means; thick bars = 50% CrI; thin bars = 90% CrI"
+    x = "Slope (days per year)",
+    y = NULL,
+    subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
-    legend.position = "none"
+    axis.text.y  = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "bottom"
   )
+
+m3_fig_slopes
+
 
 # ------------------------------------------------------------
 # 15) Combine plots
 # ------------------------------------------------------------
-m3_fig_trends + m3_fig_slopes
+m3_fig_trends_noleg <- m3_fig_trends + 
+  guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
+
+fig_6_combo_abc <- (m3_fig_trends_noleg + m3_fig_slopes) +
+  plot_layout(ncol = 2, guides = "collect") &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center"
+  )
+
+fig_6_combo_abc
+
+
 
 
