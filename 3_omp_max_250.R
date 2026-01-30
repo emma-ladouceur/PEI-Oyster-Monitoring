@@ -75,7 +75,7 @@ save(max_temp_time_sal, file = "~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/m
 load("~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/max_temp_time_sal.Rdata")
 
 # Maddy's path
-#save(max_temp_time_sal, file = "~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
+save(max_temp_time_sal, file = "~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
 load("~/Data/Model_fits/OMP/max_temp_time_sal.Rdata")
 
 # sanity checks 
@@ -590,7 +590,7 @@ m1_max_fig_intercepts_3panel <- ggplot(
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = sort(unique(m1_max_l_dat$n_year))[seq(1, length(unique(m1_max_l_dat$n_year)), by = 2)]) +
   labs(
-    x = "Monitoring year",
+    x = "Year",
     y = "Julian date",
     # title = "Year-specific phenology across salinity regimes",
     # subtitle = "Points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nAveraged over observed temperatures within each year"
@@ -623,7 +623,7 @@ m1_max_fig_intercepts_mean <- m1_max_int_summ %>%
   scale_colour_viridis_d(option = "viridis", guide = "none") +
   scale_x_continuous(breaks = sort(unique(m1_max_l_dat$n_year))) +
   labs(
-    x = "Monitoring year",
+    x = "Year",
     y = "Date", # of max oyster larvae > 250 μm",
     subtitle = "b)" # Mean date of max oyster larvae > 250 μm"
   ) +
@@ -640,24 +640,41 @@ m1_max_fig_intercepts_mean <- m1_max_int_summ %>%
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank())
 
-m1_max_fig1_spag + m1_max_fig_intercepts_mean
+m1_max_fig1_mid_max + m1_max_fig1_spag + m1_max_fig_intercepts_mean
 
 
 
-# extract legends
-# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-g_legend<-function(a.gplot){
-  tmp <- ggplot_gtable(ggplot_build(a.gplot))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)}
+# # extract legends
+# # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+# g_legend<-function(a.gplot){
+#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
+#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+#   legend <- tmp$grobs[[leg]]
+#   return(legend)}
+# 
+# m1_legend <- g_legend(m1_max_fig1_spag)
+# 
+# 
+# (m1_max_fig1_spag + theme(legend.position = "none") + m1_max_fig_intercepts_mean)/ m1_legend + plot_layout(heights = c(10,2))
 
-m1_legend <- g_legend(m1_max_fig1_spag)
+# combining graph a, and b (missing our slope graph)
+m1_max_fig1_mid_max + m1_max_fig_intercepts_mean
 
+# killing the legends in graph b and c
+m1_max_fig_intercepts_mean +
+guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
 
-(m1_max_fig1_spag + theme(legend.position = "none") + m1_max_fig_intercepts_mean)/ m1_legend + plot_layout(heights = c(10,2))
+# combo graph abc
+fig_5_combo_abc <- (m1_max_fig1_mid_max +
+                      m1_max_fig_intercepts_mean
+                    ) +
+  plot_layout(ncol = 3, guides = "collect") &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center")
 
-
+fig_5_combo_abc
 
 
 # ============================================================
@@ -748,11 +765,16 @@ m1_max_alt_fig_year3temp_spag_thin <- ggplot() +
   ) +
   # scale_colour_viridis_d(option = "viridis") +
   scale_colour_manual(
-    name = "Temp",
+    name = "Temperature",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
       "Warm"   = "#D95F02"
+    ),
+    labels = c(
+      "Cool (25 pct)",
+      "Median",
+      "Warm (75 pct)"
     )
   ) +
   coord_cartesian(ylim = c(170, 230)) +
@@ -761,12 +783,23 @@ m1_max_alt_fig_year3temp_spag_thin <- ggplot() +
     labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
                "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
   ) +
-  scale_x_continuous(breaks = seq(2013, max(m1_max_alt_draws_thin$n_year), by = 2)) +
+  scale_x_continuous(
+    breaks = seq(
+      from = 2016,
+      to   = max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE),
+      by   = 2
+    ),
+    labels = scales::label_number(accuracy = 1),
+    limits = c(
+      2016,
+      max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE)
+    )
+  ) +
   labs(
     x = "Year",
     y = "Date",
     # title = "Time–phenology relationships at cool/median/warm temperatures",
-    subtitle = "c)"
+    subtitle = "d)"
   ) +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
@@ -889,28 +922,42 @@ m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
   # scale_colour_viridis_d(option = "viridis") +
   # scale_fill_viridis_d(option = "viridis") +
   scale_colour_manual(
-    name = "Temp",
+    name = "Temperature",
     values = c(
       "Cool"   = "#1B9E77",  # green (Dark2)
       "Median" = "#7570B3",  # purple (Dark2)
       "Warm"   = "#D95F02"   # orange (Dark2)
-    )
+    ),
+    labels = c(
+      "Cool (25 pct)",
+      "Median",
+      "Warm (75 pct)"
+    ) 
   ) +
   scale_fill_manual(
-    name = "Temp",
+    name = "Temperature",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
       "Warm"   = "#D95F02"
+    ),
+    labels = c(
+      "Cool (25 pct)",
+      "Median",
+      "Warm (75 pct)"
     )
   ) +
   scale_x_continuous(
     breaks = seq(
-      from = 2013,
-      to   = max(m1_max_alt_ribbon_dat$n_year, na.rm = TRUE),
+      from = 2016,
+      to   = max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE),
       by   = 2
     ),
-    labels = scales::label_number(accuracy = 1)
+    labels = scales::label_number(accuracy = 1),
+    limits = c(
+      2016,
+      max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE)
+    )
   ) +
   coord_cartesian(
     ylim = quantile(
@@ -929,7 +976,7 @@ m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
     x = "Year",
     y = "Date",
     # title = "Time–phenology relationships at cool/median/warm temperatures (MAX)",
-    subtitle = "a)" #"Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) CrI (salinity held at mean)"
+    subtitle = "d)" #"Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) CrI (salinity held at mean)"
   ) +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
@@ -981,9 +1028,9 @@ m1_max_fig_year3temp_slopes <- ggplot(
   coord_flip() +
   labs(
     y = NULL,
-    x = "Slope (change in predicted Julian date per year)",
+    x = "Slope \n (change in predicted Julian date per year)",
     # title = "Temporal trends by temperature (MAX; salinity held at mean)",
-    subtitle = "c)" # (c) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+    subtitle = "f)" # (c) Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -1042,9 +1089,9 @@ m1_max_fig_year3temp_intercepts <- ggplot(
   coord_flip() +
   labs(
     y = NULL,
-    x = "Intercept (predicted Julian date at reference year)",
+    x = "Intercept \n (predicted Julian date at reference year)",
     # title = "Baseline phenology by temperature (MAX; salinity held at mean)",
-    subtitle = "b)"
+    subtitle = "e)"
     ) +
   theme_bw(base_size = 18) +
   theme(
@@ -1074,7 +1121,7 @@ m1_max_fig_year3temp_intercepts
    theme(legend.position = "none")
  
  # Combine and center the legend
- fig_3_max_250 <- (m1_max_alt_fig_year3temp_ribbons +
+ fig_5_combo_def <- (m1_max_alt_fig_year3temp_ribbons +
      m1_max_fig_year3temp_intercepts +
      m1_max_fig_year3temp_slopes) +
    plot_layout(ncol = 3, guides = "collect") &
@@ -1084,6 +1131,9 @@ m1_max_fig_year3temp_intercepts
      legend.box = "horizontal"
    )
 
- fig_3_max_250 
+  # FINAL FIG 5
+ 
+fig_5 <- (fig_5_combo_abc / fig_5_combo_def)
 
+fig_5
 
