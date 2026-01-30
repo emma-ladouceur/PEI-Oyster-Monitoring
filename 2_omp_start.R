@@ -82,7 +82,7 @@ load("~/Dropbox/_Projects/PEI Oysters/Model_Fits/OMP/start_temp_time_sal.Rdata")
 #load("~/Dropbox/_Projects/PEI Oysters/Model_fits/OMP/start_temp_time_sal.Rdata")
 
 # Maddy's path
-#save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
+save(start_temp_time_sal, file = "~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
 load("~/Data/Model_fits/OMP/start_temp_time_sal.Rdata")
 
 
@@ -284,7 +284,7 @@ m2_first_fig1_mid_start <- ggplot(
   ) +
   geom_line(linewidth = 0.7) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  facet_wrap(~ sal_label, nrow = 1) +
+ # facet_wrap(~ sal_label, nrow = 1) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Julian date",
@@ -296,7 +296,7 @@ m2_first_fig1_mid_start <- ggplot(
   coord_cartesian() +
   theme_bw(base_size = 18) +
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "bold"),
+        #strip.text = element_text(face = "bold"),
         panel.grid.minor = element_blank(),
         legend.position = "bottom")
 
@@ -386,7 +386,7 @@ m2_first_fig1_spag <- ggplot() +
   coord_cartesian() +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Julian date",
+    y = "Date",
     # title = "Temperature effects on first oyster larvae appearance above 250um at mean salinity",
     subtitle = "a)" # "FIRST EVENT: thick lines = posterior means by year; spaghetti = posterior draws filtered to central 80% region"
   ) +
@@ -467,7 +467,7 @@ m2_first_fig_intercepts_3panel <- ggplot(
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
-    x = "Monitoring year",
+    x = "Year",
     y = "Julian date",
     # title = "Year-specific phenology across salinity regimes",
     # subtitle = "FIRST EVENT: points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nAveraged over observed temperatures within each year"
@@ -492,8 +492,8 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   scale_colour_viridis_d(option = "viridis", guide = "none") +
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
-    x = "Monitoring year",
-    y = "Julian date",
+    x = "Year",
+    y = "Date",
     subtitle = "b)" # Date of first oyster larvae > 250 μm (Intercept; temp-averaged)
   ) +
   scale_y_continuous(
@@ -506,6 +506,7 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank())
 
+m2_first_fig_intercepts_mean
 
 m2_first_fig1_spag + m2_first_fig_intercepts_mean
 
@@ -564,7 +565,7 @@ m2_first_fig_slopes_3panel <- ggplot(
   m2_first_slope_summ,
   aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
 ) +
-  geom_hline(yintercept = 0, linewidth = 0.4, alpha = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
   geom_linerange(aes(ymin = lower90, ymax = upper90),
                  linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50),
@@ -572,14 +573,17 @@ m2_first_fig_slopes_3panel <- ggplot(
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[
-    sort(unique(m2_first_l_dat$n_year)) %% 2 == 1 &
-      sort(unique(m2_first_l_dat$n_year)) >= 2013]) +
+  scale_x_continuous(
+    breaks = sort(unique(m2_first_l_dat$n_year))[
+      sort(unique(m2_first_l_dat$n_year)) %% 2 == 0 &
+        sort(unique(m2_first_l_dat$n_year)) >= 2016
+    ]
+  ) +
   labs(
-    x = "Monitoring year",
+    x = "Year",
     y = "Temperature slope" # (days per °C)",
     # title = "Year-specific temperature sensitivity across salinity regimes",
-    # subtitle = "FIRST EVENT: points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nSlope estimated within each draw using observed temperatures within each year"
+    subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -597,30 +601,40 @@ m2_first_fig_slopes_mean <- m2_first_slope_summ %>%
   filter(sal_label == "Mean salinity") %>%
   mutate(year_group = factor(n_year, levels = sort(unique(m2_first_l_dat$n_year)))) %>%
   ggplot(aes(x = n_year, y = estimate, colour = year_group)) +
-  geom_hline(yintercept = 0, linewidth = 0.4, alpha = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
   geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group),
                  linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group),
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
-  scale_colour_viridis_d(option = "viridis", guide = "Monitoring year") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
-    x = "Monitoring year",
-    y = "Temperature slope" # (days per °C)",
+    x = "Year",
+    y = "Temperature slope", # (days per °C)",
     subtitle = "c)" # Temperature sensitivity of first larvae date (Slope; temp effect within-year)"
   ) +
   theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "bottom")
+
+m2_first_fig_slopes_mean
 
 # Example combo:
 
 # Kill the legends for graph b) and c)
-m2_first_fig1_spag <- m2_first_fig1_spag + theme(legend.position = "none")
-m2_first_fig_intercepts_mean <- m2_first_fig_intercepts_mean + theme(legend.position = "none")
+m2_first_fig1_spag <- m2_first_fig1_spag +
+  guides(colour = "none") +
+  theme(legend.position = "none")
+
+m2_first_fig_intercepts_mean <- m2_first_fig_intercepts_mean +
+  guides(colour = "none") +
+  theme(legend.position = "none")
+
+# combine graph a, b, and c
 
 
-(m2_first_fig1_spag +
+fig_4_combo_abc <- (m2_first_fig1_spag +
     m2_first_fig_intercepts_mean +
     m2_first_fig_slopes_mean) +
   plot_layout(ncol = 3, guides = "collect") &
@@ -629,7 +643,7 @@ m2_first_fig_intercepts_mean <- m2_first_fig_intercepts_mean + theme(legend.posi
     legend.justification = "center"
   )
 
-
+fig_4_combo_abc
 
 
 # ============================================================
@@ -730,21 +744,30 @@ m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
     linewidth = 1.0
   ) +
   scale_colour_manual(
-    name = "Temp",
+    name   = "Temperature",
     values = c(
-      "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
-      "Median temp"          = "#7570B3",  # purple (Dark2)
-      "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
+      "Cool temp (25th pct)" = "#1B9E77",
+      "Median temp"          = "#7570B3",
+      "Warm temp (75th pct)" = "#D95F02"
+    ),
+    labels = c(
+      "Cool (25 pct)",
+      "Median",
+      "Warm (75 pct)"
     )
   ) +
   #scale_colour_viridis_d(option = "viridis", name = "Temp") +
   scale_x_continuous(
     breaks = seq(
-      from = 2013,
+      from = 2016,
       to   = max(m2_start_alt_summ$n_year, na.rm = TRUE),
       by   = 2
     ),
-    labels = scales::label_number(accuracy = 1)
+    labels = scales::label_number(accuracy = 1),
+    limits = c(
+      2016,
+      max(m2_start_alt_summ$n_year, na.rm = TRUE)
+    )
   ) +
   coord_cartesian(
     ylim = quantile(
@@ -903,26 +926,40 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
   ) +
   scale_x_continuous(
     breaks = seq(
-      from = 2013,
+      from = 2016,
       to   = max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE),
       by   = 2
     ),
-    labels = scales::label_number(accuracy = 1)
+    labels = scales::label_number(accuracy = 1),
+    limits = c(
+      2016,
+      max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE)
+    )
   ) +
   scale_colour_manual(
-    name = "Temp",
+    name = "Temperature",
     values = c(
       "Cool"   = "#1B9E77",  # green (Dark2)
       "Median" = "#7570B3",  # purple (Dark2)
       "Warm"   = "#D95F02"   # orange (Dark2)
+    ),
+    labels = c(
+      "Cool (25 pct)",
+      "Median",
+      "Warm (75 pct)"
     )
   ) +
   scale_fill_manual(
-    name = "Temp",
+    name = "Temperature",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
       "Warm"   = "#D95F02"
+    ),
+    labels = c(
+      "Cool (25 pct)",
+      "Median",
+      "Warm (75 pct)"
     )
   ) +
 
@@ -951,7 +988,7 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
     x = "Year",
     y = "Julian date",
     # title = "Time–phenology relationships at cool/median/warm temperatures",
-    subtitle = "a)", #"Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) credible intervals (salinity held at mean)"
+    subtitle = "d)", #"Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) credible intervals (salinity held at mean)"
   colour = "Temp",
   fill = "Temp"
     ) +
@@ -1020,7 +1057,7 @@ m2_start_fig_year3temp_slopes <- ggplot(
     y = NULL,
     x = "Slope", # (change in predicted Julian date per year)",
     #title = "Temporal trends by temperature (salinity held at mean)",
-    subtitle = "c)" # Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+    subtitle = "f)" # Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -1097,10 +1134,10 @@ m2_start_fig_year3temp_intercepts <- ggplot(
   ) +
   coord_flip() +
   labs(
-    x = "Intercept (predicted Julian date at reference year)",
+    x = "Intercept (predicted Julian \n date at reference year)",
     y = NULL,
     #title = "Baseline phenology by temperature (salinity held at mean)",
-    subtitle = "b)"
+    subtitle = "e)"
     ) +
   theme_bw(base_size = 18) +
   theme(
@@ -1123,7 +1160,7 @@ m2_start_fig_year3temp_slopes <- m2_start_fig_year3temp_slopes +
 guides(colour = "none", fill = "none") +
   theme(legend.position = "none")
 
-(m2_start_alt_fig_year3temp_ribbons +
+fig_4_combo_def <- (m2_start_alt_fig_year3temp_ribbons +
   m2_start_fig_year3temp_intercepts +
   m2_start_fig_year3temp_slopes) +
   plot_layout(ncol = 3, guides = "collect") &
@@ -1131,4 +1168,12 @@ guides(colour = "none", fill = "none") +
     legend.position = "bottom",
     legend.justification = "center")
 
-m2_start_alt_fig_year3temp_spag_thin+ m2_start_alt_fig_year3temp_ribbons
+fig_4_combo_def
+
+# m2_start_alt_fig_year3temp_spag_thin+ m2_start_alt_fig_year3temp_ribbons
+
+# FINAL FIG 4
+
+fig_4 <- (fig_4_combo_abc / fig_4_combo_def)
+
+fig_4
