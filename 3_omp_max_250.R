@@ -642,7 +642,106 @@ m1_max_fig_intercepts_mean <- m1_max_int_summ %>%
 
 m1_max_fig1_mid_max + m1_max_fig1_spag + m1_max_fig_intercepts_mean
 
+#slope
+# ============================================================
+# 7a) Draw-wise slopes per year and salinity
+# ------------------------------------------------------------
+# Within each (.draw, year, salinity slice), compute slope of
+# epred vs water_temp using covariance/variance (OLS slope).
+# ============================================================
 
+m1_max_draw_slopes <- m1_max_ep2_long %>%
+  select(.draw, n_year, sal_label, water_temp, epred) %>%
+  group_by(.draw, n_year, sal_label) %>%
+  summarise(
+    n_pts     = n_distinct(water_temp),
+    wt_var    = var(water_temp, na.rm = TRUE),
+    wt_mean   = mean(water_temp, na.rm = TRUE),
+    yy_mean   = mean(epred, na.rm = TRUE),
+    wt_yy_cov = mean((water_temp - wt_mean) * (epred - yy_mean), na.rm = TRUE),
+    slope     = wt_yy_cov / wt_var,
+    .groups   = "drop"
+  ) %>%
+  filter(n_pts >= 2, wt_var > 0, is.finite(slope)) %>%
+  select(.draw, n_year, sal_label, slope)
+
+# ============================================================
+# 7b) Summarise slopes across posterior draws
+# ============================================================
+
+m1_max_slope_summ <- m1_max_draw_slopes %>%
+  group_by(n_year, sal_label) %>%
+  summarise(
+    estimate = mean(slope),
+    lower50  = quantile(slope, 0.25),
+    upper50  = quantile(slope, 0.75),
+    lower90  = quantile(slope, 0.05),
+    upper90  = quantile(slope, 0.95),
+    .groups  = "drop"
+  )
+
+
+# ============================================================
+# 7c) Slope figure: 3 salinity panels
+# ============================================================
+
+m1_max_fig_slopes_3panel <- ggplot(
+  m1_max_slope_summ,
+  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
+) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90),
+                 linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50),
+                 linewidth = 2.0, alpha = 0.95) +
+  geom_point(size = 2.4) +
+  facet_wrap(~ sal_label, nrow = 1) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(
+    breaks = sort(unique(m1_max_l_dat$n_year))[
+      seq(1, length(unique(m1_max_l_dat$n_year)), by = 2)
+    ]
+  ) +
+  labs(
+    x = "Year",
+    y = "Temperature slope (days per °C)",
+    subtitle = "c)"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+
+m1_max_fig_slopes_3panel
+
+# ============================================================
+# 7d) Mean-salinity-only slope figure
+# ============================================================
+
+m1_max_fig_slopes_mean <- m1_max_slope_summ %>%
+  filter(sal_label == "Mean salinity") %>%
+  mutate(year_group = factor(n_year, levels = sort(unique(m1_max_l_dat$n_year)))) %>%
+  ggplot(aes(x = n_year, y = estimate, colour = year_group)) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90),
+                 linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50),
+                 linewidth = 2.0, alpha = 0.95) +
+  geom_point(size = 2.4) +
+  scale_colour_viridis_d(option = "viridis", guide = "none") +
+  scale_x_continuous(breaks = c(2014,2016,2018,2020,2022,2024)) +
+  labs(
+    x = "Year",
+    y = "Temperature slope (days per °C)",
+    subtitle = "c)"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(panel.grid.minor = element_blank())
+
+m1_max_fig_slopes_mean
 
 # # extract legends
 # # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
@@ -658,7 +757,7 @@ m1_max_fig1_mid_max + m1_max_fig1_spag + m1_max_fig_intercepts_mean
 # (m1_max_fig1_spag + theme(legend.position = "none") + m1_max_fig_intercepts_mean)/ m1_legend + plot_layout(heights = c(10,2))
 
 # combining graph a, and b (missing our slope graph)
-m1_max_fig1_mid_max + m1_max_fig_intercepts_mean
+m1_max_fig1_mid_max + m1_max_fig_intercepts_mean + m1_max_fig_slopes_mean
 
 # killing the legends in graph b and c
 m1_max_fig_intercepts_mean +
@@ -667,7 +766,7 @@ guides(colour = "none", fill = "none") +
 
 # combo graph abc
 fig_5_combo_abc <- (m1_max_fig1_mid_max +
-                      m1_max_fig_intercepts_mean
+                      m1_max_fig_intercepts_mean + m1_max_fig_slopes_mean
                     ) +
   plot_layout(ncol = 3, guides = "collect") &
   theme(
@@ -675,6 +774,12 @@ fig_5_combo_abc <- (m1_max_fig1_mid_max +
     legend.justification = "center")
 
 fig_5_combo_abc
+
+
+
+
+
+
 
 
 # ============================================================

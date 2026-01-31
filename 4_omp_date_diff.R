@@ -12,6 +12,9 @@ library(patchwork)
 library(tidybayes)
 library(MetBrewer)
 
+library(dplyr)
+library(stringr)
+library(viridisLite)
 
 
 # set your own personal working directory below
@@ -91,7 +94,6 @@ m3_dat <- m3_first %>%
 # ------------------------------------------------------------
 
 
-#old model - model we will keep
 # QUESTION: within our brackets, why isnt it (1 + n_year.m | bay/location_clean)
 # oyster_first_last <- brm(
 #   diff_first_last ~ n_year.m + (1 + n_year.m | bay/location_clean),
@@ -102,17 +104,6 @@ m3_dat <- m3_first %>%
 #   control = list(adapt_delta = 0.99)
 # )
 
-
-# possible new model - will NOT use
-# oyster_first_last <- brm(
-#   diff_first_last ~ water_temp.m * n_year.m * salinity.m +
-#     (1 + water_temp.m * n_year.m || bay/location_clean),
-#   data    = m3_dat,
-#   iter    = 5000,
-#   warmup  = 1000,
-#   family  = student(), #or gaussian
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
 
 
 # Emma's path
@@ -287,12 +278,6 @@ m3_fig_trends
 # - Simple tidyverse + tidybayes approach (no RE-name parsing)
 # ============================================================
 
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(ggplot2)
-library(tidybayes)
-library(viridisLite)
 
 # ------------------------------------------------------------
 # 1) Exact data used to fit the model (avoids new-level problems)
@@ -423,6 +408,129 @@ m3_fig_trends <- ggplot() +
   )
 
 m3_fig_trends
+
+
+# ============================================================
+# BAY-LEVEL INTERCEPTS (styled like slope figure)
+# - Intercept = expected diff_first_last at n_year.m = 0
+# - Predictions include bay/location effects (re_formula = NULL)
+# - Average across locations WITHIN each draw -> bay-level
+# ============================================================
+
+# ------------------------------------------------------------
+# 16) Endpoint grid at centered year (n_year.m = 0) for all real groups
+# ------------------------------------------------------------
+m3_int_grid_loc <- m3_fit_df %>%
+  distinct(bay, location_clean) %>%
+  mutate(
+    n_year.m = 0,                        # centered year
+    n_year   = 0 + m3_year_center,       # natural year (for reference if needed)
+    bay      = factor(bay, levels = m3_bay_levels)
+  )
+
+# ------------------------------------------------------------
+# 17) Posterior expected draws at n_year.m = 0 (INCLUDING bay/location effects)
+# ------------------------------------------------------------
+m3_int_draws_loc <- oyster_first_last %>%
+  add_epred_draws(
+    newdata    = m3_int_grid_loc,
+    re_formula = NULL
+  ) %>%
+  rename(epred = .epred)
+
+# ------------------------------------------------------------
+# 18) Bay-level intercepts: average locations WITHIN each draw
+# ------------------------------------------------------------
+m3_draw_int_bay <- m3_int_draws_loc %>%
+  group_by(.draw, bay) %>%
+  summarise(
+    intercept = mean(epred),
+    .groups   = "drop"
+  )
+
+# ------------------------------------------------------------
+# 19) Summarise bay intercepts across draws: mean + 50% and 90% CrI
+# ------------------------------------------------------------
+m3_int_summ_bay <- m3_draw_int_bay %>%
+  group_by(bay) %>%
+  summarise(
+    estimate = mean(intercept),
+    lower50  = quantile(intercept, 0.25),
+    upper50  = quantile(intercept, 0.75),
+    lower90  = quantile(intercept, 0.05),
+    upper90  = quantile(intercept, 0.95),
+    .groups  = "drop"
+  ) %>%
+  mutate(
+    bay = factor(bay, levels = rev(m3_bay_levels))
+  )
+
+# ------------------------------------------------------------
+# 20) Population-level intercept summary (fixed effect only)
+# ------------------------------------------------------------
+m3_int_summ_pop <- oyster_first_last %>%
+  spread_draws(b_Intercept) %>%
+  summarise(
+    estimate = mean(b_Intercept),
+    lower50  = quantile(b_Intercept, 0.25),
+    upper50  = quantile(b_Intercept, 0.75),
+    lower90  = quantile(b_Intercept, 0.05),
+    upper90  = quantile(b_Intercept, 0.95)
+  )
+
+# ------------------------------------------------------------
+# 21) FINAL BAY-LEVEL INTERCEPT FIGURE (match slope styling)
+# ------------------------------------------------------------
+m3_fig_intercepts <- ggplot(
+  m3_int_summ_bay,
+  aes(x = estimate, y = bay, colour = bay)
+) +
+  annotate(
+    "rect",
+    ymin = -Inf, ymax = Inf,
+    xmin = m3_int_summ_pop$lower90,
+    xmax = m3_int_summ_pop$upper90,
+    alpha = 0.12
+  ) +
+  annotate(
+    "rect",
+    ymin = -Inf, ymax = Inf,
+    xmin = m3_int_summ_pop$lower50,
+    xmax = m3_int_summ_pop$upper50,
+    alpha = 0.25
+  ) +
+  geom_vline(
+    xintercept = m3_int_summ_pop$estimate,
+    linewidth  = 1.2,
+    colour     = "black"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype   = "dashed",
+    colour     = "grey40"
+  ) +
+  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9) +
+  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
+  geom_point(size = 2.8) +
+  scale_colour_manual(values = m3_bay_colors, name = "Bay") +
+  labs(
+    x = "Intercept at mean year (days; first → max)",
+    y = NULL,
+    subtitle = "b)"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.text.y  = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "bottom"
+  )
+
+m3_fig_intercepts
+
+
+
+
 
 # ============================================================
 # BAY-LEVEL SLOPES (simple + correct)
@@ -621,8 +729,8 @@ m3_fig_trends_noleg <- m3_fig_trends +
   guides(colour = "none", fill = "none") +
   theme(legend.position = "none")
 
-fig_6_combo_abc <- (m3_fig_trends_noleg + m3_fig_slopes) +
-  plot_layout(ncol = 2, guides = "collect") &
+fig_6_combo_abc <- (m3_fig_trends_noleg + m3_fig_intercepts + m3_fig_slopes) +
+  plot_layout(ncol = 3, guides = "collect") &
   theme(
     legend.position = "bottom",
     legend.justification = "center"
