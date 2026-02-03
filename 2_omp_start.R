@@ -1172,7 +1172,7 @@ fig_4_combo_def
 
 # m2_start_alt_fig_year3temp_spag_thin+ m2_start_alt_fig_year3temp_ribbons
 
-# FINAL FIG
+ # FINAL FIG
 
 fig_4 <- (fig_4_combo_abc / fig_4_combo_def)
 
