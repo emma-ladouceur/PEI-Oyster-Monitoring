@@ -643,6 +643,84 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
 
 m4_max_fig_intercepts_mean
 
+
+# ------------------------------------------------------------
+# 7) Slopes-by-year (temperature effect)
+#    mean-salinity-only (styled like m4_max_fig_intercepts_mean)
+# ------------------------------------------------------------
+# GOAL:
+#   For each year, estimate the *within-year* temperature slope:
+#     d(Julian date) / d(temperature)
+#
+# METHOD:
+#   - Use posterior_epred predictions at observed temps (already created)
+#   - For each draw and year, regress epred ~ water_temp
+#   - Extract slope per draw-year
+#   - Summarise across draws → mean + 50% and 90% CrI
+#
+# IMPORTANT:
+#   - Uses ONLY observed temperatures per year (no sequences)
+#   - Propagates uncertainty correctly (slope computed within draw)
+# ------------------------------------------------------------
+
+# 7a) Restrict prediction grid to mean salinity
+m4_max_ep2_mean_long <- m4_max_ep2_long %>%
+  filter(sal_label == "Mean salinity")
+
+# 7b) For each draw-year, compute slope of epred ~ water_temp
+#     (This uses only the observed temps for that year.)
+m4_max_slopes_draw <- m4_max_ep2_mean_long %>%
+  group_by(.draw, n_year) %>%
+  summarise(
+    slope = {
+      mod <- lm(epred ~ water_temp)
+      coef(mod)[["water_temp"]]
+    },
+    .groups = "drop"
+  )
+
+# 7c) Summarise slopes across draws: mean + 50% and 90% CrI
+m4_max_slopes_summ <- m4_max_slopes_draw %>%
+  group_by(n_year) %>%
+  summarise(
+    estimate = mean(slope),
+    lower50  = quantile(slope, 0.25),
+    upper50  = quantile(slope, 0.75),
+    lower90  = quantile(slope, 0.05),
+    upper90  = quantile(slope, 0.95),
+    .groups  = "drop"
+  ) %>%
+  mutate(
+    year_group = factor(n_year, levels = sort(unique(m4_max_l_dat$n_year)))
+  )
+
+# 7d) Plot: styled like m4_max_fig_intercepts_mean
+m4_max_fig_slopes_mean <- ggplot(
+  m4_max_slopes_summ,
+  aes(x = n_year, y = estimate, colour = year_group)
+) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.6, colour = "grey40") +
+  geom_linerange(aes(ymin = lower90, ymax = upper90),
+                 linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50),
+                 linewidth = 2.0, alpha = 0.95) +
+  geom_point(size = 2.4) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = c(2014, 2016, 2018, 2020, 2022, 2024)) +
+  labs(
+    x = "Year",
+    y = "Temperature slope: d(Julian date) / d(°C)",
+    subtitle = "c)"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+
+m4_max_fig_slopes_mean
+
+
 # combine the double legend and center it
 
 m4_max_fig_intercepts_mean <- m4_max_fig_intercepts_mean +
@@ -650,7 +728,7 @@ m4_max_fig_intercepts_mean <- m4_max_fig_intercepts_mean +
   theme(legend.position = "none")
 
 fig_7_combo_abc <- (m4_max_fig1_mid_max +
-                      m4_max_fig_intercepts_mean) +
+                      m4_max_fig_intercepts_mean + m4_max_fig_slopes_mean) +
   plot_layout(ncol = 3, guides = "collect") &
   theme(
     legend.position = "bottom",
@@ -1188,56 +1266,56 @@ m4_max_fig_year3temp_slopes
 # - summarises across draws (mean + 50%/90% CrI)
 # ============================================================
 
-# m4_max_ref_year <- m4_max_alt_ref$n_year_mean
-# 
-# m4_max_intercept_draws <- m4_max_alt_draws %>%
-#   mutate(.dist = abs(n_year - m4_max_ref_year)) %>%
-#   group_by(.draw, temp_level) %>%
-#   slice_min(.dist, n = 1, with_ties = FALSE) %>%
-#   ungroup() %>%
-#   transmute(
-#     .draw,
-#     temp_level,
-#     intercept = m4_max_alt_epred
-#   )
-# 
-# m4_max_intercept_summ <- m4_max_intercept_draws %>%
-#   group_by(temp_level) %>%
-#   summarise(
-#     estimate = mean(intercept),
-#     lower50  = quantile(intercept, 0.25),
-#     upper50  = quantile(intercept, 0.75),
-#     lower90  = quantile(intercept, 0.05),
-#     upper90  = quantile(intercept, 0.95),
-#     .groups  = "drop"
-#   )
-# 
-# m4_max_fig_year3temp_intercepts <- ggplot(
-#   m4_max_intercept_summ,
-#   aes(x = temp_level, y = estimate, colour = temp_level)
-# ) +
-#   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-#   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
-#   geom_point(size = 3) +
-#   scale_colour_viridis_d(option = "viridis") +
-#   coord_flip() +
-#   labs(
-#     x = NULL,
-#     y = "Intercept (predicted Julian date at reference year)",
-#     title = "Baseline phenology by temperature (MAX; salinity held at mean)",
-#     subtitle = paste0(
-#       "(c) Intercepts evaluated at Year = ",
-#       round(m4_max_ref_year, 1),
-#       "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
-#     )
-#   ) +
-#   theme_bw(base_size = 18) +
-#   theme(
-#     panel.grid.minor = element_blank(),
-#     legend.position = "none"
-#   )
-# 
-# m4_max_fig_year3temp_intercepts
+m4_max_ref_year <- m4_max_alt_ref$n_year_mean
+
+m4_max_intercept_draws <- m4_max_alt_draws %>%
+  mutate(.dist = abs(n_year - m4_max_ref_year)) %>%
+  group_by(.draw, temp_level) %>%
+  slice_min(.dist, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  transmute(
+    .draw,
+    temp_level,
+    intercept = m4_max_alt_epred
+  )
+
+m4_max_intercept_summ <- m4_max_intercept_draws %>%
+  group_by(temp_level) %>%
+  summarise(
+    estimate = mean(intercept),
+    lower50  = quantile(intercept, 0.25),
+    upper50  = quantile(intercept, 0.75),
+    lower90  = quantile(intercept, 0.05),
+    upper90  = quantile(intercept, 0.95),
+    .groups  = "drop"
+  )
+
+m4_max_fig_year3temp_intercepts <- ggplot(
+  m4_max_intercept_summ,
+  aes(x = temp_level, y = estimate, colour = temp_level)
+) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
+  geom_point(size = 3) +
+  scale_colour_viridis_d(option = "viridis") +
+  coord_flip() +
+  labs(
+    x = NULL,
+    y = "Intercept (predicted Julian date at reference year)",
+    title = "Baseline phenology by temperature (MAX; salinity held at mean)",
+    subtitle = paste0(
+      "(c) Intercepts evaluated at Year = ",
+      round(m4_max_ref_year, 1),
+      "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
+    )
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+m4_max_fig_year3temp_intercepts
 
 
 m4_max_fig_year3temp_intercepts <- ggplot(

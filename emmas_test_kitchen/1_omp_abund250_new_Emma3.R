@@ -67,7 +67,7 @@ nrow(l_total_dat)
 
 lstotalmax_temp_time_sal <- brm(
   larvae_above_250_microns ~ water_temp.m * n_year.m * salinity.m +
-    #s(julian_date,  k = 10) +
+    s(julian_date,  k = 10) +
     (1 + n_year.m | bay/location_clean),
   data    = l_total_dat,
   family  = lognormal(),

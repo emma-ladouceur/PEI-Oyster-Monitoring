@@ -581,7 +581,7 @@ m2_first_fig_slopes_3panel <- ggplot(
   ) +
   labs(
     x = "Year",
-    y = "Temperature slope" # (days per °C)",
+    y = "Temperature slope", # (days per °C)",
     # title = "Year-specific temperature sensitivity across salinity regimes",
     subtitle = "c)"
   ) +
@@ -634,7 +634,7 @@ m2_first_fig_intercepts_mean <- m2_first_fig_intercepts_mean +
 # combine graph a, b, and c
 
 
-fig_4_combo_abc <- (m2_first_fig1_spag +
+fig_4_combo_abc <- (m2_first_fig1_mid_start +
     m2_first_fig_intercepts_mean +
     m2_first_fig_slopes_mean) +
   plot_layout(ncol = 3, guides = "collect") &
@@ -1177,3 +1177,4 @@ fig_4_combo_def
 fig_4 <- (fig_4_combo_abc / fig_4_combo_def)
 
 fig_4
+f
