@@ -200,10 +200,8 @@ la_m_fig_panel <- ggplot(
   coord_cartesian(ylim = c(la_m_y_min_plot, la_m_y_max_plot)) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Total oyster larvae",
-    #title = "Temperature–abundance relationships vary through time and with salinity",
-    #subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 90% (outer) CrI",
-    colour= "Year"
+    y = "Peak larval abundance",
+    colour= "Monitoring year"
     
   ) +
   theme_bw(base_size = 18) +
@@ -215,6 +213,17 @@ la_m_fig_panel <- ggplot(
   )
 
 la_m_fig_panel
+
+# Figure caption: For each salinity level, the model shows how the predicted peak oyster larval
+# abundance (maximum observed per bay x location x year) changes with water temperature and how 
+# this relationship changes among monitoring years.
+# AKA (model expects the magnitude of the peak bloom (total larvae) to relate to temp and how that
+# relationship differs by year and salinity level)
+# Low, median, and high salinity panels correspond to the 25th, 50th, and 75th pcts of salinity observed across the dataset.
+# Shaded ribbons represent 50% and 90% Bayesian credible intervals around the median prediction.
+# (50% ribbon = 25th to 75th pct, 90% ribbon = 5th to 95th pct, lines = median prediction)
+# y-axis shown on a log10 scale
+
 # ============================================================
 # ltA_WMED) Median salinity only — filtered draws pipeline
 #   - slopes/intercepts use ALL filtered draws (stable)
@@ -313,10 +322,9 @@ la_m_fig_med <- ggplot(
   coord_cartesian(ylim = c(la_m_y_min_plot, la_m_y_max_plot)) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Total oyster larvae\n at peak",
-    #title = "Temperature–abundance relationships vary through time and with salinity",
+    y = "Peak larval abundance",
     subtitle = "a)",
-    colour= "Year"
+    colour= "Monitoring year"
     
   ) +
   theme_bw(base_size = 18) +
@@ -328,6 +336,16 @@ la_m_fig_med <- ggplot(
   )
 
 la_m_fig_med
+
+# Figure caption: For the median salinity level, the model shows how the predicted peak oyster larval
+# abundance changes with water temperature and how this relationship changes among monitoring years.
+# AKA (peak total larvae)
+# Salinity is fixed at the median (50th pct) observed value
+# Shaded ribbons represent 50% and 90% Bayesian credible intervals around the median prediction.
+# (50% ribbon = 25th to 75th pct, 90% ribbon = 5th to 95th pct, lines = median prediction)
+# y-axis shown on a log10 scale
+
+
 # ============================================================
 # INTERCEPTS + SLOPES (ALIGNED: computed from ALL kept draws)
 # ============================================================
@@ -367,9 +385,8 @@ la_m_fig_intercepts <- ggplot(la_m_intercept_summ, aes(x = n_year, y = estimate,
   ) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   labs(
-    x = "Monitoring year",
-    y = "Predicted total larvae \n at reference temperature",
-    #title = "Intercept-like differences through time (median salinity)",
+    x = "Year",
+    y = "Peak larval abundance",
     subtitle = "b)"
   ) +
   theme_bw(base_size = 18) +
@@ -378,7 +395,15 @@ la_m_fig_intercepts <- ggplot(la_m_intercept_summ, aes(x = n_year, y = estimate,
 
 la_m_fig_intercepts
 
+# Figure caption: For each monitoring year, the model shows the predicted peak oyster larval
+# abundance at median observed water temperature under median salinity conditions.
+# AKA (comparison of peak total larvae - for each monitoring year (median sal.) the plot shows the predicted
+# peak total larval abundance at a common reference temp (median obsvered water temp))
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the median prediction.
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = median prediction)
+# y-axis shown on a log10 scale
 
+#=========================================
 # slope: within-year temperature sensitivity on log10 scale (stable for lognormal)
 la_m_slope_draws <- la_m_ep_keep_med %>%
   mutate(log10_epred = log10(epred)) %>%
@@ -411,7 +436,7 @@ la_m_fig_slopes <- ggplot(la_m_slope_summ, aes(x = n_year, y = estimate, colour 
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   labs(
     x = "Year",
-    y = "Slope: d(log10(larvae))/d(°C)",
+    y = "Change in peak larval \n abundance per 1 °C",
     # title = "Temperature sensitivity through time (median salinity)",
     subtitle = "c)"
   ) +
@@ -421,8 +446,16 @@ la_m_fig_slopes <- ggplot(la_m_slope_summ, aes(x = n_year, y = estimate, colour 
 
 la_m_fig_slopes
 
-# Optional combined view (patchwork)
-la_m_fig_med + la_m_fig_intercepts + la_m_fig_slopes
+# Figure caption: For each monitoring year (at median salinity), the model shows how strongly peak larval 
+# abundance changes with a 1 °C increase/decrease in water temperature.
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the median prediction.
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = median prediction)
+# Dashed line = slope of zero = no change in peak larval abundance with temperature
+# Slope = log10(predicted peak larval abundance) vs water temperature
+# Slope explanation: slope is expressed on a log10 scale, meaning positive values experience proportional (multiplicative)
+# increases in peak larval abundance with warming, while negative values experience proportional
+# declines.
+
 
 # Removing legends from graphs b and c
 la_m_fig_intercepts <- la_m_fig_intercepts +
@@ -534,29 +567,29 @@ la_m_T_fig_time_temp <- ggplot(
  #scale_fill_viridis_d(option = "viridis") +
   # --- Dark2 palette with explicit mapping ---
   scale_colour_manual(
-    name   = "Temperature",
+    name   = "Surface water \ntemperature (°C)",
     values = c(
       "Cool temp (25th pct)" = "#1B9E77",
       "Median temp"          = "#7570B3",
       "Warm temp (75th pct)" = "#D95F02"
     ),
     labels = c(
-      "Cool (25 pct)",
+      "Cool",
       "Median",
-      "Warm (75 pct)"
+      "Warm"
     )
   ) +
   scale_fill_manual(
-    name   = "Temperature",
+    name   = "Surface water \ntemperature (°C)",
     values = c(
       "Cool temp (25th pct)" = "#1B9E77",
       "Median temp"          = "#7570B3",
       "Warm temp (75th pct)" = "#D95F02"
     ),
     labels = c(
-      "Cool (25 pct)",
+      "Cool",
       "Median",
-      "Warm (75 pct)"
+      "Warm"
     )
   ) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
@@ -568,10 +601,8 @@ la_m_T_fig_time_temp <- ggplot(
   coord_cartesian(ylim = c(la_m_T_y_min_plot, la_m_T_y_max_plot)) +
   labs(
     x = "Year",
-    y = "Max oyster larvae",
+    y = "Peak larval abundance",
     subtitle= "d)", colour= "Temp", fill= "Temp"
-   # title = "Temporal trends vary with temperature (median salinity)",
-   # subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 90% (outer) CrI"
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -582,6 +613,16 @@ la_m_T_fig_time_temp <- ggplot(
   )
 
 la_m_T_fig_time_temp
+
+# Figure caption: Across monitoring years (at median salinity), the model shows how predicted peak larval
+# abundance varies under cool, median, and warm water temperature levels.
+# AKA (total peak larval abundance changes with water temp across monitoring years when sal. is at median level)
+# Salinity is fixed at the median (50th pct) observed value
+# Cool = 25 pct, median = 50th pct, warm = 75 pct
+# Shaded ribbons represent 50% and 90% Bayesian credible intervals around the median prediction.
+# (50% ribbon = 25th to 75th pct, 90% ribbon = 5th to 95th pct, lines = median prediction)
+# y-axis shown on a log10 scale
+
 
 
 # ============================================================
@@ -645,8 +686,7 @@ la_m_T_fig_intercepts <- ggplot(
   ) +
   labs(
     x = NULL,
-    y = "Predicted larvae \n at reference year",
-    #title = "Baseline larvae abundance by temperature (median salinity)",
+    y = "Peak larval abundance",
     subtitle = "e)"
   ) +
   theme_bw(base_size = 18) +
@@ -657,6 +697,15 @@ la_m_T_fig_intercepts <- ggplot(
   )
 
 la_m_T_fig_intercepts
+
+
+# Figure caption: At a common reference monitoring year (at median salinity), the model shows how predicted 
+# peak larval abundance varies under cool, median, and warm temperature levels.
+# (all temp categories are being compared at the same point in time, so differences = temp, not year)
+# Cool = 25 pct, median = 50th pct, warm = 75 pct
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the median prediction.
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = median prediction)
+# y-axis shown on a log10 scale
 
 
 # ------------------------------------------------------------
@@ -693,17 +742,16 @@ la_m_T_fig_slopes <- ggplot(
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
-  #scale_colour_viridis_d(option = "viridis") +
-  # --- Dark2 palette with explicit mapping ---
   scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
       "Median temp"          = "#7570B3",  # purple (Dark2)
       "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
     ) ) +
-  #coord_flip() +
+  scale_y_continuous(
+    breaks = c(-0.2, -0.1, 0, 0.1, 0.2)
+  ) +
   labs(
     x = NULL,
-    y = "Slope:(log10(larvae))/(year)",
-    #title = "Temporal trends by temperature (median salinity)",
+    y = "Change in peak larval \n abundance per year",
     subtitle = "f)"
   ) +
   theme_bw(base_size = 18) +
@@ -715,9 +763,18 @@ la_m_T_fig_slopes <- ggplot(
 
 la_m_T_fig_slopes
 
+# Figure caption: At median salinity, the model shows how predicted peak larval abundance changes per 
+# year under cool, median, and warm temperature levels.
+# Cool = 25 pct, median = 50th pct, warm = 75 pct
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the median prediction.
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = median prediction)
+# Dashed line = slope of zero = no change in peak larval abundance through time (no temporal change)
+# Slope = log10(predicted peak larval abundance) vs year
+# Slope explanation: slope is expressed on a log10 scale, meaning positive values experience proportional (multiplicative)
+# increases in peak larval abundance through time, while negative values experience proportional
+# declines.
 
-# Optional: combine with your year-on-x ribbon plot (patchwork)
-la_m_T_fig_time_temp + la_m_T_fig_intercepts + la_m_T_fig_slopes
+
 
 # removing legends from graph e and f
 la_m_T_fig_intercepts <- la_m_T_fig_intercepts +
