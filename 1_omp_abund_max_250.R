@@ -203,7 +203,7 @@ la_me_fig_panel <- ggplot(
 
 la_me_fig_panel
 
-# Figure caption: For each given salinity level, the model shows how the predicted peak oyster larval
+# Figure caption: For each salinity level, the model shows how the predicted peak oyster larval
 # abundance above 250 μm changes with water temperature and how this relationship changes among monitoring years.
 # Low, median, and high salinity panels correspond to the 25th, 50th, and 75th pcts of salinity observed across the dataset.
 # Shaded ribbons represent 50% and 90% Bayesian credible intervals around the median prediction.
@@ -585,7 +585,7 @@ la_me_T_fig_time_temp <- ggplot(
 la_me_T_fig_time_temp
 
 # Figure caption: Across monitoring years (at median salinity), the model shows how predicted peak larval
-# abundance above 250 μm varies through time under cool, median, and warm water temperature levels.
+# abundance above 250 μm varies under cool, median, and warm water temperature levels.
 # Salinity is fixed at the median (50th pct) observed value
 # Cool = 25 pct, median = 50th pct, warm = 75 pct
 # Shaded ribbons represent 50% and 90% Bayesian credible intervals around the median prediction.
