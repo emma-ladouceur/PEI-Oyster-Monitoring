@@ -243,11 +243,14 @@ m2_first_fig1_panel <- ggplot(
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_y_continuous(
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2021-01-01"), "%b %d")
+    }
+  ) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Julian date",
-    # title = "Temperature–phenology relationships vary through time and with salinity",
-    # subtitle = "FIRST EVENT: population-level predictions at observed temperatures; shaded bands show 90% credible intervals"
+    y = "Date of first larval detection",
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -257,6 +260,16 @@ m2_first_fig1_panel <- ggplot(
     legend.position = "bottom")
 
 m2_first_fig1_panel
+
+# Figure caption: For each salinity level, the model shows how the predicted timing of first oyster larval
+# detection (observed per bay x location x year) varies with water temperature (phenology) and how this 
+# relationship differs among monitoring years.
+# AKA (model estimates when oyster larvae first appear as a function of temp, and shows how that timing
+# shifts across years under low, mean, and high salinity)
+# Low, mean, and high salinity panels correspond to -1 SD, 0, and +1 SD of salinity to represent standardized
+# salinity conditions relative to each bay = helps to visualize model predictions across a realistic range of salinities
+# Shaded ribbons represent 90% Bayesian credible intervals around the mean predicted date
+# (90% ribbon = 5th to 95th pct, lines = mean prediction)
 
 
 # ============================================================
@@ -284,15 +297,18 @@ m2_first_fig1_mid_start <- ggplot(
   ) +
   geom_line(linewidth = 0.7) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
- # facet_wrap(~ sal_label, nrow = 1) +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 6),
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+    }
+  ) +
+
   labs(
     x = "Surface water temperature (°C)",
-    y = "Julian date",
-    subtitle = "a)" # Date of first detection of oyster larvae (> 250 μm)
+    y = "Date of first larval detection",
+    subtitle = "a)"
   ) +
-  # NOTE:
-  # If you want the same calendar labels as the max-event figure,
-  # keep/adjust the limits/breaks below to match the observed range for this event.
   coord_cartesian() +
   theme_bw(base_size = 18) +
   theme(strip.background = element_blank(),
@@ -302,9 +318,14 @@ m2_first_fig1_mid_start <- ggplot(
 
 m2_first_fig1_mid_start
 
-# what does this figure tell us?
-# under average salinity coniditions warmer surface temps are associated with an earlier appearance of oyster larvae above 250um
-# the strenght (slope) and timing of this relationships vary from year to year
+# Figure caption: For the mean salinity level, the model shows how the predicted timing of first oyster 
+# larval detection (observed per bay x location x year) varies with water temperature (phenology) and how 
+# this relationship differs among monitoring years.
+# AKA (model estimates when oyster larvae first appear as a function of temp under average salinity conditions,
+# and shows how that timing shifts across years)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Shaded ribbons represent 90% Bayesian credible intervals around the mean predicted date
+# (90% ribbon = 5th to 95th pct, lines = mean prediction)
 
 
 # ------------------------------------------------------------
@@ -378,27 +399,20 @@ m2_first_fig1_spag <- ggplot() +
   ) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_y_continuous(
-    limits = c(160, 230),
-    breaks = c(166, 176, 186, 196, 206, 216, 226),
-    labels = c("June 15","June 25","July 5","July 15",
-               "July 25","Aug 4","Aug 14")
+    breaks = scales::pretty_breaks(n = 6),
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
   coord_cartesian() +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Date",
-    # title = "Temperature effects on first oyster larvae appearance above 250um at mean salinity",
-    subtitle = "a)" # "FIRST EVENT: thick lines = posterior means by year; spaghetti = posterior draws filtered to central 80% region"
+    y = "Date of first larval detection",
+    subtitle = "a)"
   ) +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
         legend.position = "bottom")
 
 m2_first_fig1_spag
-
-# what is this figure telling us?
-# same at part 7)
-# under average salinity coniditions warmer surface temps are associated with an earlier appearance of oyster larvae above 250um
 
 # ------------------------------------------------------------
 # 9) Intercepts-by-year (temperature-averaged)
@@ -465,12 +479,15 @@ m2_first_fig_intercepts_3panel <- ggplot(
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_y_continuous(
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2021-01-01"), "%b %d")
+    }
+  ) +
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Year",
-    y = "Julian date",
-    # title = "Year-specific phenology across salinity regimes",
-    # subtitle = "FIRST EVENT: points = posterior means; thick bars = 50% CrI; thin bars = 90% CrI\nAveraged over observed temperatures within each year"
+    y = "Date of first larval detection",
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -482,6 +499,9 @@ m2_first_fig_intercepts_3panel <- ggplot(
 
 m2_first_fig_intercepts_3panel
 
+
+# =====================================
+
 m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   filter(sal_label == "Mean salinity") %>%
   mutate(year_group = factor(n_year, levels = sort(unique(m2_first_l_dat$n_year)))) %>%
@@ -491,16 +511,16 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", guide = "none") +
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 6),
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+    }
+  ) +
   labs(
     x = "Year",
-    y = "Date",
-    subtitle = "b)" # Date of first oyster larvae > 250 μm (Intercept; temp-averaged)
-  ) +
-  scale_y_continuous(
-    limits = c(160, 230),
-    breaks = c(166, 176, 186, 196, 206, 216, 226),
-    labels = c("June 15","June 25","July 5","July 15",
-               "July 25","Aug 4","Aug 14")
+    y = "Date of first larval detection",
+    subtitle = "b)"
   ) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
@@ -508,9 +528,14 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
 
 m2_first_fig_intercepts_mean
 
-m2_first_fig1_spag + m2_first_fig_intercepts_mean
-
-
+# Figure caption: For mean salinity conditions, the model shows how the predicted timing of first oyster larval
+# detection (observed per bay x location x year) differs among monitoring years, after accounting for the
+# range of water temp experienced in each year.
+# AKA (figure compares years to show whether larvae appeared earlier or later overall rather than showing
+# how timing changes with temp)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean prediction
+# (50% (thick) = 25th to 75th pct ,90% (thin) = 5th to 95th pct, points = mean predicted date)
 
 # ------------------------------------------------------------
 # 10) Slopes-by-year (temperature effect; temp-averaged logic analog)
@@ -581,8 +606,7 @@ m2_first_fig_slopes_3panel <- ggplot(
   ) +
   labs(
     x = "Year",
-    y = "Temperature slope", # (days per °C)",
-    # title = "Year-specific temperature sensitivity across salinity regimes",
+    y = "Days change in first \n larval detection per 1 °C",
     subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
@@ -611,8 +635,8 @@ m2_first_fig_slopes_mean <- m2_first_slope_summ %>%
   scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
   labs(
     x = "Year",
-    y = "Temperature slope", # (days per °C)",
-    subtitle = "c)" # Temperature sensitivity of first larvae date (Slope; temp effect within-year)"
+    y = "Days change in first \n larval detection per 1 °C",
+    subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
@@ -620,10 +644,20 @@ m2_first_fig_slopes_mean <- m2_first_slope_summ %>%
 
 m2_first_fig_slopes_mean
 
-# Example combo:
+# Figure caption: For each monitoring year (at mean salinity), the model shows how the predicted timing of
+# first larval detection changes with a 1 °C increase in surface water temp.
+# AKA(shows whether warmer water is associated with earlier or later first larval detection in each year,
+# under typical salinity conditions)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean slope estimate
+# (50% (thick) = 25th to 75th pct ,90% (thin) = 5th to 95th pct, points = mean slope for each year)
+# dashed line = slope 0 = no change in timing of first larval detection with temp
+# negative slope = earlier larval appearance
+# positive slope = later larval appearance
+
 
 # Kill the legends for graph b) and c)
-m2_first_fig1_spag <- m2_first_fig1_spag +
+m2_first_fig_slopes_mean <- m2_first_fig_slopes_mean +
   guides(colour = "none") +
   theme(legend.position = "none")
 
@@ -744,16 +778,16 @@ m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
     linewidth = 1.0
   ) +
   scale_colour_manual(
-    name   = "Temperature",
+    name   = "Surface water \n temperature (°C)",
     values = c(
       "Cool temp (25th pct)" = "#1B9E77",
       "Median temp"          = "#7570B3",
       "Warm temp (75th pct)" = "#D95F02"
     ),
     labels = c(
-      "Cool (25 pct)",
+      "Cool",
       "Median",
-      "Warm (75 pct)"
+      "Warm"
     )
   ) +
   #scale_colour_viridis_d(option = "viridis", name = "Temp") +
@@ -776,34 +810,20 @@ m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
       na.rm = TRUE
     )
   )+
-  # if you want the same "date labels" trick, keep this block and adjust breaks/labels if needed:
- # scale_y_continuous(
-  #  breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-   # labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-    #           "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
-  #) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
     labels = scales::label_number(accuracy = 1)
   ) +
   labs(
     x = "Year",
-    y = "Julian date",
-    # title = "Time–phenology relationships at cool/median/warm temperatures",
-    subtitle = "a)" #paste0(
-      #"Thick lines = posterior medians; spaghetti = ",
-      #m2_start_alt_n_keep,
-      #" posterior draws (salinity held at mean)"
-    #)
+    y = "Date of first larval detection",
+    subtitle = "a)"
   ) +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
         legend.position = "bottom")
 
 m2_start_alt_fig_year3temp_spag_thin
-
-
-
 
 
 # ============================================================
@@ -937,58 +957,50 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
     )
   ) +
   scale_colour_manual(
-    name = "Temperature",
+    name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",  # green (Dark2)
       "Median" = "#7570B3",  # purple (Dark2)
       "Warm"   = "#D95F02"   # orange (Dark2)
     ),
     labels = c(
-      "Cool (25 pct)",
+      "Cool",
       "Median",
-      "Warm (75 pct)"
+      "Warm"
     )
   ) +
   scale_fill_manual(
-    name = "Temperature",
+    name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
       "Warm"   = "#D95F02"
     ),
     labels = c(
-      "Cool (25 pct)",
+      "Cool",
       "Median",
-      "Warm (75 pct)"
+      "Warm"
     )
   ) +
-
-  #scale_colour_viridis_d(option = "viridis") +
-  #scale_fill_viridis_d(option = "viridis") +
-  
   coord_cartesian(
-    ylim = quantile(
-      m2_first_l_dat$julian_date,
-      probs = c(0.01, 0.99),
+    ylim = range(
+      c(
+        m2_start_alt_ribbon_dat$m2_start_alt_low80,
+        m2_start_alt_ribbon_dat$m2_start_alt_up80
+      ),
       na.rm = TRUE
     )
   ) +
-  
-  # keep / edit this if your julian-date-to-calendar mapping differs
-  #scale_y_continuous(
-   # breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-    #labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-     #          "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
-  #) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
-    labels = scales::label_number(accuracy = 1)
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+    }
   ) +
   labs(
     x = "Year",
-    y = "Julian date",
-    # title = "Time–phenology relationships at cool/median/warm temperatures",
-    subtitle = "d)", #"Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) credible intervals (salinity held at mean)"
+    y = "Date of first larval detection",
+    subtitle = "d)",
   colour = "Temp",
   fill = "Temp"
     ) +
@@ -998,6 +1010,13 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
 
 m2_start_alt_fig_year3temp_ribbons
 
+# Figure caption: Across monitoring years (at mean salinity), the model shows how the predicted first larval 
+# detection varies under cool, median, and warm water temperature levels.
+# AKA(this figure show how the timing of first larval appearance changes across years under different
+# temp conditions while salinity is constant)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Shaded ribbons represent 50% and 80% Bayesian credible intervals around the median prediction
+# (50% ribbon = 25th to 75th pct, 80% ribbon = 10th to 90th pct, lines = median predicted date)
 
 
 # ============================================================
@@ -1034,41 +1053,65 @@ m2_start_slope_summ <- m2_start_slope_draws %>%
 # -----------------------------
 # m2_start_16) Slope figure
 # -----------------------------
+
 m2_start_fig_year3temp_slopes <- ggplot(
   m2_start_slope_summ,
-  aes(y = temp_level, x = estimate, colour = temp_level)
+  aes(
+    x = temp_level,
+    y = estimate,
+    colour = temp_level
+  )
 ) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey40") +
-  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
-  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_linerange(
+    aes(ymin = lower90, ymax = upper90),
+    linewidth = 0.9,
+    alpha = 0.6
+  ) +
+  geom_linerange(
+    aes(ymin = lower50, ymax = upper50),
+    linewidth = 2.2
+  ) +
   geom_point(size = 3) +
   scale_colour_manual(
-    name = "Temp",
     values = c(
-      "Cool"   = "#1B9E77",  # green (Dark2)
-      "Median" = "#7570B3",  # purple (Dark2)
-      "Warm"   = "#D95F02"   # orange (Dark2)
+      "Cool"   = "#1B9E77",
+      "Median" = "#7570B3",
+      "Warm"   = "#D95F02"
     )
   ) +
-
-  #scale_colour_viridis_d(option = "viridis") +
-  coord_flip() +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 5),
+    limits = c(
+      min(m2_start_slope_summ$lower90, na.rm = TRUE),
+      max(m2_start_slope_summ$upper90, na.rm = TRUE)
+    )
+  ) +
   labs(
-    y = NULL,
-    x = "Slope", # (change in predicted Julian date per year)",
-    #title = "Temporal trends by temperature (salinity held at mean)",
-    subtitle = "f)" # Points = posterior mean slopes; thick bars = 50% CrI; thin bars = 90% CrI"
+    x = NULL,
+    y = "Change in date of first larval\ndetection per year",
+    subtitle = "f)"
   ) +
   theme_bw(base_size = 18) +
   theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_line(),
     panel.grid.minor = element_blank(),
     legend.position = "none"
   )
 
 m2_start_fig_year3temp_slopes
 
-# Optional: show ribbons + slopes together (requires patchwork loaded)
-# m2_start_alt_fig_year3temp_ribbons + m2_start_fig_year3temp_slopes
+# Figure caption: Across monitoring years (at mean salinity), the model shows how the predicted timing of 
+# first larval detection changes through time under cool, median, and warm surface water temperature conditions.
+# AKA(shows whether first larval detection has shifted earlier or later over the monitoring period and
+# wehether that long term change differs under diff temp conditions)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean temporal slope estimate
+# (50% (thick) = 25th to 75th pct ,90% (thin) = 5th to 95th pct, points = mean slope for each temp condition)
+# dashed line = slope 0 = no long term change in timing of first larval detection
+# negative slope = earlier larval appearance over time
+# positive slope = later larval appearance over time
 
 
 # ============================================================
@@ -1119,37 +1162,62 @@ m2_start_intercept_summ <- m2_start_intercept_draws %>%
 # -----------------------------
 m2_start_fig_year3temp_intercepts <- ggplot(
   m2_start_intercept_summ,
-  aes(y = temp_level, x = estimate, colour = temp_level)
+  aes(
+    x = temp_level,
+    y = estimate,
+    colour = temp_level
+  )
 ) +
-  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
-  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
+  geom_linerange(
+    aes(ymin = lower90, ymax = upper90),
+    linewidth = 0.9,
+    alpha = 0.6
+  ) +
+  geom_linerange(
+    aes(ymin = lower50, ymax = upper50),
+    linewidth = 2.2
+  ) +
   geom_point(size = 3) +
-  #scale_colour_viridis_d(option = "viridis") +
+  
   scale_colour_manual(
     values = c(
-      "Cool"   = "#1B9E77",  # green (Dark2)
-      "Median" = "#7570B3",  # purple (Dark2)
-      "Warm"   = "#D95F02"   # orange (Dark2)
+      "Cool"   = "#1B9E77",
+      "Median" = "#7570B3",
+      "Warm"   = "#D95F02"
     )
   ) +
-  coord_flip() +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 6),
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+    }
+  ) +
   labs(
-    x = "Intercept (predicted Julian \n date at reference year)",
-    y = NULL,
-    #title = "Baseline phenology by temperature (salinity held at mean)",
+    x = NULL,
+    y = "Date of first larval detection",
     subtitle = "e)"
-    ) +
+  ) +
   theme_bw(base_size = 18) +
   theme(
+    axis.text.x  = element_blank(),
+    axis.ticks.x = element_line(),    # keep the ticks
     panel.grid.minor = element_blank(),
     legend.position = "none"
   )
 
 m2_start_fig_year3temp_intercepts
+    
+# Figure caption: At a common reference monitoring year (at mean salinity), the model shows how the predicted
+# timing of first larval detection differs among cool, median, and warm surface water temperature conditions.
+# AKA(figure compares baseline differences in when larvae first appear udner diff temp conditions rather than
+# showing changes through time or with temp)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean predicted date
+# of first larval detection
+# (50% (thick) = 25th to 75th pct ,90% (thin) = 5th to 95th pct, points = mean predicted date)
 
-# Optional: show ribbons + slopes + intercepts together (requires patchwork loaded)
-# m2_start_alt_fig_year3temp_ribbons + m2_start_fig_year3temp_slopes + m2_start_fig_year3temp_intercepts
 
+# =========================================
 #remove legend
 m2_start_fig_year3temp_intercepts <- m2_start_fig_year3temp_intercepts +
 guides(colour = "none", fill = "none") +
@@ -1170,11 +1238,10 @@ fig_4_combo_def <- (m2_start_alt_fig_year3temp_ribbons +
 
 fig_4_combo_def
 
-# m2_start_alt_fig_year3temp_spag_thin+ m2_start_alt_fig_year3temp_ribbons
 
  # FINAL FIG
 
 fig_4 <- (fig_4_combo_abc / fig_4_combo_def)
 
 fig_4
-f
+
