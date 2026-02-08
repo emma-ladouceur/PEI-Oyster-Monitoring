@@ -790,7 +790,6 @@ m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
       "Warm"
     )
   ) +
-  #scale_colour_viridis_d(option = "viridis", name = "Temp") +
   scale_x_continuous(
     breaks = seq(
       from = 2016,
@@ -910,8 +909,6 @@ m2_start_alt_ribbon_dat <- m2_start_alt_summ80 %>%
 
 # --- plot (ribbons + median line) ---
 m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
-  
-  # outer ribbon (80%)
   geom_ribbon(
     aes(
       x = n_year,
@@ -922,8 +919,6 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
     alpha = 0.18,
     colour = NA
   ) +
-  
-  # inner ribbon (50%)
   geom_ribbon(
     aes(
       x = n_year,
@@ -934,8 +929,6 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
     alpha = 0.32,
     colour = NA
   ) +
-  
-  # median line
   geom_line(
     aes(
       x = n_year,
@@ -1200,7 +1193,7 @@ m2_start_fig_year3temp_intercepts <- ggplot(
   theme_bw(base_size = 18) +
   theme(
     axis.text.x  = element_blank(),
-    axis.ticks.x = element_line(),    # keep the ticks
+    axis.ticks.x = element_line(),
     panel.grid.minor = element_blank(),
     legend.position = "none"
   )

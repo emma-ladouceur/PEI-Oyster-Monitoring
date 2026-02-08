@@ -735,7 +735,6 @@ la_s_T_fig_slopes <- ggplot(
       "Median temp"          = "#7570B3",  # purple (Dark2)
       "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
     ) ) +
-  #coord_flip() +
   labs(
     x = NULL,
     y = "Change in larval abundance \n at first detection per year",
@@ -749,9 +748,6 @@ la_s_T_fig_slopes <- ggplot(
   )
 
 la_s_T_fig_slopes
-
-# Figure caption:
-
 
 # Figure caption: At median salinity, the model shows the temporal trend in predicted larval abundance 
 # at first detection under cool, median, and warm temperature levels.

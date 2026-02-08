@@ -437,7 +437,6 @@ la_m_fig_slopes <- ggplot(la_m_slope_summ, aes(x = n_year, y = estimate, colour 
   labs(
     x = "Year",
     y = "Change in peak larval \n abundance per 1 °C",
-    # title = "Temperature sensitivity through time (median salinity)",
     subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
@@ -672,13 +671,10 @@ la_m_T_fig_intercepts <- ggplot(
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
-  #scale_colour_viridis_d(option = "viridis") +
-  # --- Dark2 palette with explicit mapping ---
   scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
                                   "Median temp"          = "#7570B3",  # purple (Dark2)
                                   "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
   ) ) +
-  #coord_flip() +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),

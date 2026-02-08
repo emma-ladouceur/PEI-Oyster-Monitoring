@@ -739,7 +739,7 @@ la_me_T_fig_slopes
 
 la_me_T_fig_intercepts <- la_me_T_fig_intercepts +
   guides(colour = "none") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") 
 
 la_me_T_fig_slopes <- la_me_T_fig_slopes +
   guides(colour = "none") +

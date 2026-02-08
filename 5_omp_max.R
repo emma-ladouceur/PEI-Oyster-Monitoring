@@ -287,7 +287,7 @@ m4_max_fig1_mid_max <- ggplot(
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Date of max oyster larvae \n > 250 μm",
+    y = "Predicted date of maximum \n larvae above 250 μm",
     subtitle = "a)"
   ) +
   scale_y_continuous(
@@ -624,13 +624,12 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
   scale_x_continuous(breaks = sort(unique(m4_max_l_dat$n_year))) +
   labs(
     x = "Year",
-    y = "Date of max oyster larvae \n > 250 μm",
+    y = "Predicted date of maximum \n larvae above 250 μm",
     subtitle = "b)"
   ) +
   scale_y_continuous(
-    limits = c(160, 230),
-    breaks = c(166, 176, 186, 196, 206, 216, 226),
-    labels = c("June 15","June 25","July 5","July 15","July 25","Aug 4","Aug 14")
+    breaks = scales::pretty_breaks(n = 6),
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
   scale_x_continuous(
     breaks = c(2014,2016,2018,2020,2022,2024),
@@ -709,7 +708,7 @@ m4_max_fig_slopes_mean <- ggplot(
   scale_x_continuous(breaks = c(2014, 2016, 2018, 2020, 2022, 2024)) +
   labs(
     x = "Year",
-    y = "Temperature slope: d(Julian date) / d(°C)",
+    y = "Change in peak larval timing (days per °C)",
     subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
@@ -726,6 +725,11 @@ m4_max_fig_slopes_mean
 m4_max_fig_intercepts_mean <- m4_max_fig_intercepts_mean +
   guides(colour = "none", fill = "none") +
   theme(legend.position = "none")
+
+m4_max_fig_slopes_mean <- m4_max_fig_slopes_mean +
+  guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")  
+
 
 fig_7_combo_abc <- (m4_max_fig1_mid_max +
                       m4_max_fig_intercepts_mean + m4_max_fig_slopes_mean) +
@@ -1110,7 +1114,7 @@ m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
   
   ## 🔑 YOUR CLASSIC DARK2 COLOURS
   scale_colour_manual(
-    name = "Temperature",
+    name = "Surface water \n temperature",
     values = c(
       "Cool"   = "#1B9E77",  # Dark2 green
       "Median" = "#7570B3",  # Dark2 purple
@@ -1123,7 +1127,7 @@ m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
     )
   ) +
   scale_fill_manual(
-    name = "Temperature",
+    name = "Surface water \n temperature",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
@@ -1155,16 +1159,13 @@ m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
   ) +
   
   scale_y_continuous(
-    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-    labels = c(
-      "Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-      "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9"
-    )
+    breaks = scales::pretty_breaks(n = 6),
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
   
   labs(
     x = "Year",
-    y = "Julian date",
+    y = "Predicted date of peak larval \n abundance above 250 µm",
     # title = "Time–phenology relationships at cool/median/warm temperatures (MAX)",
     subtitle = "d)"
   ) +
@@ -1244,7 +1245,7 @@ m4_max_fig_year3temp_slopes <- ggplot(
   ) +
   labs(
     x = NULL,
-    y = "Slope \n (change in predicted Julian date per year)",
+    y = "Change in predicted peak larval \n abundance above 250 µm (days per year)",
     subtitle = "f)"
   ) +
   theme_bw(base_size = 18) +
@@ -1344,7 +1345,7 @@ m4_max_fig_year3temp_intercepts <- ggplot(
   
   labs(
     x = NULL,
-    y = "Intercept \n (predicted Julian date at reference year)",
+    y = "Predicted date of peak larval \n abundance above 250 µm",
     # title = "Baseline phenology by temperature (MAX; salinity held at mean)",
     subtitle = "e)"
   ) +

@@ -257,7 +257,7 @@ m3_fig_trends <- ggplot() +
   
   labs(
     x = "Monitoring year",
-    y = "Difference in days (first → max)",
+    y = "Duration between first detection and peak \n larval abundance (>250 μm) (days)",
     colour = "Bay"
   ) +
   
@@ -268,6 +268,9 @@ m3_fig_trends <- ggplot() +
   )
 
 m3_fig_trends
+
+# Figure caption:
+
 
 # ============================================================
 # m3: TRENDS (bay/location) + SLOPES (BAY-LEVEL ONLY)
@@ -397,8 +400,8 @@ m3_fig_trends <- ggplot() +
   ) +
   labs(
     x = "Monitoring year",
-    y = "Difference in days (first → max)",
-    colour = "Bay",
+    y = "Duration between first detection and peak \n larval abundance (>250 μm) (days)",
+    colour = "Location",
     subtitle = "a)"
   ) +
   theme_bw(base_size = 18) +
@@ -483,50 +486,46 @@ m3_int_summ_pop <- oyster_first_last %>%
 # ------------------------------------------------------------
 m3_fig_intercepts <- ggplot(
   m3_int_summ_bay,
-  aes(x = estimate, y = bay, colour = bay)
+  aes(x = bay, y = estimate, colour = bay)
 ) +
   annotate(
     "rect",
-    ymin = -Inf, ymax = Inf,
-    xmin = m3_int_summ_pop$lower90,
-    xmax = m3_int_summ_pop$upper90,
+    xmin = -Inf, xmax = Inf,
+    ymin = m3_int_summ_pop$lower90,
+    ymax = m3_int_summ_pop$upper90,
     alpha = 0.12
   ) +
   annotate(
     "rect",
-    ymin = -Inf, ymax = Inf,
-    xmin = m3_int_summ_pop$lower50,
-    xmax = m3_int_summ_pop$upper50,
+    xmin = -Inf, xmax = Inf,
+    ymin = m3_int_summ_pop$lower50,
+    ymax = m3_int_summ_pop$upper50,
     alpha = 0.25
   ) +
-  geom_vline(
-    xintercept = m3_int_summ_pop$estimate,
+  geom_hline(
+    yintercept = m3_int_summ_pop$estimate,
     linewidth  = 1.2,
     colour     = "black"
   ) +
-  geom_vline(
-    xintercept = 0,
-    linetype   = "dashed",
-    colour     = "grey40"
-  ) +
-  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9) +
-  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 2.8) +
-  scale_colour_manual(values = m3_bay_colors, name = "Bay") +
+  scale_colour_manual(values = m3_bay_colors, name = "Location") +
   labs(
-    x = "Intercept at mean year (days; first → max)",
-    y = NULL,
+    x = NULL,
+    y = "Duration between first detection and peak \n larval abundance (>250 μm) (days)",
     subtitle = "b)"
   ) +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
-    axis.text.y  = element_blank(),
-    axis.ticks.y = element_blank(),
+    axis.text.x  = element_blank(),
+    axis.ticks.x = element_blank(),
     legend.position = "bottom"
   )
 
 m3_fig_intercepts
+
 
 
 
@@ -625,111 +624,79 @@ m3_slope_summ_pop <- oyster_first_last %>%
 # ------------------------------------------------------------
 # 14) FINAL BAY-LEVEL SLOPE FIGURE
 # ------------------------------------------------------------
-# m3_fig_slopes <- ggplot(
-#   m3_slope_summ_bay,
-#   aes(x = bay, y = estimate, colour = bay)
-# ) +
-#   annotate(
-#     "rect",
-#     xmin = -Inf, xmax = Inf,
-#     ymin = m3_slope_summ_pop$lower90,
-#     ymax = m3_slope_summ_pop$upper90,
-#     alpha = 0.12
-#   ) +
-#   annotate(
-#     "rect",
-#     xmin = -Inf, xmax = Inf,
-#     ymin = m3_slope_summ_pop$lower50,
-#     ymax = m3_slope_summ_pop$upper50,
-#     alpha = 0.25
-#   ) +
-#   geom_hline(
-#     yintercept = m3_slope_summ_pop$estimate,
-#     linewidth  = 1.2,
-#     colour     = "black"
-#   ) +
-#   geom_hline(
-#     yintercept = 0,
-#     linetype = "dashed",
-#     colour   = "grey40"
-#   ) +
-#   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9) +
-#   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
-#   geom_point(size = 2.8) +
-#   coord_flip() +
-#   scale_colour_manual(values = m3_bay_colors) +
-#   labs(
-#     x = NULL,
-#     y = "Slope (days per year)",
-#     # title = "Temporal trends in first–max larval timing",
-#     subtitle = "c)" # "Bay-level slopes computed from posterior predictions at observed endpoint years\nPoints = posterior means; thick bars = 50% CrI; thin bars = 90% CrI"
-#   ) +
-#   theme_bw(base_size = 18) +
-#   theme(
-#     panel.grid.minor = element_blank(),
-#     legend.position = "none"
-#   )
-# m3_fig_slopes
-
 m3_fig_slopes <- ggplot(
   m3_slope_summ_bay,
-  aes(x = estimate, y = bay, colour = bay)
+  aes(x = bay, y = estimate, colour = bay)
 ) +
   annotate(
     "rect",
-    ymin = -Inf, ymax = Inf,
-    xmin = m3_slope_summ_pop$lower90,
-    xmax = m3_slope_summ_pop$upper90,
+    xmin = -Inf, xmax = Inf,
+    ymin = m3_slope_summ_pop$lower90,
+    ymax = m3_slope_summ_pop$upper90,
     alpha = 0.12
   ) +
   annotate(
     "rect",
-    ymin = -Inf, ymax = Inf,
-    xmin = m3_slope_summ_pop$lower50,
-    xmax = m3_slope_summ_pop$upper50,
+    xmin = -Inf, xmax = Inf,
+    ymin = m3_slope_summ_pop$lower50,
+    ymax = m3_slope_summ_pop$upper50,
     alpha = 0.25
   ) +
-  geom_vline(
-    xintercept = m3_slope_summ_pop$estimate,
+  geom_hline(
+    yintercept = m3_slope_summ_pop$estimate,
     linewidth  = 1.2,
     colour     = "black"
   ) +
-  geom_vline(
-    xintercept = 0,
+  geom_hline(
+    yintercept = 0,
     linetype   = "dashed",
     colour     = "grey40"
   ) +
-  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9) +
-  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 2.8) +
   scale_colour_manual(
     values = m3_bay_colors,
     name   = "Bay"
   ) +
+  scale_y_continuous(
+    breaks = c(-2, -1, 0, 1, 2),
+    labels = scales::label_number(accuracy = 1),
+    limits = c(
+      min(m3_slope_summ_bay$lower90, -2, na.rm = TRUE),
+      max(m3_slope_summ_bay$upper90,  2, na.rm = TRUE)
+    )
+  ) +
   labs(
-    x = "Slope (days per year)",
-    y = NULL,
+    x = NULL,
+    y = "Change in duration between first detection and peak \n larval abundance (>250 μm) per year",
     subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
-    axis.text.y  = element_blank(),
-    axis.ticks.y = element_blank(),
+    axis.text.x  = element_blank(),
+    axis.ticks.x = element_blank(),
     legend.position = "bottom"
   )
 
 m3_fig_slopes
 
 
+
 # ------------------------------------------------------------
 # 15) Combine plots
 # ------------------------------------------------------------
-m3_fig_trends_noleg <- m3_fig_trends + 
+m3_fig_intercepts <- m3_fig_intercepts +
   guides(colour = "none", fill = "none") +
   theme(legend.position = "none")
 
-fig_6_combo_abc <- (m3_fig_trends_noleg + m3_fig_intercepts + m3_fig_slopes) +
+m3_fig_slopes <- m3_fig_slopes +
+  guides(colour = "none", fill = "none") +
+  theme(legend.position = "none")
+
+
+fig_6_combo_abc <- (m3_fig_trends + m3_fig_intercepts + m3_fig_slopes) +
   plot_layout(ncol = 3, guides = "collect") &
   theme(
     legend.position = "bottom",
