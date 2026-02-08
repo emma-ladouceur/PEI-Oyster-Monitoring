@@ -893,13 +893,13 @@ m1_max_alt_fig_year3temp_spag_thin <- ggplot() +
   scale_x_continuous(
     breaks = seq(
       from = 2016,
-      to   = max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE),
+      to   = max(m1_max_l_dat$n_year, na.rm = TRUE),
       by   = 2
     ),
     labels = scales::label_number(accuracy = 1),
     limits = c(
       2016,
-      max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE)
+      max(m1_max_l_dat$n_year, na.rm = TRUE)
     )
   ) +
   labs(
@@ -1051,18 +1051,18 @@ m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
       "Warm"
     )
   ) +
-  scale_x_continuous(
-    breaks = seq(
-      from = 2016,
-      to   = max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE),
-      by   = 2
-    ),
-    labels = scales::label_number(accuracy = 1),
-    limits = c(
-      2016,
-      max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE)
-    )
-  ) +
+  # scale_x_continuous(
+  #   breaks = seq(
+  #     from = 2016,
+  #     to   = max(m1_max_l_dat$n_year, na.rm = TRUE),
+  #     by   = 2
+  #   ),
+  #   labels = scales::label_number(accuracy = 1),
+  #   limits = c(
+  #     2016,
+  #     max(m1_max_l_dat$n_year, na.rm = TRUE)
+  #   )
+  # ) +
   coord_cartesian(
     ylim = quantile(
       m1_max_l_dat$julian_date,
@@ -1073,6 +1073,10 @@ m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 3),
     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+  ) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
   ) +
   labs(
     x = "Year",
@@ -1262,7 +1266,7 @@ m1_max_fig_year3temp_intercepts <- ggplot(
 m1_max_fig_year3temp_intercepts
 
 
-
+m1_max_fig_year3temp_slopes
 
  
  
