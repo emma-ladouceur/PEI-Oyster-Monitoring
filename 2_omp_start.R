@@ -56,6 +56,9 @@ m2_first_l_dat <- m2_first_l %>%
   )
 # %>% filter(bay != "Tracadie Bay")
 
+view(m2_first_l)
+summary(m2_first_l)
+
 head(m2_first_l_dat)
 
 # ------------------------------------------------------------
@@ -791,16 +794,8 @@ m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
     )
   ) +
   scale_x_continuous(
-    breaks = seq(
-      from = 2016,
-      to   = max(m2_start_alt_summ$n_year, na.rm = TRUE),
-      by   = 2
-    ),
-    labels = scales::label_number(accuracy = 1),
-    limits = c(
-      2016,
-      max(m2_start_alt_summ$n_year, na.rm = TRUE)
-    )
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
   ) +
   coord_cartesian(
     ylim = quantile(
@@ -938,16 +933,8 @@ m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
     linewidth = 1.0
   ) +
   scale_x_continuous(
-    breaks = seq(
-      from = 2016,
-      to   = max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE),
-      by   = 2
-    ),
-    labels = scales::label_number(accuracy = 1),
-    limits = c(
-      2016,
-      max(m2_start_alt_ribbon_dat$n_year, na.rm = TRUE)
-    )
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
   ) +
   scale_colour_manual(
     name = "Surface water \ntemperature (°C)",
