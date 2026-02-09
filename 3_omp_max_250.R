@@ -644,7 +644,8 @@ m1_max_fig_intercepts_mean <- m1_max_int_summ %>%
     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
   scale_x_continuous(
-    breaks = c(2014,2016,2018,2020,2022,2024),
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
   ) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
@@ -746,7 +747,10 @@ m1_max_fig_slopes_mean <- m1_max_slope_summ %>%
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  scale_x_continuous(breaks = c(2014,2016,2018,2020,2022,2024)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   labs(
     x = "Year",
     y = "Change in date of peak larval \nabundance (>250 μm) per 1°C",
@@ -1196,40 +1200,6 @@ m1_max_intercept_summ <- m1_max_intercept_draws %>%
     .groups  = "drop"
   )
 
-m1_max_fig_year3temp_intercepts <- ggplot(
-  m1_max_intercept_summ,
-  aes(y = temp_level, x = estimate, colour = temp_level)
-) +
-  geom_linerange(aes(xmin = lower90, xmax = upper90), linewidth = 0.9, alpha = 0.6) +
-  geom_linerange(aes(xmin = lower50, xmax = upper50), linewidth = 2.2) +
-  geom_point(size = 3) +
-  scale_colour_manual(
-    values = c(
-      "Cool"   = "#1B9E77",  # green (Dark2)
-      "Median" = "#7570B3",  # purple (Dark2)
-      "Warm"   = "#D95F02"   # orange (Dark2)
-    )
-  ) +
-  coord_flip() +
-  scale_x_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
-  labs(
-    y = NULL,
-    x = "Date of peak larval \nabundance (>250 μm)",
-    subtitle = "e)"
-    ) +
-  theme_bw(base_size = 18) +
-  theme(
-    panel.grid.minor = element_blank(),
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_line(),
-    legend.position = "none"
-  )
-
-m1_max_fig_year3temp_intercepts
-
 
 m1_max_fig_year3temp_intercepts <- ggplot(
   m1_max_intercept_summ,
@@ -1265,8 +1235,6 @@ m1_max_fig_year3temp_intercepts <- ggplot(
 
 m1_max_fig_year3temp_intercepts
 
-
-m1_max_fig_year3temp_slopes
 
  
  
