@@ -12,8 +12,6 @@ library(tidybayes)
 library(bayesplot)
 
 
-
-
 # set your own personal working directory below
 # Emma MBP
 setwd("~/Dropbox/_Projects/PEI Oysters/Data/OMP")
@@ -244,11 +242,15 @@ m4_max_fig1_panel <- ggplot(
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 5),
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+    }
+  ) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Julian date",
-    # title = "Temperature–phenology relationships vary through time and with salinity",
-    # subtitle = "Population-level predictions at observed temperatures; shaded bands show 90% credible intervals"
+    y = "Date of peak larval abundance",
   ) +
   theme_bw(base_size = 18) +
   theme(
@@ -287,14 +289,12 @@ m4_max_fig1_mid_max <- ggplot(
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Predicted date of maximum \n larvae above 250 μm",
+    y = "Date of peak larval abundance",
     subtitle = "a)"
   ) +
   scale_y_continuous(
-    limits = c(160, 230),
-    breaks = c(166, 176, 186, 196, 206, 216, 226),
-    labels = c("June 15","June 25","July 5","July 15",
-               "July 25","Aug 4","Aug 14")
+    breaks = scales::pretty_breaks(n = 3),
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
@@ -443,19 +443,16 @@ m4_max_fig1_spag <- ggplot() +
   scale_colour_viridis_d(option = "viridis") +
   scale_x_continuous(
     limits = c(19, 25),
-    breaks = c(19, 20, 21, 22, 23, 24, 25)
+    breaks = c(20, 24)
   ) +
   scale_y_continuous(
-    limits = c(170, 230),
-    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-    labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-               "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+    breaks = scales::pretty_breaks(n = 3),
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
   labs(
-    color= "Monitoring Year",
+    color= "Monitoring year",
     x = "Surface water temperature (°C)",
-    y = "Date of max oyster \n larvae > 250 μm",
-    #title = "Temperature–phenology relationships at mean salinity",
+    y = "Date of peak larval abundance",
     subtitle = "a)"
   ) +
   theme_bw(base_size = 18) +
@@ -588,11 +585,17 @@ m4_max_fig_intercepts_3panel <- ggplot(
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_x_continuous(breaks = sort(unique(m4_max_l_dat$n_year))[seq(1, length(unique(m4_max_l_dat$n_year)), by = 2)]) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 6),
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+  ) +
   labs(
     x = "Year",
-    y = "Julian date \n (temperature-averaged, population-level)",
-    # title = "Year-specific phenology across salinity regimes",
+    y = "Date of peak larval abundance",
     subtitle = "b)"
   ) +
   theme_bw(base_size = 18) +
@@ -621,10 +624,9 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  scale_x_continuous(breaks = sort(unique(m4_max_l_dat$n_year))) +
   labs(
     x = "Year",
-    y = "Predicted date of maximum \n larvae above 250 μm",
+    y = "Date of peak larval abundance",
     subtitle = "b)"
   ) +
   scale_y_continuous(
@@ -632,8 +634,8 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
   scale_x_continuous(
-    breaks = c(2014,2016,2018,2020,2022,2024),
-    # labels = c("June 15","June 25","July 5","July 15","July 25","Aug 4","Aug 14")
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
   ) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
@@ -705,10 +707,13 @@ m4_max_fig_slopes_mean <- ggplot(
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  scale_x_continuous(breaks = c(2014, 2016, 2018, 2020, 2022, 2024)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   labs(
     x = "Year",
-    y = "Change in peak larval timing (days per °C)",
+    y = "Change in date of peak \nlarval abundance per 1°C",
     subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
@@ -741,23 +746,6 @@ fig_7_combo_abc <- (m4_max_fig1_mid_max +
   )
 
 fig_7_combo_abc
-
-
-
-# # extract legends
-# # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-# g_legend<-function(a.gplot){
-#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
-#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-#   legend <- tmp$grobs[[leg]]
-#   return(legend)}
-# 
-# m4_legend <- g_legend(m4_max_fig1_spag)
-# 
-# 
-# (m4_max_fig1_spag + theme(legend.position = "none") + m4_max_fig_intercepts_mean)/ m4_legend + plot_layout(heights = c(10,2))
-
-
 
 
 # ============================================================
@@ -826,47 +814,6 @@ m4_max_alt_draws_thin <- m4_max_alt_draws %>%
   semi_join(m4_max_alt_keep_draws, by = ".draw")
 
 # --- plot ---
-# m4_max_alt_fig_year3temp_spag_thin <- ggplot() +
-#   geom_line(
-#     data = m4_max_alt_draws_thin,
-#     aes(
-#       x = n_year, y = m4_max_alt_epred,
-#       group = interaction(.draw, temp_level),
-#       colour = temp_level
-#     ),
-#     linewidth = 0.35,
-#     alpha = 0.10
-#   ) +
-#   geom_line(
-#     data = m4_max_alt_summ,
-#     aes(
-#       x = n_year, y = m4_max_alt_epred,
-#       group = temp_level,
-#       colour = temp_level
-#     ),
-#     linewidth = 1.0
-#   ) +
-#   scale_colour_viridis_d(option = "viridis") +
-#   coord_cartesian(ylim = c(170, 230)) +
-#   scale_y_continuous(
-#     breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-#     labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-#                "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
-#   ) +
-#   scale_x_continuous(breaks = seq(2013, max(m4_max_alt_draws_thin$n_year), by = 2)) +
-#   labs(
-#     x = "Year",
-#     y = "Julian date",
-#     # title = "Time–phenology relationships at cool/median/warm temperatures",
-#     subtitle = "d)"
-#     ) +
-#   theme_bw(base_size = 11) +
-#   theme(panel.grid.minor = element_blank())
-# 
-# 
-# m4_max_alt_fig_year3temp_spag_thin
-
-
 m4_max_alt_fig_year3temp_spag_thin <- ggplot() +
   geom_line(
     data = m4_max_alt_draws_thin,
@@ -889,47 +836,33 @@ m4_max_alt_fig_year3temp_spag_thin <- ggplot() +
     ),
     linewidth = 1.0
   ) +
-  
-  ## 🔑 YOUR CLASSIC DARK2 COLOURS
   scale_colour_manual(
-    name = "Temperature",
+    name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",  # Dark2 green
       "Median" = "#7570B3",  # Dark2 purple
       "Warm"   = "#D95F02"   # Dark2 orange
     ),
     labels = c(
-      "Cool (25th pct)",
+      "Cool",
       "Median",
-      "Warm (75th pct)"
+      "Warm"
     )
   ) +
-  
-  ## 🔑 EVEN YEARS ONLY, STARTING AT 2016
   scale_x_continuous(
-    breaks = seq(
-      from = 2016,
-      to   = max(m4_max_alt_draws_thin$n_year, na.rm = TRUE),
-      by   = 2
-    ),
-    labels = scales::label_number(accuracy = 1)
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
   ) +
-  
-  coord_cartesian(ylim = c(170, 230)) +
-  
   scale_y_continuous(
-    breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-    labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-               "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
+    breaks = scales::pretty_breaks(n = 3),
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
-  
   labs(
     x = "Year",
-    y = "Julian date",
+    y = "Date of peak larval abundance",
     subtitle = "d)"
   ) +
-  
-  theme_bw(base_size = 11) +
+  theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
     legend.position = "bottom"
@@ -944,7 +877,7 @@ m4_max_alt_fig_year3temp_spag_thin
 # For: m4_max_temp_time_sal (data = m4_max_l_dat)
 # - no custom functions
 # - tidyverse + tidybayes
-# - ribbons = posterior uncertainty (80% + 50%)
+# - ribbons = posterior uncertainty (90% + 50%)
 # ============================================================
 
 set.seed(123)
@@ -1001,16 +934,16 @@ m4_max_alt_draws <- m4_max_temp_time_sal %>%
 
 # ------------------------------------------------------------
 # m4_max_05) Summaries for ribbons:
-#   80% interval for wide ribbon + 50% interval for inner ribbon + median line
+#   90% interval for wide ribbon + 50% interval for inner ribbon + median line
 # ------------------------------------------------------------
-m4_max_alt_summ80 <- m4_max_alt_draws %>%
+m4_max_alt_summ90 <- m4_max_alt_draws %>%
   group_by(n_year, temp_level) %>%
-  median_qi(m4_max_alt_epred, .width = 0.80) %>%
+  median_qi(m4_max_alt_epred, .width = 0.90) %>%
   ungroup() %>%
   rename(
     m4_max_alt_med   = m4_max_alt_epred,
-    m4_max_alt_low80 = .lower,
-    m4_max_alt_up80  = .upper
+    m4_max_alt_low90 = .lower,
+    m4_max_alt_up90  = .upper
   )
 
 m4_max_alt_summ50 <- m4_max_alt_draws %>%
@@ -1022,7 +955,7 @@ m4_max_alt_summ50 <- m4_max_alt_draws %>%
     m4_max_alt_up50  = .upper
   )
 
-m4_max_alt_ribbon_dat <- m4_max_alt_summ80 %>%
+m4_max_alt_ribbon_dat <- m4_max_alt_summ90 %>%
   left_join(
     m4_max_alt_summ50 %>%
       select(n_year, temp_level, m4_max_alt_low50, m4_max_alt_up50),
@@ -1032,65 +965,17 @@ m4_max_alt_ribbon_dat <- m4_max_alt_summ80 %>%
 # ------------------------------------------------------------
 # m4_max_06) Ribbon figure (year × temp; salinity held at mean)
 # ------------------------------------------------------------
-# m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
-#   # outer ribbon (80%)
-#   geom_ribbon(
-#     aes(x = n_year, ymin = m4_max_alt_low80, ymax = m4_max_alt_up80, fill = temp_level),
-#     alpha = 0.18,
-#     colour = NA
-#   ) +
-#   # inner ribbon (50%)
-#   geom_ribbon(
-#     aes(x = n_year, ymin = m4_max_alt_low50, ymax = m4_max_alt_up50, fill = temp_level),
-#     alpha = 0.32,
-#     colour = NA
-#   ) +
-#   # median line
-#   geom_line(
-#     aes(x = n_year, y = m4_max_alt_med, colour = temp_level),
-#     linewidth = 1.0
-#   ) +
-#   scale_colour_viridis_d(option = "viridis") +
-#   scale_fill_viridis_d(option = "viridis") +
-#   coord_cartesian(
-#     ylim = quantile(
-#       m4_max_l_dat$julian_date,
-#       probs = c(0.01, 0.99),
-#       na.rm = TRUE
-#     )
-#   ) +
-#   # keep / edit this if your julian-date-to-calendar mapping differs
-#   scale_y_continuous(
-#     breaks = c(184, 188, 192, 196, 200, 204, 208, 212, 215, 218, 222),
-#     labels = c("Jul 3","Jul 7","Jul 11","Jul 15","Jul 19","Jul 23",
-#                "Jul 27","Jul 31","Aug 2","Aug 5","Aug 9")
-#   ) +
-#   labs(
-#     x = "Year",
-#     y = "Julian date",
-#     title = "Time–phenology relationships at cool/median/warm temperatures (MAX)",
-#     subtitle = "Lines = posterior medians; ribbons = 50% (inner) and 80% (outer) CrI (salinity held at mean)"
-#   ) +
-#   theme_bw(base_size = 11) +
-#   theme(panel.grid.minor = element_blank())
-# 
-# m4_max_alt_fig_year3temp_ribbons
-
 m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
-  
-  # outer ribbon (80%)
   geom_ribbon(
     aes(
       x    = n_year,
-      ymin = m4_max_alt_low80,
-      ymax = m4_max_alt_up80,
+      ymin = m4_max_alt_low90,
+      ymax = m4_max_alt_up90,
       fill = temp_level
     ),
     alpha  = 0.18,
     colour = NA
   ) +
-  
-  # inner ribbon (50%)
   geom_ribbon(
     aes(
       x    = n_year,
@@ -1101,8 +986,6 @@ m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
     alpha  = 0.32,
     colour = NA
   ) +
-  
-  # median line
   geom_line(
     aes(
       x      = n_year,
@@ -1111,45 +994,36 @@ m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
     ),
     linewidth = 1.0
   ) +
-  
-  ## 🔑 YOUR CLASSIC DARK2 COLOURS
   scale_colour_manual(
-    name = "Surface water \n temperature",
+    name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",  # Dark2 green
       "Median" = "#7570B3",  # Dark2 purple
       "Warm"   = "#D95F02"   # Dark2 orange
     ),
     labels = c(
-      "Cool (25th pct)",
+      "Cool",
       "Median",
-      "Warm (75th pct)"
+      "Warm"
     )
   ) +
   scale_fill_manual(
-    name = "Surface water \n temperature",
+    name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
       "Warm"   = "#D95F02"
     ),
     labels = c(
-      "Cool (25th pct)",
+      "Cool",
       "Median",
-      "Warm (75th pct)"
+      "Warm"
     )
   ) +
-  
-  ## 🔑 EVEN YEARS ONLY, STARTING AT 2016
   scale_x_continuous(
-    breaks = seq(
-      from = 2016,
-      to   = max(m4_max_alt_ribbon_dat$n_year, na.rm = TRUE),
-      by   = 2
-    ),
-    labels = scales::label_number(accuracy = 1)
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
   ) +
-  
   coord_cartesian(
     ylim = quantile(
       m4_max_l_dat$julian_date,
@@ -1157,19 +1031,15 @@ m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
       na.rm = TRUE
     )
   ) +
-  
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
   ) +
-  
   labs(
     x = "Year",
-    y = "Predicted date of peak larval \n abundance above 250 µm",
-    # title = "Time–phenology relationships at cool/median/warm temperatures (MAX)",
+    y = "Date of peak larval abundance",
     subtitle = "d)"
   ) +
-  
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
@@ -1204,29 +1074,6 @@ m4_max_slope_summ <- m4_max_slope_draws %>%
     .groups  = "drop"
   )
 
-# m4_max_fig_year3temp_slopes <- ggplot(
-#   m4_max_slope_summ,
-#   aes(x = temp_level, y = estimate, colour = temp_level)
-# ) +
-#   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
-#   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-#   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
-#   geom_point(size = 3) +
-#   scale_colour_viridis_d(option = "viridis") +
-#   coord_flip() +
-#   labs(
-#     x = NULL,
-#     y = "Slope (change in predicted Julian date per year)",
-#     # title = "Temporal trends by temperature (MAX; salinity held at mean)",
-#     subtitle = "f)"
-#   ) +
-#   theme_bw(base_size = 18) +
-#   theme(
-#     panel.grid.minor = element_blank(),
-#     legend.position = "none"
-#   )
-# 
-# m4_max_fig_year3temp_slopes
 
 m4_max_fig_year3temp_slopes <- ggplot(
   m4_max_slope_summ,
@@ -1245,12 +1092,14 @@ m4_max_fig_year3temp_slopes <- ggplot(
   ) +
   labs(
     x = NULL,
-    y = "Change in predicted peak larval \n abundance above 250 µm (days per year)",
+    y = "Change in date of peak larval \nabundance per year",
     subtitle = "f)"
   ) +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_line(),
     legend.position = "none"
   )
 
@@ -1291,76 +1140,41 @@ m4_max_intercept_summ <- m4_max_intercept_draws %>%
     .groups  = "drop"
   )
 
-m4_max_fig_year3temp_intercepts <- ggplot(
-  m4_max_intercept_summ,
-  aes(x = temp_level, y = estimate, colour = temp_level)
-) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
-  geom_point(size = 3) +
-  scale_colour_viridis_d(option = "viridis") +
-  coord_flip() +
-  labs(
-    x = NULL,
-    y = "Intercept (predicted Julian date at reference year)",
-    title = "Baseline phenology by temperature (MAX; salinity held at mean)",
-    subtitle = paste0(
-      "(c) Intercepts evaluated at Year = ",
-      round(m4_max_ref_year, 1),
-      "; points = posterior mean; thick bars = 50% CrI; thin bars = 90% CrI"
-    )
-  ) +
-  theme_bw(base_size = 18) +
-  theme(
-    panel.grid.minor = element_blank(),
-    legend.position = "none"
-  )
-
-m4_max_fig_year3temp_intercepts
-
 
 m4_max_fig_year3temp_intercepts <- ggplot(
   m4_max_intercept_summ,
-  aes(x = temp_level, y = estimate, colour = temp_level)
-) +
+  aes(x = temp_level, y = estimate, colour = temp_level)) +
   geom_linerange(
     aes(ymin = lower90, ymax = upper90),
     linewidth = 0.9,
-    alpha = 0.6
-  ) +
+    alpha = 0.6) +
   geom_linerange(
     aes(ymin = lower50, ymax = upper50),
-    linewidth = 2.2
-  ) +
+    linewidth = 2.2) +
   geom_point(size = 3) +
-  
-  # --- Classic Brewer Dark2 colours ---
   scale_colour_manual(
     values = c(
       "Cool"   = "#1B9E77",  # green
       "Median" = "#7570B3",  # purple
-      "Warm"   = "#D95F02"   # orange
-    )
-  ) +
-  
+      "Warm"   = "#D95F02")) +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 4),
+    labels = function(x) {
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+    }) +
   labs(
     x = NULL,
-    y = "Predicted date of peak larval \n abundance above 250 µm",
-    # title = "Baseline phenology by temperature (MAX; salinity held at mean)",
-    subtitle = "e)"
-  ) +
-  
+    y = "Date of peak larval abundance",
+    subtitle = "e)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
-    legend.position = "none"
-  )
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_line(),
+    legend.position = "none")
 
 m4_max_fig_year3temp_intercepts
 
-
-# Optional: show ribbons + intercepts + slopes together (requires patchwork loaded)
- m4_max_alt_fig_year3temp_ribbons + m4_max_fig_year3temp_intercepts + m4_max_fig_year3temp_slopes
 
 # removing legends from graph e and f, then combining def
 m4_max_fig_year3temp_intercepts <- m4_max_fig_year3temp_intercepts +
