@@ -364,7 +364,10 @@ la_me_fig_intercepts <- ggplot(la_me_intercept_summ, aes(x = n_year, y = estimat
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
     labels = scales::label_number()
   ) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   labs(
     x = "Year",
     y = "Peak larval abundance (>250 μm)",
@@ -409,7 +412,10 @@ la_me_fig_slopes <- ggplot(la_me_slope_summ, aes(x = n_year, y = estimate, colou
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.6) +
   scale_colour_viridis_d(option = "viridis",name = "Monitoring year") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   labs(
     x = "Year",
     y = "Change in peak larval \n abundance (>250 μm) per 1 °C",
@@ -562,7 +568,10 @@ la_me_T_fig_time_temp <- ggplot(
       "Warm"
     )
   ) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
