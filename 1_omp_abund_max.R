@@ -311,7 +311,6 @@ la_m_fig_med <- ggplot(
   geom_ribbon(aes(ymin = low90, ymax = up90), alpha = 0.10, colour = NA) +
   geom_ribbon(aes(ymin = low50, ymax = up50), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 0.7) +
-  #facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year" ) +
   scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
   scale_y_continuous(
@@ -383,7 +382,10 @@ la_m_fig_intercepts <- ggplot(la_m_intercept_summ, aes(x = n_year, y = estimate,
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
     labels = scales::label_number()
   ) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   labs(
     x = "Year",
     y = "Peak larval abundance",
@@ -433,7 +435,10 @@ la_m_fig_slopes <- ggplot(la_m_slope_summ, aes(x = n_year, y = estimate, colour 
     option = "viridis",
     name = "Monitoring year"
   ) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   labs(
     x = "Year",
     y = "Change in peak larval \n abundance per 1 °C",
@@ -561,10 +566,6 @@ la_m_T_fig_time_temp <- ggplot(
   geom_ribbon(aes(ymin = low90, ymax = up90, fill = temp_label), alpha = 0.10, colour = NA) +
   geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 1.1) +
- # facet_wrap(~ sal_label, nrow = 1) +
- # scale_colour_viridis_d(option = "viridis") +
- #scale_fill_viridis_d(option = "viridis") +
-  # --- Dark2 palette with explicit mapping ---
   scale_colour_manual(
     name   = "Surface water \ntemperature (°C)",
     values = c(
@@ -591,7 +592,10 @@ la_m_T_fig_time_temp <- ggplot(
       "Warm"
     )
   ) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+  ) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
