@@ -351,81 +351,81 @@ m2_first_fig1_mid_start
 #   - keep draws mostly within that band
 #   - plot ~150 “typical” draws
 # ------------------------------------------------------------
-
-set.seed(123)
-
-m2_first_ep_mid_long <- m2_first_ep_long %>%
-  filter(sal_label == "Mean salinity")
-
-m2_first_ci_pool_size <- min(2000, n_distinct(m2_first_ep_mid_long$.draw))
-
-m2_first_ci_pool_ids <- m2_first_ep_mid_long %>%
-  distinct(.draw) %>%
-  slice_sample(n = m2_first_ci_pool_size) %>%
-  pull(.draw)
-
-m2_first_ep_ci_long <- m2_first_ep_mid_long %>%
-  filter(.draw %in% m2_first_ci_pool_ids)
-
-m2_first_bounds80 <- m2_first_ep_ci_long %>%
-  group_by(row_id) %>%
-  summarise(
-    q10 = quantile(epred, 0.10,  na.rm = TRUE),
-    q90 = quantile(epred, 0.90, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-m2_first_draw_keep <- m2_first_ep_ci_long %>%
-  left_join(m2_first_bounds80, by = "row_id") %>%
-  mutate(in80 = epred >= q10 & epred <= q90) %>%
-  group_by(.draw) %>%
-  summarise(prop_in80 = mean(in80), .groups = "drop") %>%
-  filter(prop_in80 >= 0.95)
-
-m2_first_n_spaghetti <- 150
-
-m2_first_n_keep <- min(m2_first_n_spaghetti, nrow(m2_first_draw_keep))
-
-m2_first_spaghetti_draw_ids <- m2_first_draw_keep %>%
-  slice_sample(n = m2_first_n_keep) %>%
-  pull(.draw)
-
-m2_first_ep_spag_long <- m2_first_ep_ci_long %>%
-  filter(.draw %in% m2_first_spaghetti_draw_ids)
-
-m2_first_fig1_spag <- ggplot() +
-  geom_line(
-    data = m2_first_ep_spag_long,
-    aes(
-      x = water_temp,
-      y = epred,
-      group = interaction(.draw, year_group),
-      colour = year_group
-    ),
-    linewidth = 0.4,
-    alpha = 0.15
-  ) +
-  geom_line(
-    data = m2_first_summ_mid,
-    aes(x = water_temp, y = estimate, group = factor(n_year), colour = factor(n_year)),
-    linewidth = 0.7
-  ) +
-  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
-  coord_cartesian() +
-  labs(
-    x = "Surface water temperature (°C)",
-    y = "Date of first larval detection",
-    subtitle = "a)"
-  ) +
-  theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "bottom")
-
-m2_first_fig1_spag
+# 
+# set.seed(123)
+# 
+# m2_first_ep_mid_long <- m2_first_ep_long %>%
+#   filter(sal_label == "Mean salinity")
+# 
+# m2_first_ci_pool_size <- min(2000, n_distinct(m2_first_ep_mid_long$.draw))
+# 
+# m2_first_ci_pool_ids <- m2_first_ep_mid_long %>%
+#   distinct(.draw) %>%
+#   slice_sample(n = m2_first_ci_pool_size) %>%
+#   pull(.draw)
+# 
+# m2_first_ep_ci_long <- m2_first_ep_mid_long %>%
+#   filter(.draw %in% m2_first_ci_pool_ids)
+# 
+# m2_first_bounds80 <- m2_first_ep_ci_long %>%
+#   group_by(row_id) %>%
+#   summarise(
+#     q10 = quantile(epred, 0.10,  na.rm = TRUE),
+#     q90 = quantile(epred, 0.90, na.rm = TRUE),
+#     .groups = "drop"
+#   )
+# 
+# m2_first_draw_keep <- m2_first_ep_ci_long %>%
+#   left_join(m2_first_bounds80, by = "row_id") %>%
+#   mutate(in80 = epred >= q10 & epred <= q90) %>%
+#   group_by(.draw) %>%
+#   summarise(prop_in80 = mean(in80), .groups = "drop") %>%
+#   filter(prop_in80 >= 0.95)
+# 
+# m2_first_n_spaghetti <- 150
+# 
+# m2_first_n_keep <- min(m2_first_n_spaghetti, nrow(m2_first_draw_keep))
+# 
+# m2_first_spaghetti_draw_ids <- m2_first_draw_keep %>%
+#   slice_sample(n = m2_first_n_keep) %>%
+#   pull(.draw)
+# 
+# m2_first_ep_spag_long <- m2_first_ep_ci_long %>%
+#   filter(.draw %in% m2_first_spaghetti_draw_ids)
+# 
+# m2_first_fig1_spag <- ggplot() +
+#   geom_line(
+#     data = m2_first_ep_spag_long,
+#     aes(
+#       x = water_temp,
+#       y = epred,
+#       group = interaction(.draw, year_group),
+#       colour = year_group
+#     ),
+#     linewidth = 0.4,
+#     alpha = 0.15
+#   ) +
+#   geom_line(
+#     data = m2_first_summ_mid,
+#     aes(x = water_temp, y = estimate, group = factor(n_year), colour = factor(n_year)),
+#     linewidth = 0.7
+#   ) +
+#   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+#   scale_y_continuous(
+#     breaks = scales::pretty_breaks(n = 6),
+#     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+#   ) +
+#   coord_cartesian() +
+#   labs(
+#     x = "Surface water temperature (°C)",
+#     y = "Date of first larval detection",
+#     subtitle = "a)"
+#   ) +
+#   theme_bw(base_size = 18) +
+#   theme(panel.grid.minor = element_blank(),
+#         legend.position = "bottom")
+# 
+# m2_first_fig1_spag
 
 # ------------------------------------------------------------
 # 9) Intercepts-by-year (temperature-averaged)
