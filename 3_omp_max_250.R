@@ -45,7 +45,7 @@ m1_max_l_dat <- omp_dat %>% group_by(bay, location_clean, f_year) %>% # group by
   mutate(water_temp.m = water_temp - mean(water_temp, na.rm = TRUE),
          salinity.m = salinity - mean(salinity, na.rm = TRUE),
          n_year.m = n_year - mean(n_year, na.rm = TRUE)
-  ) %>% filter(bay != "Tracadie Bay") %>%
+  ) %>% #filter(bay != "Tracadie Bay") %>%
   mutate(bay_loc = interaction(bay, location_clean, drop = TRUE)) 
 
 summary(m1_max_l_dat)
@@ -654,7 +654,14 @@ m1_max_fig_intercepts_mean <- m1_max_int_summ %>%
 
 m1_max_fig_intercepts_mean
 
-# Figure caption:
+# Figure caption: For mean salinity conditions, the model shows how the predicted timing of peak 
+# oyster larval abundance (>250 μm) differs among years.
+# AKA figure compares years to show whether peak larval abundance is happening earlier or later
+# overall rather than showing how timing changes with temp
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Points represent the mean predicted date of peak larval abundance for each monitoring year
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean prediction
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = mean predicted date)
 
 
 
@@ -762,8 +769,16 @@ m1_max_fig_slopes_mean <- m1_max_slope_summ %>%
 
 m1_max_fig_slopes_mean
 
-# Figure caption:
-
+# Figure caption: For each monitoring year (at mean salinity), the model shows how the predicted timing
+# of peak larval abundance (>250 μm) changes with a 1°C increase in surface water temperature.
+# AKA (shows whether warmer water is associated with earlier pr later peak larval abundance in each 
+# year under typical salinity conditions)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean slope estimate
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = mean slope for each year)
+# dashed line = slope 0 = no change in timing of peak larval abundance with temperature
+# negative slope = earlier peak under warmer conditions
+# positive slope = later peak under warmer conditions
 
 
 # killing the legends in graph b and c
@@ -916,8 +931,6 @@ m1_max_alt_fig_year3temp_spag_thin <- ggplot() +
         legend.position = "bottom")
 
 m1_max_alt_fig_year3temp_spag_thin
-
-# Figure caption:
 
 
 # ============================================================
@@ -1093,7 +1106,13 @@ m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
 
 m1_max_alt_fig_year3temp_ribbons
 
-# Figure caption: 
+# Figure caption: Across monitoring years (at mean salinity), the model shows how the predicted timing of
+# peak oyster larval abundance (>250 μm) varies under cool, median, and warm water temperature conditions.
+# AKA (figure shows how the timing of annual peak in larval abundance changes across years under different 
+# temp conditions while at mean salinity - constant)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Shaded ribbons represent 50% and 90% Bayesian credible intervals around the median prediction
+# (50% ribbon = 25th to 75th pct, 90% ribbon = 5th to 95th pct, lines = median predicted date)
 
 
 # ============================================================
@@ -1168,6 +1187,17 @@ m1_max_fig_year3temp_slopes <- ggplot(
 
 m1_max_fig_year3temp_slopes
 
+# Figure caption: Across monitoring years (at mean salinity), the model shows how the predicted timing of
+# peak larval abundance (>250 μm) changes through time under cool, median, and warm surface water
+# temperature conditions.
+# AKA (shows whether peak larval abundance has shifted earlier or later over the monitoring period and
+# whether that long term change differs under diff temp conditions)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean temporal slope estimate
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = mean slope for each temperature condition)
+# dashed line = slope 0 = no long-term change in timing of peak larval abundance
+# negative slope = earlier peak timing over time
+# positive slope = later peak timing over time
 
 
 # ============================================================
@@ -1235,7 +1265,15 @@ m1_max_fig_year3temp_intercepts <- ggplot(
 
 m1_max_fig_year3temp_intercepts
 
-
+# Figure caption: At a common reference monitoring year (at mean salinity), the model shows how the predicted
+# timing of peak larval abundance (>250 μm) differs among cool, median, and warm surface water temperature
+# conditions.
+# AKA (comparing baseline differences in when peak larval abundance occurs under diff temp conditions rather
+# than showing changes through time or with temp)
+# Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
+# Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean predicted date
+# of peak larval abundance (>250 μm)
+# (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = mean predicted date)
  
  
  

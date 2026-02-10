@@ -526,9 +526,9 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
     subtitle = "b)"
   ) +
   coord_cartesian() +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = 18) + 
   theme(panel.grid.minor = element_blank())
-
+ 
 m2_first_fig_intercepts_mean
 
 # Figure caption: For mean salinity conditions, the model shows how the predicted timing of first oyster larval
@@ -1189,7 +1189,7 @@ m2_start_fig_year3temp_intercepts
     
 # Figure caption: At a common reference monitoring year (at mean salinity), the model shows how the predicted
 # timing of first larval detection differs among cool, median, and warm surface water temperature conditions.
-# AKA(figure compares baseline differences in when larvae first appear udner diff temp conditions rather than
+# AKA(comparing baseline differences in when larvae first appear udner diff temp conditions rather than
 # showing changes through time or with temp)
 # Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
 # Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean predicted date
