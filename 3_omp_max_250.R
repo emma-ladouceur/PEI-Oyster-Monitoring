@@ -45,7 +45,7 @@ m1_max_l_dat <- omp_dat %>% group_by(bay, location_clean, f_year) %>% # group by
   mutate(water_temp.m = water_temp - mean(water_temp, na.rm = TRUE),
          salinity.m = salinity - mean(salinity, na.rm = TRUE),
          n_year.m = n_year - mean(n_year, na.rm = TRUE)
-  ) %>% filter(bay != "Tracadie Bay") %>%
+  ) %>% #filter(bay != "Tracadie Bay") %>%
   mutate(bay_loc = interaction(bay, location_clean, drop = TRUE)) 
 
 summary(m1_max_l_dat)
@@ -56,15 +56,15 @@ view(m1_max_l_dat)
 
 
 # --- Fit model (keep these names exactly as requested) ---
-# max_temp_time_sal <- brm(
-#   julian_date ~ water_temp.m * n_year.m * salinity.m +
-#     (1 + n_year.m | bay/location_clean),
-#   data    = m1_max_l_dat,
-#   iter    = 5000,
-#   warmup  = 1000,
-#   family  = gaussian(),
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+ max_temp_time_sal <- brm(
+  julian_date ~ water_temp.m * n_year.m * salinity.m +
+    (1 + n_year.m | bay/location_clean),
+  data    = m1_max_l_dat,
+  iter    = 5000,
+  warmup  = 1000,
+  family  = gaussian(),
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 
 # ----------------------------------------------------------
@@ -212,9 +212,9 @@ m1_max_ep_long <- as_tibble(m1_max_ep) %>%
 m1_max_summ <- m1_max_ep_long %>%
   group_by(row_id, water_temp, n_year, year_group, sal_label) %>%
   summarise(
-    estimate = mean(epred),
-    lower90  = quantile(epred, 0.05),
-    upper90  = quantile(epred, 0.95),
+    estimate = mean(epred, na.rm = TRUE),
+    lower90  = quantile(epred, 0.05, na.rm = TRUE),
+    upper90  = quantile(epred, 0.95, na.rm = TRUE),
     .groups  = "drop"
   )
 
@@ -323,160 +323,160 @@ m1_max_fig1_mid_max
 # ------------------------------------------------------------
 # 5) Spaghetti (mean salinity; central 80% region)
 # ------------------------------------------------------------
-
-# ------------------------------------------------------------
-
-set.seed(123)  # reproducibility: same draws are chosen each run
-
-# ------------------------------------------------------------
-# 5a) Restrict to mean-salinity slice
-# ------------------------------------------------------------
-# We are using the long-format posterior predictions created earlier:
-#   m1_max_ep_long has columns: .draw, row_id, epred, water_temp, year_group, sal_label, ...
-#
-# Here we keep only the mean-salinity panel, because we want spaghetti
-# for the main “mean salinity” story figure.
-# ------------------------------------------------------------
-m1_max_ep_mid_long <- m1_max_ep_long %>%
-  filter(sal_label == "Mean salinity")
-
-# ------------------------------------------------------------
-# 5b) Sample a pool of draws (limit to 2000)
-# ------------------------------------------------------------
-# Plotting ALL posterior draws can be huge and slow.
-# We randomly select a pool of draws, up to 2000.
-#
-# Why 2000?
-#   - Enough to estimate quantiles reliably
-#   - Small enough to keep memory/plotting manageable
-# ------------------------------------------------------------
-m1_max_ci_pool_size <- min(2000, n_distinct(m1_max_ep_mid_long$.draw))
-
-m1_max_ci_pool_ids <- m1_max_ep_mid_long %>%
-  distinct(.draw) %>%
-  slice_sample(n = m1_max_ci_pool_size) %>%  # randomly choose draw IDs
-  pull(.draw)
-
-# Filter the mean-salinity posterior predictions down to only those draws
-m1_max_ep_ci_long <- m1_max_ep_mid_long %>%
-  filter(.draw %in% m1_max_ci_pool_ids)
-
-# ------------------------------------------------------------
-# 5c) Define the "central 80% region" at EACH x-point
-# ------------------------------------------------------------
-# For each prediction point (row_id, i.e., each water_temp × year combination),
-# we compute:
-#   q10 = 10th percentile of epred across the pool of draws
-#   q90 = 90th percentile of epred across the pool of draws
-#
-# This creates a pointwise band that covers the "central 80%" of predictions.
-# ------------------------------------------------------------
-m1_max_bounds80 <- m1_max_ep_ci_long %>%
-  group_by(row_id) %>%
-  summarise(
-    q10 = quantile(epred, 0.10),
-    q90 = quantile(epred, 0.90),
-    .groups = "drop"
-  )
-
-# ------------------------------------------------------------
-# 5d) Keep only draws that mostly fall inside the central band
-# ------------------------------------------------------------
-# For each draw:
-#   - mark each point as "in80" if epred is between q10 and q90 for that row_id
-#   - compute prop_in80 = proportion of points within the band
-#   - keep draws with prop_in80 >= 0.95
-#
-# Interpretation:
-#   These are draws whose trajectories are not "globally extreme".
-#   They still vary, but they avoid rare huge shifts that dominate plots.
-# ------------------------------------------------------------
-m1_max_draw_keep <- m1_max_ep_ci_long %>%
-  left_join(m1_max_bounds80, by = "row_id") %>%
-  mutate(
-    in80 = epred >= q10 & epred <= q90
-  ) %>%
-  group_by(.draw) %>%
-  summarise(
-    prop_in80 = mean(in80),
-    .groups = "drop"
-  ) %>%
-  filter(prop_in80 >= 0.95)
-
-
-# ------------------------------------------------------------
-# 5e) Sample a fixed number of "good" draws for plotting spaghetti
-# ------------------------------------------------------------
-
-m1_max_n_spaghetti <- 150  # <-- add this
-
-# how many draws are actually available to sample from?
-m1_max_n_keep <- min(m1_max_n_spaghetti, nrow(m1_max_draw_keep))
-
-m1_max_spaghetti_draw_ids <- m1_max_draw_keep %>%
-  slice_sample(n = m1_max_n_keep) %>%
-  pull(.draw)
-
-
-
-# Pull the long epred values for only those spaghetti draws
-m1_max_ep_spag_long <- m1_max_ep_ci_long %>%
-  filter(.draw %in% m1_max_spaghetti_draw_ids)
-
-# ------------------------------------------------------------
-# 5f) Build the spaghetti plot
-# ------------------------------------------------------------
-# We plot:
-#   - faint spaghetti lines: each posterior draw × year trajectory
-#   - thicker posterior mean line per year (from m1_max_summ_mid)
-#
-# Note:
-#   group = interaction(.draw, year_group) ensures each draw-year is a separate line
-#   colour = year_group keeps year colouring consistent with earlier figures
-# ------------------------------------------------------------
-m1_max_fig1_spag <- ggplot() +
-  geom_line(
-    data = m1_max_ep_spag_long,
-    aes(
-      x = water_temp,
-      y = epred,
-      group = interaction(.draw, year_group),
-      colour = year_group
-    ),
-    linewidth = 0.4,
-    alpha = 0.15
-  ) +
-  geom_line(
-    data = m1_max_summ_mid,
-    aes(
-      x = water_temp,
-      y = estimate,
-      group = year_group,
-      colour = year_group
-    ),
-    linewidth = 0.7
-  ) +
-  scale_colour_viridis_d(option = "viridis") +
-  scale_x_continuous(
-    breaks = c(20, 25)
-  ) +
-  scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
-  labs(
-    color= "Monitoring Year",
-    x = "Surface water temperature (°C)",
-    y = "Date of peak larval \nabundance (>250 μm)",
-    subtitle = "a)"
-  ) +
-  theme_bw(base_size = 18) +
-  theme(
-    panel.grid.minor = element_blank(), legend.position = "bottom"
-  )
-
-m1_max_fig1_spag
-
+# 
+# # ------------------------------------------------------------
+# 
+# set.seed(123)  # reproducibility: same draws are chosen each run
+# 
+# # ------------------------------------------------------------
+# # 5a) Restrict to mean-salinity slice
+# # ------------------------------------------------------------
+# # We are using the long-format posterior predictions created earlier:
+# #   m1_max_ep_long has columns: .draw, row_id, epred, water_temp, year_group, sal_label, ...
+# #
+# # Here we keep only the mean-salinity panel, because we want spaghetti
+# # for the main “mean salinity” story figure.
+# # ------------------------------------------------------------
+# m1_max_ep_mid_long <- m1_max_ep_long %>%
+#   filter(sal_label == "Mean salinity")
+# 
+# # ------------------------------------------------------------
+# # 5b) Sample a pool of draws (limit to 2000)
+# # ------------------------------------------------------------
+# # Plotting ALL posterior draws can be huge and slow.
+# # We randomly select a pool of draws, up to 2000.
+# #
+# # Why 2000?
+# #   - Enough to estimate quantiles reliably
+# #   - Small enough to keep memory/plotting manageable
+# # ------------------------------------------------------------
+# m1_max_ci_pool_size <- min(2000, n_distinct(m1_max_ep_mid_long$.draw))
+# 
+# m1_max_ci_pool_ids <- m1_max_ep_mid_long %>%
+#   distinct(.draw) %>%
+#   slice_sample(n = m1_max_ci_pool_size) %>%  # randomly choose draw IDs
+#   pull(.draw)
+# 
+# # Filter the mean-salinity posterior predictions down to only those draws
+# m1_max_ep_ci_long <- m1_max_ep_mid_long %>%
+#   filter(.draw %in% m1_max_ci_pool_ids)
+# 
+# # ------------------------------------------------------------
+# # 5c) Define the "central 80% region" at EACH x-point
+# # ------------------------------------------------------------
+# # For each prediction point (row_id, i.e., each water_temp × year combination),
+# # we compute:
+# #   q10 = 10th percentile of epred across the pool of draws
+# #   q90 = 90th percentile of epred across the pool of draws
+# #
+# # This creates a pointwise band that covers the "central 80%" of predictions.
+# # ------------------------------------------------------------
+# m1_max_bounds80 <- m1_max_ep_ci_long %>%
+#   group_by(row_id) %>%
+#   summarise(
+#     q10 = quantile(epred, 0.10),
+#     q90 = quantile(epred, 0.90),
+#     .groups = "drop"
+#   )
+# 
+# # ------------------------------------------------------------
+# # 5d) Keep only draws that mostly fall inside the central band
+# # ------------------------------------------------------------
+# # For each draw:
+# #   - mark each point as "in80" if epred is between q10 and q90 for that row_id
+# #   - compute prop_in80 = proportion of points within the band
+# #   - keep draws with prop_in80 >= 0.95
+# #
+# # Interpretation:
+# #   These are draws whose trajectories are not "globally extreme".
+# #   They still vary, but they avoid rare huge shifts that dominate plots.
+# # ------------------------------------------------------------
+# m1_max_draw_keep <- m1_max_ep_ci_long %>%
+#   left_join(m1_max_bounds80, by = "row_id") %>%
+#   mutate(
+#     in80 = epred >= q10 & epred <= q90
+#   ) %>%
+#   group_by(.draw) %>%
+#   summarise(
+#     prop_in80 = mean(in80),
+#     .groups = "drop"
+#   ) %>%
+#   filter(prop_in80 >= 0.95)
+# 
+# 
+# # ------------------------------------------------------------
+# # 5e) Sample a fixed number of "good" draws for plotting spaghetti
+# # ------------------------------------------------------------
+# 
+# m1_max_n_spaghetti <- 150  # <-- add this
+# 
+# # how many draws are actually available to sample from?
+# m1_max_n_keep <- min(m1_max_n_spaghetti, nrow(m1_max_draw_keep))
+# 
+# m1_max_spaghetti_draw_ids <- m1_max_draw_keep %>%
+#   slice_sample(n = m1_max_n_keep) %>%
+#   pull(.draw)
+# 
+# 
+# 
+# # Pull the long epred values for only those spaghetti draws
+# m1_max_ep_spag_long <- m1_max_ep_ci_long %>%
+#   filter(.draw %in% m1_max_spaghetti_draw_ids)
+# 
+# # ------------------------------------------------------------
+# # 5f) Build the spaghetti plot
+# # ------------------------------------------------------------
+# # We plot:
+# #   - faint spaghetti lines: each posterior draw × year trajectory
+# #   - thicker posterior mean line per year (from m1_max_summ_mid)
+# #
+# # Note:
+# #   group = interaction(.draw, year_group) ensures each draw-year is a separate line
+# #   colour = year_group keeps year colouring consistent with earlier figures
+# # ------------------------------------------------------------
+# m1_max_fig1_spag <- ggplot() +
+#   geom_line(
+#     data = m1_max_ep_spag_long,
+#     aes(
+#       x = water_temp,
+#       y = epred,
+#       group = interaction(.draw, year_group),
+#       colour = year_group
+#     ),
+#     linewidth = 0.4,
+#     alpha = 0.15
+#   ) +
+#   geom_line(
+#     data = m1_max_summ_mid,
+#     aes(
+#       x = water_temp,
+#       y = estimate,
+#       group = year_group,
+#       colour = year_group
+#     ),
+#     linewidth = 0.7
+#   ) +
+#   scale_colour_viridis_d(option = "viridis") +
+#   scale_x_continuous(
+#     breaks = c(20, 25)
+#   ) +
+#   scale_y_continuous(
+#     breaks = scales::pretty_breaks(n = 6),
+#     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+#   ) +
+#   labs(
+#     color= "Monitoring Year",
+#     x = "Surface water temperature (°C)",
+#     y = "Date of peak larval \nabundance (>250 μm)",
+#     subtitle = "a)"
+#   ) +
+#   theme_bw(base_size = 18) +
+#   theme(
+#     panel.grid.minor = element_blank(), legend.position = "bottom"
+#   )
+# 
+# m1_max_fig1_spag
+# 
 
 # ------------------------------------------------------------
 # 6) Intercepts-by-year (temperature-averaged)
@@ -563,7 +563,7 @@ m1_max_ep2_long <- as_tibble(m1_max_ep2) %>%
 m1_max_draw_means <- m1_max_ep2_long %>%
   group_by(.draw, n_year, sal_label) %>%
   summarise(
-    epred_mean = mean(epred),   # mean over observed temps in that year
+    epred_mean = mean(epred, na.rm = TRUE),   # mean over observed temps in that year
     .groups = "drop"
   )
 
@@ -573,11 +573,11 @@ m1_max_draw_means <- m1_max_ep2_long %>%
 m1_max_int_summ <- m1_max_draw_means %>%
   group_by(n_year, sal_label) %>%
   summarise(
-    estimate = mean(epred_mean),
-    lower50  = quantile(epred_mean, 0.25),
-    upper50  = quantile(epred_mean, 0.75),
-    lower90  = quantile(epred_mean, 0.05),
-    upper90  = quantile(epred_mean, 0.95),
+    estimate = mean(epred_mean, na.rm = TRUE),
+    lower50  = quantile(epred_mean, 0.25, na.rm = TRUE),
+    upper50  = quantile(epred_mean, 0.75, na.rm = TRUE),
+    lower90  = quantile(epred_mean, 0.05, na.rm = TRUE),
+    upper90  = quantile(epred_mean, 0.95, na.rm = TRUE),
     .groups  = "drop"
   )
 View(m1_max_int_summ)
