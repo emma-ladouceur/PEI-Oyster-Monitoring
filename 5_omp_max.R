@@ -644,45 +644,34 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
 
 m4_max_fig_intercepts_mean
 
+# ============================================================
+# M4 (MAX larvae event) — Slopes-by-year (temperature effect)
+# MATCHES the M2 workflow exactly (cov/var within draw-year-sal)
+# ============================================================
 
 # ------------------------------------------------------------
-# 7) Slopes-by-year (temperature effect)
-#    mean-salinity-only (styled like m4_max_fig_intercepts_mean)
+# 7a) Draw-wise slopes per year and salinity
 # ------------------------------------------------------------
-# GOAL:
-#   For each year, estimate the *within-year* temperature slope:
-#     d(Julian date) / d(temperature)
-#
-# METHOD:
-#   - Use posterior_epred predictions at observed temps (already created)
-#   - For each draw and year, regress epred ~ water_temp
-#   - Extract slope per draw-year
-#   - Summarise across draws → mean + 50% and 90% CrI
-#
-# IMPORTANT:
-#   - Uses ONLY observed temperatures per year (no sequences)
-#   - Propagates uncertainty correctly (slope computed within draw)
-# ------------------------------------------------------------
-
-# 7a) Restrict prediction grid to mean salinity
-m4_max_ep2_mean_long <- m4_max_ep2_long %>%
-  filter(sal_label == "Mean salinity")
-
-# 7b) For each draw-year, compute slope of epred ~ water_temp
-#     (This uses only the observed temps for that year.)
-m4_max_slopes_draw <- m4_max_ep2_mean_long %>%
-  group_by(.draw, n_year) %>%
+m4_max_draw_slopes <- m4_max_ep2_long %>%
+  select(.draw, n_year, sal_label, water_temp, epred) %>%
+  group_by(.draw, n_year, sal_label) %>%
   summarise(
-    slope = {
-      mod <- lm(epred ~ water_temp)
-      coef(mod)[["water_temp"]]
-    },
-    .groups = "drop"
-  )
+    n_pts     = n_distinct(water_temp),
+    wt_var    = var(water_temp, na.rm = TRUE),
+    wt_mean   = mean(water_temp, na.rm = TRUE),
+    yy_mean   = mean(epred,     na.rm = TRUE),
+    wt_yy_cov = mean((water_temp - wt_mean) * (epred - yy_mean), na.rm = TRUE),
+    slope     = wt_yy_cov / wt_var,
+    .groups   = "drop"
+  ) %>%
+  filter(n_pts >= 2, wt_var > 0, is.finite(slope)) %>%
+  select(.draw, n_year, sal_label, slope)
 
-# 7c) Summarise slopes across draws: mean + 50% and 90% CrI
-m4_max_slopes_summ <- m4_max_slopes_draw %>%
-  group_by(n_year) %>%
+# ------------------------------------------------------------
+# 7b) Summarise slopes across draws: mean + 50% and 90% CrI
+# ------------------------------------------------------------
+m4_max_slope_summ <- m4_max_draw_slopes %>%
+  group_by(n_year, sal_label) %>%
   summarise(
     estimate = mean(slope),
     lower50  = quantile(slope, 0.25),
@@ -690,30 +679,64 @@ m4_max_slopes_summ <- m4_max_slopes_draw %>%
     lower90  = quantile(slope, 0.05),
     upper90  = quantile(slope, 0.95),
     .groups  = "drop"
-  ) %>%
-  mutate(
-    year_group = factor(n_year, levels = sort(unique(m4_max_l_dat$n_year)))
   )
 
-# 7d) Plot: styled like m4_max_fig_intercepts_mean
-m4_max_fig_slopes_mean <- ggplot(
-  m4_max_slopes_summ,
-  aes(x = n_year, y = estimate, colour = year_group)
+# ------------------------------------------------------------
+# 7c) Slope figure: 3 salinity panels (like your m2 intercept/slopes)
+# ------------------------------------------------------------
+m4_max_fig_slopes_3panel <- ggplot(
+  m4_max_slope_summ,
+  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
 ) +
-  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.6, colour = "grey40") +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
   geom_linerange(aes(ymin = lower90, ymax = upper90),
                  linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50),
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
+  facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(
-    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+    breaks = sort(unique(m4_max_l_dat$n_year))[
+      sort(unique(m4_max_l_dat$n_year)) %% 2 == 0 &
+        sort(unique(m4_max_l_dat$n_year)) >= 2016
+    ]
   ) +
   labs(
     x = "Year",
-    y = "Change in date of peak \nlarval abundance per 1°C",
+    y = "Days change in peak \n larval abundance per 1 °C",
+    subtitle = "c)"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+
+m4_max_fig_slopes_3panel
+
+# ------------------------------------------------------------
+# 7d) Mean-salinity-only slope figure (styled like your mean intercept panel)
+# ------------------------------------------------------------
+m4_max_fig_slopes_mean <- m4_max_slope_summ %>%
+  filter(sal_label == "Mean salinity") %>%
+  mutate(year_group = factor(n_year, levels = sort(unique(m4_max_l_dat$n_year)))) %>%
+  ggplot(aes(x = n_year, y = estimate, colour = year_group)) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group),
+                 linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group),
+                 linewidth = 2.0, alpha = 0.95) +
+  geom_point(size = 2.4) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(
+    breaks = sort(unique(m4_max_l_dat$n_year))[seq(1, length(unique(m4_max_l_dat$n_year)), by = 2)]
+  ) +
+  labs(
+    x = "Year",
+    y = "Days change in peak \n larval abundance per 1 °C",
     subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
@@ -723,7 +746,6 @@ m4_max_fig_slopes_mean <- ggplot(
   )
 
 m4_max_fig_slopes_mean
-
 
 # combine the double legend and center it
 
