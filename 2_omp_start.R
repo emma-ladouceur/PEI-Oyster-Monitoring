@@ -244,7 +244,7 @@ m2_first_fig1_panel <- ggplot(
     x = water_temp,
     y = estimate,
     group = year_group,
-    colour = year_group
+    colour = year_group, fill= year_group
   )
 ) +
   geom_ribbon(
@@ -254,6 +254,7 @@ m2_first_fig1_panel <- ggplot(
   ) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_y_continuous(
     labels = function(x) {
