@@ -260,8 +260,7 @@ m4_max_summ_mid <- m4_max_summ %>%
   filter(sal_label == "Mean salinity")
 
 m4_max_fig1_mid_max <- ggplot(
-  m4_max_summ_mid,
-  aes(x = water_temp, y = estimate, group = year_group, colour = year_group)) +
+  m4_max_summ_mid, aes(x = water_temp, y = estimate, group = year_group, colour = year_group)) +
   geom_ribbon(aes(ymin = lower90, ymax = upper90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
@@ -272,7 +271,7 @@ m4_max_fig1_mid_max <- ggplot(
     y = "Date of peak larval abundance",
     subtitle = "a)") +
   scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 3),
+    breaks = scales::pretty_breaks(n = 6),
     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
@@ -561,38 +560,28 @@ View(m4_max_int_summ)
 # 6f) Figure: 3 salinity panels
 # ------------------------------------------------------------
 m4_max_fig_intercepts_3panel <- ggplot(
-  m4_max_int_summ,
-  aes(x = n_year, y = estimate, colour = factor(n_year))
-) +
-  # 90% interval (thin)
-  geom_linerange(aes(ymin = lower90, ymax = upper90),
-                 linewidth = 0.8, alpha = 0.55) +
-  # 50% interval (thick)
-  geom_linerange(aes(ymin = lower50, ymax = upper50),
-                 linewidth = 2.0, alpha = 0.95) +
+  m4_max_int_summ, aes(x = n_year, y = estimate, colour = factor(n_year))) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
   labs(
     x = "Year",
     y = "Date of peak larval abundance",
-    subtitle = "b)"
-  ) +
+    subtitle = "b)") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 m4_max_fig_intercepts_3panel
 
@@ -606,25 +595,20 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
     year_group = factor(n_year, levels = sort(unique(m4_max_l_dat$n_year)))
   ) %>%
   ggplot(aes(x = n_year, y = estimate, colour = year_group)) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group),
-                 linewidth = 0.8, alpha = 0.55) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group),
-                 linewidth = 2.0, alpha = 0.95) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group), linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   labs(
     x = "Year",
     y = "Date of peak larval abundance",
-    subtitle = "b)"
-  ) +
+    subtitle = "b)") +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
@@ -632,7 +616,6 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
 
 m4_max_fig_intercepts_mean
 
-<<<<<<< HEAD
 # Figure caption: For mean salinity conditions, the model shows how the predicted timing of peak oyster
 # larval abundance differs among years.
 # AKA (figure compares years to show whether peak larval abundance occurred earlier or later overall
@@ -642,12 +625,11 @@ m4_max_fig_intercepts_mean
 # date of peak larval abundance
 # (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = mean predicted date for each year)
 
-=======
+
 # ============================================================
 # M4 (MAX larvae event) — Slopes-by-year (temperature effect)
 # MATCHES the M2 workflow exactly (cov/var within draw-year-sal)
 # ============================================================
->>>>>>> 9b0c906d9c639f6c91e838014a11e778629d87b1
 
 # ------------------------------------------------------------
 # 7a) Draw-wise slopes per year and salinity
@@ -685,35 +667,29 @@ m4_max_slope_summ <- m4_max_draw_slopes %>%
 # 7c) Slope figure: 3 salinity panels (like your m2 intercept/slopes)
 # ------------------------------------------------------------
 m4_max_fig_slopes_3panel <- ggplot(
-  m4_max_slope_summ,
-  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
-) +
+  m4_max_slope_summ, aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90),
-                 linewidth = 0.8, alpha = 0.55) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50),
-                 linewidth = 2.0, alpha = 0.95) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(
-    breaks = sort(unique(m4_max_l_dat$n_year))[
-      sort(unique(m4_max_l_dat$n_year)) %% 2 == 0 &
-        sort(unique(m4_max_l_dat$n_year)) >= 2016
-    ]
-  ) +
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
+  scale_y_continuous(
+    breaks = scales::pretty_breaks(n = 5),
+    labels = scales::label_number(accuracy = 1)) +
   labs(
     x = "Year",
-    y = "Days change in peak \n larval abundance per 1 °C",
-    subtitle = "c)"
-  ) +
+    y = "Change in date of peak \n larval abundance per 1 °C",
+    subtitle = "c)") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 m4_max_fig_slopes_3panel
 
@@ -725,29 +701,24 @@ m4_max_fig_slopes_mean <- m4_max_slope_summ %>%
   mutate(year_group = factor(n_year, levels = sort(unique(m4_max_l_dat$n_year)))) %>%
   ggplot(aes(x = n_year, y = estimate, colour = year_group)) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group),
-                 linewidth = 0.8, alpha = 0.55) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group),
-                 linewidth = 2.0, alpha = 0.95) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group), linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(
-    breaks = sort(unique(m4_max_l_dat$n_year))[seq(1, length(unique(m4_max_l_dat$n_year)), by = 2)]
-  ) +
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   labs(
     x = "Year",
-    y = "Days change in peak \n larval abundance per 1 °C",
-    subtitle = "c)"
-  ) +
+    y = "Change in date of peak \n larval abundance per 1 °C",
+    subtitle = "c)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 m4_max_fig_slopes_mean
 
-<<<<<<< HEAD
 # Figure caption: For each monitoring year (at mean salinity), the model shows how the predicted timing
 # of peak larval abundance changes with a 1°C increase in surface water temperature.
 # AKA (shows whether warmer water is associated with earlier or later peak larval abundance in each 
@@ -760,8 +731,6 @@ m4_max_fig_slopes_mean
 # positive slope = later peak under warmer conditions
 
 
-=======
->>>>>>> 9b0c906d9c639f6c91e838014a11e778629d87b1
 # combine the double legend and center it
 
 m4_max_fig_intercepts_mean <- m4_max_fig_intercepts_mean +
@@ -1003,85 +972,44 @@ m4_max_alt_ribbon_dat <- m4_max_alt_summ90 %>%
 # m4_max_06) Ribbon figure (year × temp; salinity held at mean)
 # ------------------------------------------------------------
 m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
-  geom_ribbon(
-    aes(
-      x    = n_year,
-      ymin = m4_max_alt_low90,
-      ymax = m4_max_alt_up90,
-      fill = temp_level
-    ),
-    alpha  = 0.18,
-    colour = NA
-  ) +
-  geom_ribbon(
-    aes(
-      x    = n_year,
-      ymin = m4_max_alt_low50,
-      ymax = m4_max_alt_up50,
-      fill = temp_level
-    ),
-    alpha  = 0.32,
-    colour = NA
-  ) +
-  geom_line(
-    aes(
-      x      = n_year,
-      y      = m4_max_alt_med,
-      colour = temp_level
-    ),
-    linewidth = 1.0
-  ) +
+  geom_ribbon(aes(x = n_year, ymin = m4_max_alt_low90, ymax = m4_max_alt_up90, fill = temp_level), alpha  = 0.18, colour = NA) +
+  geom_ribbon(aes(x = n_year, ymin = m4_max_alt_low50, ymax = m4_max_alt_up50, fill = temp_level), alpha  = 0.32, colour = NA) +
+  geom_line(aes(x = n_year, y = m4_max_alt_med, colour = temp_level), linewidth = 1.0) +
   scale_colour_manual(
     name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",  # Dark2 green
       "Median" = "#7570B3",  # Dark2 purple
-      "Warm"   = "#D95F02"   # Dark2 orange
-    ),
+      "Warm"   = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
+      "Warm")) +
   scale_fill_manual(
     name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
-      "Warm"   = "#D95F02"
-    ),
+      "Warm"   = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
+      "Warm")) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
-  coord_cartesian(
-    ylim = quantile(
-      m4_max_l_dat$julian_date,
-      probs = c(0.01, 0.99),
-      na.rm = TRUE
-    )
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
+  coord_cartesian(ylim = quantile(m4_max_l_dat$julian_date, probs = c(0.01, 0.99), na.rm = TRUE)) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
   labs(
     x = "Year",
     y = "Date of peak larval abundance",
-    subtitle = "d)"
-  ) +
+    subtitle = "d)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 m4_max_alt_fig_year3temp_ribbons
 
@@ -1121,9 +1049,7 @@ m4_max_slope_summ <- m4_max_slope_draws %>%
 
 
 m4_max_fig_year3temp_slopes <- ggplot(
-  m4_max_slope_summ,
-  aes(x = temp_level, y = estimate, colour = temp_level)
-) +
+  m4_max_slope_summ, aes(x = temp_level, y = estimate, colour = temp_level)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
@@ -1132,21 +1058,17 @@ m4_max_fig_year3temp_slopes <- ggplot(
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
-      "Warm"   = "#D95F02"
-    )
-  ) +
+      "Warm"   = "#D95F02" )) +
   labs(
     x = NULL,
     y = "Change in date of peak larval \nabundance per year",
-    subtitle = "f)"
-  ) +
+    subtitle = "f)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
     axis.text.x = element_blank(),
     axis.ticks.x = element_line(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 m4_max_fig_year3temp_slopes
 
@@ -1194,15 +1116,9 @@ m4_max_intercept_summ <- m4_max_intercept_draws %>%
 
 
 m4_max_fig_year3temp_intercepts <- ggplot(
-  m4_max_intercept_summ,
-  aes(x = temp_level, y = estimate, colour = temp_level)) +
-  geom_linerange(
-    aes(ymin = lower90, ymax = upper90),
-    linewidth = 0.9,
-    alpha = 0.6) +
-  geom_linerange(
-    aes(ymin = lower50, ymax = upper50),
-    linewidth = 2.2) +
+  m4_max_intercept_summ, aes(x = temp_level, y = estimate, colour = temp_level)) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
   scale_colour_manual(
     values = c(
@@ -1212,8 +1128,7 @@ m4_max_fig_year3temp_intercepts <- ggplot(
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 4),
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-    }) +
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") }) +
   labs(
     x = NULL,
     y = "Date of peak larval abundance",
