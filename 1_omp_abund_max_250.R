@@ -49,15 +49,15 @@ nrow(la_me_dat)
 # ==================================================
 
 
-# la_me_mod <- brm(
-#   larvae_above_250_microns ~ water_temp.m * n_year.m * salinity.m +
-#     #s(julian_date,  k = 10) +
-#     (1 + n_year.m | bay/location_clean),
-#   data    = la_me_dat,
-#   family  = lognormal(),
-#   iter    = 5000, warmup = 1000,
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+la_me_mod <- brm(
+  larvae_above_250_microns ~ water_temp.m * n_year.m * salinity.m +
+    #s(julian_date,  k = 10) +
+    (1 + n_year.m | bay/location_clean),
+  data    = la_me_dat,
+  family  = lognormal(),
+  iter    = 5000, warmup = 1000,
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 
 # ================================================
@@ -628,31 +628,26 @@ la_me_T_intercept_summ <- la_me_T_intercept_draws %>%
 
 la_me_T_fig_intercepts <- ggplot(
   la_me_T_intercept_summ,
-  aes(x = temp_label, y = estimate, colour = temp_label)
-) +
+  aes(x = temp_label, y = estimate, colour = temp_label)) +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
   scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
                                   "Median temp"          = "#7570B3",  # purple (Dark2)
-                                  "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
-  ) ) +
+                                  "Warm temp (75th pct)" = "#D95F02") ) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   labs(
     x = NULL,
     y = "Peak larval abundance (>250 μm)",
-    subtitle = "e)"
-  ) +
+    subtitle = "e)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
     axis.text.x  = element_blank(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 la_me_T_fig_intercepts
 
@@ -692,27 +687,23 @@ view(la_me_T_slope_summ)
 
 la_me_T_fig_slopes <- ggplot(
   la_me_T_slope_summ,
-  aes(x = temp_label, y = estimate, colour = temp_label)
-) +
+  aes(x = temp_label, y = estimate, colour = temp_label)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
   scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
                                   "Median temp"          = "#7570B3",  # purple (Dark2)
-                                  "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
-  ) ) +
+                                  "Warm temp (75th pct)" = "#D95F02") ) +
   labs(
     x = NULL,
     y = "Change in peak larval \n abundance (>250 μm) per year",
-    subtitle = "f)"
-  ) +
+    subtitle = "f)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
     axis.text.x  = element_blank(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 la_me_T_fig_slopes
 
