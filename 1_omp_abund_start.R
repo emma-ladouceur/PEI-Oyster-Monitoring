@@ -184,12 +184,12 @@ la_s_fig_panel <- ggplot(
   la_s_summ,
   aes(x = water_temp, y = med, group = year_group, colour = year_group)
 ) +
-  geom_ribbon(aes(ymin = low90, ymax = up90), alpha = 0.10, colour = NA) +
-  geom_ribbon(aes(ymin = low50, ymax = up50), alpha = 0.18, colour = NA) +
+  geom_ribbon(aes(ymin = low50, ymax = up50, fill = year_group), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis" ) +
-  scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
+  scale_fill_viridis_d(option = "viridis", guide = "none") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
@@ -307,13 +307,12 @@ la_s_med <- la_s_summ %>% filter(sal_label == "Median salinity")
 
 la_s_fig_med <- ggplot(
   la_s_med,
-  aes(x = water_temp, y = med, group = year_group, colour = year_group)
-) +
-  geom_ribbon(aes(ymin = low90, ymax = up90), alpha = 0.10, colour = NA) +
-  geom_ribbon(aes(ymin = low50, ymax = up50), alpha = 0.18, colour = NA) +
+  aes(x = water_temp, y = med, group = year_group, colour = year_group)) +
+  geom_ribbon(aes(ymin = low50, ymax = up50, fill = year_group), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 0.7) +
   scale_colour_viridis_d(option = "viridis" ) +
-  scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
+  scale_fill_viridis_d(option = "viridis", guide = "none") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
