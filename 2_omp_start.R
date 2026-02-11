@@ -244,27 +244,22 @@ m2_first_fig1_panel <- ggplot(
     x = water_temp,
     y = estimate,
     group = year_group,
-    colour = year_group, fill= year_group
-  )
-) +
+    colour = year_group, fill= year_group)) +
   geom_ribbon(
     aes(ymin = lower90, ymax = upper90),
     alpha = 0.12,
-    colour = NA
-  ) +
+    colour = NA) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2021-01-01"), "%b %d")
-    }
-  ) +
+      format(as.Date(x - 1, origin = "2021-01-01"), "%b %d") } ) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Date of first larval detection",
-  ) +
+    y = "Date of first larval detection") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
@@ -300,32 +295,26 @@ m2_first_fig1_mid_start <- ggplot(
     x = water_temp,
     y = estimate,
     group = year_group,
-    colour = year_group
-  )
-) +
+    colour = year_group)) +
   geom_ribbon(
-    aes(ymin = lower90, ymax = upper90),
+    aes(ymin = lower90, ymax = upper90, fill = year_group),
     alpha = 0.12,
-    colour = NA
-  ) +
+    colour = NA) +
   geom_line(linewidth = 0.7) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-    }
-  ) +
-
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") } ) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Date of first larval detection",
-    subtitle = "a)"
-  ) +
+    subtitle = "a)") +
   coord_cartesian() +
   theme_bw(base_size = 18) +
   theme(strip.background = element_blank(),
-        #strip.text = element_text(face = "bold"),
         panel.grid.minor = element_blank(),
         legend.position = "bottom")
 

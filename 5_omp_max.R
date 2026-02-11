@@ -227,38 +227,26 @@ m4_max_summ <- m4_max_ep_long %>%
 
 m4_max_fig1_panel <- ggplot(
   m4_max_summ,
-  aes(
-    x = water_temp,
-    y = estimate,
-    group = year_group,
-    colour = year_group
-  )
-) +
-  geom_ribbon(
-    aes(ymin = lower90, ymax = upper90),
-    alpha = 0.12,
-    colour = NA
-  ) +
+  aes(x = water_temp, y = estimate, group = year_group, colour = year_group)) +
+  geom_ribbon(aes(ymin = lower90, ymax = upper90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 5),
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-    }
-  ) +
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") } ) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Date of peak larval abundance",
-  ) +
+    y = "Date of peak larval abundance") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 m4_max_fig1_panel
 
@@ -273,29 +261,19 @@ m4_max_summ_mid <- m4_max_summ %>%
 
 m4_max_fig1_mid_max <- ggplot(
   m4_max_summ_mid,
-  aes(
-    x = water_temp,
-    y = estimate,
-    group = year_group,
-    colour = year_group
-  )
-) +
-  geom_ribbon(
-    aes(ymin = lower90, ymax = upper90),
-    alpha = 0.12,
-    colour = NA
-  ) +
+  aes(x = water_temp, y = estimate, group = year_group, colour = year_group)) +
+  geom_ribbon(aes(ymin = lower90, ymax = upper90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Date of peak larval abundance",
-    subtitle = "a)"
-  ) +
+    subtitle = "a)") +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 3),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
+    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
   coord_cartesian() +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),

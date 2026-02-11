@@ -184,26 +184,21 @@ la_m_y_max_plot <- min(la_m_y_max_obs * 1.1, max(la_m_summ$up90, na.rm = TRUE))
 # plot
 la_m_fig_panel <- ggplot(
   la_m_summ,
-  aes(x = water_temp, y = med, group = year_group, colour = year_group)
-) +
-  geom_ribbon(aes(ymin = low90, ymax = up90), alpha = 0.10, colour = NA) +
-  geom_ribbon(aes(ymin = low50, ymax = up50), alpha = 0.18, colour = NA) +
+  aes(x = water_temp, y = med, group = year_group, colour = year_group)) +
+  geom_ribbon(aes(ymin = low90, ymax = up90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_viridis_d(option = "viridis" ) +
-  scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   coord_cartesian(ylim = c(la_m_y_min_plot, la_m_y_max_plot)) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Peak larval abundance",
-    colour= "Monitoring year"
-    
-  ) +
+    y = "Peak larval abundance") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
@@ -306,33 +301,27 @@ la_m_med <- la_m_summ %>% filter(sal_label == "Median salinity")
 
 la_m_fig_med <- ggplot(
   la_m_med,
-  aes(x = water_temp, y = med, group = year_group, colour = year_group)
-) +
-  geom_ribbon(aes(ymin = low90, ymax = up90), alpha = 0.10, colour = NA) +
-  geom_ribbon(aes(ymin = low50, ymax = up50), alpha = 0.18, colour = NA) +
+  aes(x = water_temp, y = med, group = year_group, colour = year_group)) +
+  geom_ribbon(aes(ymin = low90, ymax = up90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
-  scale_colour_viridis_d(option = "viridis", name = "Monitoring year" ) +
-  scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30, 35)) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   coord_cartesian(ylim = c(la_m_y_min_plot, la_m_y_max_plot)) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Peak larval abundance",
-    subtitle = "a)",
-    colour= "Monitoring year"
-    
-  ) +
+    subtitle = "a)") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 la_m_fig_med
 
@@ -375,22 +364,18 @@ la_m_fig_intercepts <- ggplot(la_m_intercept_summ, aes(x = n_year, y = estimate,
   geom_point(size = 2.6) +
   scale_colour_viridis_d(
     option = "viridis",
-    name = "Monitoring year"
-  ) +
+    name = "Monitoring year") +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   labs(
     x = "Year",
     y = "Peak larval abundance",
-    subtitle = "b)"
-  ) +
+    subtitle = "b)") +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
         legend.position = "bottom")
@@ -433,17 +418,14 @@ la_m_fig_slopes <- ggplot(la_m_slope_summ, aes(x = n_year, y = estimate, colour 
   geom_point(size = 2.6) +
   scale_colour_viridis_d(
     option = "viridis",
-    name = "Monitoring year"
-  ) +
+    name = "Monitoring year") +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   labs(
     x = "Year",
     y = "Change in peak larval \n abundance per 1 °C",
-    subtitle = "c)"
-  ) +
+    subtitle = "c)") +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
         legend.position = "bottom")

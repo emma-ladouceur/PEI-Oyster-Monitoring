@@ -184,11 +184,11 @@ la_s_fig_panel <- ggplot(
   la_s_summ,
   aes(x = water_temp, y = med, group = year_group, colour = year_group)
 ) +
-  geom_ribbon(aes(ymin = low50, ymax = up50, fill = year_group), alpha = 0.18, colour = NA) +
+  geom_ribbon(aes(ymin = low90, ymax = up90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
-  scale_colour_viridis_d(option = "viridis" ) +
-  scale_fill_viridis_d(option = "viridis", guide = "none") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     trans  = "log10",
@@ -198,10 +198,7 @@ la_s_fig_panel <- ggplot(
   coord_cartesian(ylim = c(la_s_y_min_plot, la_s_y_max_plot)) +
   labs(
     x = "Surface water temperature (°C)",
-    y = "Larval abundance \n at first detection",
-    colour= "Monitoring year"
-    
-  ) +
+    y = "Larval abundance \n at first detection") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
@@ -308,31 +305,26 @@ la_s_med <- la_s_summ %>% filter(sal_label == "Median salinity")
 la_s_fig_med <- ggplot(
   la_s_med,
   aes(x = water_temp, y = med, group = year_group, colour = year_group)) +
-  geom_ribbon(aes(ymin = low50, ymax = up50, fill = year_group), alpha = 0.18, colour = NA) +
+  geom_ribbon(aes(ymin = low90, ymax = up90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
-  scale_colour_viridis_d(option = "viridis" ) +
-  scale_fill_viridis_d(option = "viridis", guide = "none") +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   coord_cartesian(ylim = c(la_s_y_min_plot, la_s_y_max_plot)) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Larval abundance \n at first detection",
-    subtitle = "a)",
-    colour= "Monitoring year"
-    
-  ) +
+    subtitle = "a)") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 la_s_fig_med
 
