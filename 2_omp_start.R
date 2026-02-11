@@ -1060,48 +1060,29 @@ m2_start_intercept_summ <- m2_start_intercept_draws %>%
 # -----------------------------
 m2_start_fig_year3temp_intercepts <- ggplot(
   m2_start_intercept_summ,
-  aes(
-    x = temp_level,
-    y = estimate,
-    colour = temp_level
-  )
-) +
-  geom_linerange(
-    aes(ymin = lower90, ymax = upper90),
-    linewidth = 0.9,
-    alpha = 0.6
-  ) +
-  geom_linerange(
-    aes(ymin = lower50, ymax = upper50),
-    linewidth = 2.2
-  ) +
+  aes(x = temp_level, y = estimate, colour = temp_level)) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
-  
   scale_colour_manual(
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
-      "Warm"   = "#D95F02"
-    )
-  ) +
+      "Warm"   = "#D95F02" )) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-    }
-  ) +
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") } ) +
   labs(
     x = NULL,
     y = "Date of first larval detection",
-    subtitle = "e)"
-  ) +
+    subtitle = "e)") +
   theme_bw(base_size = 18) +
   theme(
     axis.text.x  = element_blank(),
     axis.ticks.x = element_line(),
     panel.grid.minor = element_blank(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 m2_start_fig_year3temp_intercepts
     
