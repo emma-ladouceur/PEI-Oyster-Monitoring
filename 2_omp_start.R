@@ -240,15 +240,8 @@ m2_first_summ <- m2_first_ep_long %>%
 
 m2_first_fig1_panel <- ggplot(
   m2_first_summ,
-  aes(
-    x = water_temp,
-    y = estimate,
-    group = year_group,
-    colour = year_group, fill= year_group)) +
-  geom_ribbon(
-    aes(ymin = lower90, ymax = upper90),
-    alpha = 0.12,
-    colour = NA) +
+  aes(x = water_temp, y = estimate, group = year_group, colour = year_group, fill= year_group)) +
+  geom_ribbon(aes(ymin = lower90, ymax = upper90), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
@@ -262,7 +255,7 @@ m2_first_fig1_panel <- ggplot(
     y = "Date of first larval detection") +
   theme_bw(base_size = 18) +
   theme(
-    strip.background = element_blank(),
+    strip.background = element_blank(), 
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
     legend.position = "bottom")
@@ -291,15 +284,8 @@ m2_first_summ_mid <- m2_first_summ %>%
 
 m2_first_fig1_mid_start <- ggplot(
   m2_first_summ_mid,
-  aes(
-    x = water_temp,
-    y = estimate,
-    group = year_group,
-    colour = year_group)) +
-  geom_ribbon(
-    aes(ymin = lower90, ymax = upper90, fill = year_group),
-    alpha = 0.12,
-    colour = NA) +
+  aes(x = water_temp, y = estimate, group = year_group, colour = year_group)) +
+  geom_ribbon(aes(ymin = lower90, ymax = upper90, fill = year_group), alpha = 0.12, colour = NA) +
   geom_line(linewidth = 0.7) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
@@ -476,8 +462,7 @@ write.csv(m2_first_int_summ, "~/Data/Results/m2_first_int_summ.csv", row.names =
 
 m2_first_fig_intercepts_3panel <- ggplot(
   m2_first_int_summ,
-  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
-) +
+  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))) +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
@@ -485,21 +470,19 @@ m2_first_fig_intercepts_3panel <- ggplot(
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_y_continuous(
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2021-01-01"), "%b %d")
-    }
-  ) +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
+      format(as.Date(x - 1, origin = "2021-01-01"), "%b %d") } ) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   labs(
     x = "Year",
-    y = "Date of first larval detection",
-  ) +
+    y = "Date of first larval detection") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
-    panel.grid.minor = element_blank()
-  ) +
-  theme(legend.position = "bottom")
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom")
 
 m2_first_fig_intercepts_3panel
 
@@ -514,18 +497,17 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", guide = "none") +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-    }
-  ) +
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") } ) +
   labs(
     x = "Year",
     y = "Date of first larval detection",
-    subtitle = "b)"
-  ) +
+    subtitle = "b)") +
   coord_cartesian() +
   theme_bw(base_size = 18) + 
   theme(panel.grid.minor = element_blank())
@@ -592,34 +574,26 @@ m2_first_slope_summ <- m2_first_draw_slopes %>%
 # 10c) Slope figure: 3 salinity panels (like intercepts)
 m2_first_fig_slopes_3panel <- ggplot(
   m2_first_slope_summ,
-  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
-) +
+  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90),
-                 linewidth = 0.8, alpha = 0.55) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50),
-                 linewidth = 2.0, alpha = 0.95) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(
-    breaks = sort(unique(m2_first_l_dat$n_year))[
-      sort(unique(m2_first_l_dat$n_year)) %% 2 == 0 &
-        sort(unique(m2_first_l_dat$n_year)) >= 2016
-    ]
-  ) +
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   labs(
     x = "Year",
     y = "Days change in first \n larval detection per 1 °C",
-    subtitle = "c)"
-  ) +
+    subtitle = "c)") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 m2_first_fig_slopes_3panel
 
@@ -630,18 +604,17 @@ m2_first_fig_slopes_mean <- m2_first_slope_summ %>%
   mutate(year_group = factor(n_year, levels = sort(unique(m2_first_l_dat$n_year)))) %>%
   ggplot(aes(x = n_year, y = estimate, colour = year_group)) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
-  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group),
-                 linewidth = 0.8, alpha = 0.55) +
-  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group),
-                 linewidth = 2.0, alpha = 0.95) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group), linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group), linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  scale_x_continuous(breaks = sort(unique(m2_first_l_dat$n_year))[seq(1, length(unique(m2_first_l_dat$n_year)), by = 2)]) +
+  scale_x_continuous(
+    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   labs(
     x = "Year",
     y = "Days change in first \n larval detection per 1 °C",
-    subtitle = "c)"
-  ) +
+    subtitle = "c)") +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
         legend.position = "bottom")
@@ -670,8 +643,6 @@ m2_first_fig_intercepts_mean <- m2_first_fig_intercepts_mean +
   theme(legend.position = "none")
 
 # combine graph a, b, and c
-
-
 fig_4_combo_abc <- (m2_first_fig1_mid_start +
     m2_first_fig_intercepts_mean +
     m2_first_fig_slopes_mean) +
@@ -826,7 +797,7 @@ fig_4_combo_abc
 # For: start_temp_time_sal (data = m2_first_l_dat)
 # - no custom functions
 # - tidyverse + tidybayes
-# - ribbons = posterior uncertainty (80% + 50%)
+# - ribbons = posterior uncertainty (90% + 50%)
 # ============================================================
 
 set.seed(123)
@@ -874,15 +845,15 @@ m2_start_alt_draws <- start_temp_time_sal %>%
   rename(m2_start_alt_epred = .epred)
 
 # --- summarise across draws:
-#     80% interval for wide ribbon + 50% interval for inner ribbon + median line
-m2_start_alt_summ80 <- m2_start_alt_draws %>%
+#     90% interval for wide ribbon + 50% interval for inner ribbon + median line
+m2_start_alt_summ90 <- m2_start_alt_draws %>%
   group_by(n_year, temp_level) %>%
-  median_qi(m2_start_alt_epred, .width = 0.80) %>%
+  median_qi(m2_start_alt_epred, .width = 0.90) %>%
   ungroup() %>%
   rename(
     m2_start_alt_med   = m2_start_alt_epred,
-    m2_start_alt_low80 = .lower,
-    m2_start_alt_up80  = .upper
+    m2_start_alt_low90 = .lower,
+    m2_start_alt_up90  = .upper
   )
 
 m2_start_alt_summ50 <- m2_start_alt_draws %>%
@@ -895,8 +866,8 @@ m2_start_alt_summ50 <- m2_start_alt_draws %>%
     m2_start_alt_up50  = .upper
   )
 
-# --- join 80 + 50 for plotting convenience ---
-m2_start_alt_ribbon_dat <- m2_start_alt_summ80 %>%
+# --- join 90 + 50 for plotting convenience ---
+m2_start_alt_ribbon_dat <- m2_start_alt_summ90 %>%
   left_join(
     m2_start_alt_summ50 %>%
       select(n_year, temp_level, m2_start_alt_low50, m2_start_alt_up50),
@@ -905,86 +876,43 @@ m2_start_alt_ribbon_dat <- m2_start_alt_summ80 %>%
 
 # --- plot (ribbons + median line) ---
 m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
-  geom_ribbon(
-    aes(
-      x = n_year,
-      ymin = m2_start_alt_low80,
-      ymax = m2_start_alt_up80,
-      fill = temp_level
-    ),
-    alpha = 0.18,
-    colour = NA
-  ) +
-  geom_ribbon(
-    aes(
-      x = n_year,
-      ymin = m2_start_alt_low50,
-      ymax = m2_start_alt_up50,
-      fill = temp_level
-    ),
-    alpha = 0.32,
-    colour = NA
-  ) +
-  geom_line(
-    aes(
-      x = n_year,
-      y = m2_start_alt_med,
-      colour = temp_level
-    ),
-    linewidth = 1.0
-  ) +
+  geom_ribbon(aes(x = n_year, ymin = m2_start_alt_low90, ymax = m2_start_alt_up90, fill = temp_level), alpha = 0.18, colour = NA) +
+  geom_ribbon(aes(x = n_year, ymin = m2_start_alt_low50, ymax = m2_start_alt_up50, fill = temp_level), alpha = 0.32, colour = NA) +
+  geom_line(aes(x = n_year, y = m2_start_alt_med, colour = temp_level), linewidth = 1.0) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   scale_colour_manual(
     name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",  # green (Dark2)
       "Median" = "#7570B3",  # purple (Dark2)
-      "Warm"   = "#D95F02"   # orange (Dark2)
-    ),
+      "Warm"   = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
+      "Warm")) +
   scale_fill_manual(
     name = "Surface water \ntemperature (°C)",
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
-      "Warm"   = "#D95F02"
-    ),
+      "Warm"   = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
-  coord_cartesian(
-    ylim = range(
-      c(
-        m2_start_alt_ribbon_dat$m2_start_alt_low80,
-        m2_start_alt_ribbon_dat$m2_start_alt_up80
-      ),
-      na.rm = TRUE
-    )
-  ) +
+      "Warm")) +
+  coord_cartesian(ylim = range( c( m2_start_alt_ribbon_dat$m2_start_alt_low90, m2_start_alt_ribbon_dat$m2_start_alt_up90), na.rm = TRUE)) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 6),
     labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-    }
-  ) +
+      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") } ) +
   labs(
     x = "Year",
     y = "Date of first larval detection",
     subtitle = "d)",
   colour = "Temp",
-  fill = "Temp"
-    ) +
+  fill = "Temp") +
   theme_bw(base_size = 18) +
   theme(panel.grid.minor = element_blank(),
         legend.position = "bottom")
@@ -1037,12 +965,7 @@ m2_start_slope_summ <- m2_start_slope_draws %>%
 
 m2_start_fig_year3temp_slopes <- ggplot(
   m2_start_slope_summ,
-  aes(
-    x = temp_level,
-    y = estimate,
-    colour = temp_level
-  )
-) +
+  aes(x = temp_level, y = estimate, colour = temp_level)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(
     aes(ymin = lower90, ymax = upper90),
@@ -1058,28 +981,22 @@ m2_start_fig_year3temp_slopes <- ggplot(
     values = c(
       "Cool"   = "#1B9E77",
       "Median" = "#7570B3",
-      "Warm"   = "#D95F02"
-    )
-  ) +
+      "Warm"   = "#D95F02")) +
   scale_y_continuous(
     breaks = scales::pretty_breaks(n = 5),
     limits = c(
       min(m2_start_slope_summ$lower90, na.rm = TRUE),
-      max(m2_start_slope_summ$upper90, na.rm = TRUE)
-    )
-  ) +
+      max(m2_start_slope_summ$upper90, na.rm = TRUE))) +
   labs(
     x = NULL,
     y = "Change in date of first larval\ndetection per year",
-    subtitle = "f)"
-  ) +
+    subtitle = "f)") +
   theme_bw(base_size = 18) +
   theme(
     axis.text.x = element_blank(),
     axis.ticks.x = element_line(),
     panel.grid.minor = element_blank(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 m2_start_fig_year3temp_slopes
 
