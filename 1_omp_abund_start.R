@@ -53,14 +53,14 @@ nrow(la_s_dat)
 # ==================================================
 
 
-# la_s_mod <- brm(
-#   larvae_total ~ water_temp.m * n_year.m * salinity.m +
-#     (1 + n_year.m | bay/location_clean),
-#   data    = la_s_dat,
-#   family  = lognormal(),
-#   iter    = 5000, warmup = 1000,
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+la_s_mod <- brm(
+  larvae_total ~ water_temp.m * n_year.m * salinity.m +
+    (1 + n_year.m | bay/location_clean),
+  data    = la_s_dat,
+  family  = lognormal(),
+  iter    = 5000, warmup = 1000,
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 
 # ================================================
@@ -737,9 +737,6 @@ la_s_T_fig_slopes <- ggplot(
   )
 
 la_s_T_fig_slopes
-
-# Figure caption:
-
 
 # Figure caption: At median salinity, the model shows the temporal trend in predicted larval abundance 
 # at first detection under cool, median, and warm temperature levels.
