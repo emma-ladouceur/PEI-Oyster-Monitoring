@@ -22,6 +22,7 @@ setwd("~/Data/OMP/")
 omp_dat <- read.csv("OMP_clean_2025.csv", header= TRUE)
 head(omp_dat)
 summary(omp_dat)
+nrow(omp_dat)
 
 # i filter out zeros because I plan to ask the question as:
 #- when larvae are present, how does stuff change - see line 32 and 33 and 34 for max 250 etc
@@ -54,15 +55,15 @@ nrow(la_m_dat)
 
 
 
-# la_m_mod <- brm(
-#   larvae_total ~ water_temp.m * n_year.m * salinity.m +
-#    # s(julian_date,  k = 10) + # if turn on then see commented out lines below for s(julian)
-#     (1 + n_year.m | bay/location_clean),
-#   data    = la_m_dat,
-#   family  = lognormal(),
-#   iter    = 5000, warmup = 1000,
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+la_m_mod <- brm(
+  larvae_total ~ water_temp.m * n_year.m * salinity.m +
+   # s(julian_date,  k = 10) + # if turn on then see commented out lines below for s(julian)
+    (1 + n_year.m | bay/location_clean),
+  data    = la_m_dat,
+  family  = lognormal(),
+  iter    = 5000, warmup = 1000,
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 
 # ================================================
@@ -543,8 +544,7 @@ la_m_T_y_max_plot <- min(la_m_T_y_max_obs * 1.1, max(la_m_T_summ$up90, na.rm = T
 
 la_m_T_fig_time_temp <- ggplot(
   la_m_T_summ,
-  aes(x = n_year, y = med, colour = temp_label, group = temp_label)
-) +
+  aes(x = n_year, y = med, colour = temp_label, group = temp_label)) +
   geom_ribbon(aes(ymin = low90, ymax = up90, fill = temp_label), alpha = 0.10, colour = NA) +
   geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 1.1) +
@@ -553,49 +553,39 @@ la_m_T_fig_time_temp <- ggplot(
     values = c(
       "Cool temp (25th pct)" = "#1B9E77",
       "Median temp"          = "#7570B3",
-      "Warm temp (75th pct)" = "#D95F02"
-    ),
+      "Warm temp (75th pct)" = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
+      "Warm")) +
   scale_fill_manual(
     name   = "Surface water \ntemperature (°C)",
     values = c(
       "Cool temp (25th pct)" = "#1B9E77",
       "Median temp"          = "#7570B3",
-      "Warm temp (75th pct)" = "#D95F02"
-    ),
+      "Warm temp (75th pct)" = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
+      "Warm")) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   coord_cartesian(ylim = c(la_m_T_y_min_plot, la_m_T_y_max_plot)) +
   labs(
     x = "Year",
     y = "Peak larval abundance",
-    subtitle= "d)", colour= "Temp", fill= "Temp"
-  ) +
+    subtitle= "d)", colour= "Temp", fill= "Temp") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 la_m_T_fig_time_temp
 
@@ -652,31 +642,26 @@ la_m_T_intercept_summ <- la_m_T_intercept_draws %>%
 
 la_m_T_fig_intercepts <- ggplot(
   la_m_T_intercept_summ,
-  aes(x = temp_label, y = estimate, colour = temp_label)
-) +
+  aes(x = temp_label, y = estimate, colour = temp_label)) +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
   scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
                                   "Median temp"          = "#7570B3",  # purple (Dark2)
-                                  "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
-  ) ) +
+                                  "Warm temp (75th pct)" = "#D95F02" )) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   labs(
     x = NULL,
     y = "Peak larval abundance",
-    subtitle = "e)"
-  ) +
+    subtitle = "e)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
     axis.text.x  = element_blank(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 la_m_T_fig_intercepts
 
@@ -718,30 +703,26 @@ view(la_m_T_slope_summ)
 
 la_m_T_fig_slopes <- ggplot(
   la_m_T_slope_summ,
-  aes(x = temp_label, y = estimate, colour = temp_label)
-) +
+  aes(x = temp_label, y = estimate, colour = temp_label)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
-  scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
+  scale_colour_manual(values = c(
+      "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
       "Median temp"          = "#7570B3",  # purple (Dark2)
-      "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
-    ) ) +
+      "Warm temp (75th pct)" = "#D95F02") ) +
   scale_y_continuous(
-    breaks = c(-0.2, -0.1, 0, 0.1, 0.2)
-  ) +
+    breaks = c(-0.2, -0.1, 0, 0.1, 0.2)) +
   labs(
     x = NULL,
     y = "Change in peak larval \n abundance per year",
-    subtitle = "f)"
-  ) +
+    subtitle = "f)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
     axis.text.x  = element_blank(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 la_m_T_fig_slopes
 
