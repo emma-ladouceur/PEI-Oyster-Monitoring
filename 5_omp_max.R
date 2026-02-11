@@ -55,17 +55,17 @@ m4_max_l_dat %>% filter(bay == "Tracadie Bay")
 # MODEL 4 (MAX )
 # ============================================================
 # 
-# --- Fit model (keep these names exactly as requested) ---
-# m4_max_temp_time_sal <- brm(
-#   julian_date ~ water_temp.m * n_year.m * salinity.m +
-#     #(1 + water_temp.m * n_year.m || bay/location_clean),
-#     (1 + n_year.m | bay/location_clean),
-#   data    = m4_max_l_dat,
-#   iter    = 5000,
-#   warmup  = 1000,
-#   family  = gaussian(),
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+#--- Fit model (keep these names exactly as requested) ---
+m4_max_temp_time_sal <- brm(
+  julian_date ~ water_temp.m * n_year.m * salinity.m +
+    #(1 + water_temp.m * n_year.m || bay/location_clean),
+    (1 + n_year.m | bay/location_clean),
+  data    = m4_max_l_dat,
+  iter    = 5000,
+  warmup  = 1000,
+  family  = gaussian(),
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 # ==========================================================
 
@@ -211,8 +211,8 @@ m4_max_summ <- m4_max_ep_long %>%
   group_by(row_id, water_temp, n_year, year_group, sal_label) %>%
   summarise(
     estimate = mean(epred),
-    lower90  = quantile(epred, 0.05),
-    upper90  = quantile(epred, 0.95),
+    lower90  = quantile(epred, 0.05, na.rm = TRUE),
+    upper90  = quantile(epred, 0.95, na.rm = TRUE),
     .groups  = "drop"
   )
 
@@ -319,160 +319,160 @@ m4_max_fig1_mid_max
 # ------------------------------------------------------------
 
 # ------------------------------------------------------------
-
-set.seed(123)  # reproducibility: same draws are chosen each run
-
-# ------------------------------------------------------------
-# 5a) Restrict to mean-salinity slice
-# ------------------------------------------------------------
-# We are using the long-format posterior predictions created earlier:
-#   m4_max_ep_long has columns: .draw, row_id, epred, water_temp, year_group, sal_label, ...
-#
-# Here we keep only the mean-salinity panel, because we want spaghetti
-# for the main “mean salinity” story figure.
-# ------------------------------------------------------------
-m4_max_ep_mid_long <- m4_max_ep_long %>%
-  filter(sal_label == "Mean salinity")
-
-# ------------------------------------------------------------
-# 5b) Sample a pool of draws (limit to 2000)
-# ------------------------------------------------------------
-# Plotting ALL posterior draws can be huge and slow.
-# We randomly select a pool of draws, up to 2000.
-#
-# Why 2000?
-#   - Enough to estimate quantiles reliably
-#   - Small enough to keep memory/plotting manageable
-# ------------------------------------------------------------
-m4_max_ci_pool_size <- min(2000, n_distinct(m4_max_ep_mid_long$.draw))
-
-m4_max_ci_pool_ids <- m4_max_ep_mid_long %>%
-  distinct(.draw) %>%
-  slice_sample(n = m4_max_ci_pool_size) %>%  # randomly choose draw IDs
-  pull(.draw)
-
-# Filter the mean-salinity posterior predictions down to only those draws
-m4_max_ep_ci_long <- m4_max_ep_mid_long %>%
-  filter(.draw %in% m4_max_ci_pool_ids)
-
-# ------------------------------------------------------------
-# 5c) Define the "central 80% region" at EACH x-point
-# ------------------------------------------------------------
-# For each prediction point (row_id, i.e., each water_temp × year combination),
-# we compute:
-#   q10 = 10th percentile of epred across the pool of draws
-#   q90 = 90th percentile of epred across the pool of draws
-#
-# This creates a pointwise band that covers the "central 80%" of predictions.
-# ------------------------------------------------------------
-m4_max_bounds80 <- m4_max_ep_ci_long %>%
-  group_by(row_id) %>%
-  summarise(
-    q10 = quantile(epred, 0.10),
-    q90 = quantile(epred, 0.90),
-    .groups = "drop"
-  )
-
-# ------------------------------------------------------------
-# 5d) Keep only draws that mostly fall inside the central band
-# ------------------------------------------------------------
-# For each draw:
-#   - mark each point as "in80" if epred is between q10 and q90 for that row_id
-#   - compute prop_in80 = proportion of points within the band
-#   - keep draws with prop_in80 >= 0.95
-#
-# Interpretation:
-#   These are draws whose trajectories are not "globally extreme".
-#   They still vary, but they avoid rare huge shifts that dominate plots.
-# ------------------------------------------------------------
-m4_max_draw_keep <- m4_max_ep_ci_long %>%
-  left_join(m4_max_bounds80, by = "row_id") %>%
-  mutate(
-    in80 = epred >= q10 & epred <= q90
-  ) %>%
-  group_by(.draw) %>%
-  summarise(
-    prop_in80 = mean(in80),
-    .groups = "drop"
-  ) %>%
-  filter(prop_in80 >= 0.95)
-
-
-# ------------------------------------------------------------
-# 5e) Sample a fixed number of "good" draws for plotting spaghetti
-# ------------------------------------------------------------
-
-m4_max_n_spaghetti <- 150  # <-- add this
-
-# how many draws are actually available to sample from?
-m4_max_n_keep <- min(m4_max_n_spaghetti, nrow(m4_max_draw_keep))
-
-m4_max_spaghetti_draw_ids <- m4_max_draw_keep %>%
-  slice_sample(n = m4_max_n_keep) %>%
-  pull(.draw)
-
-
-
-# Pull the long epred values for only those spaghetti draws
-m4_max_ep_spag_long <- m4_max_ep_ci_long %>%
-  filter(.draw %in% m4_max_spaghetti_draw_ids)
-
-# ------------------------------------------------------------
-# 5f) Build the spaghetti plot
-# ------------------------------------------------------------
-# We plot:
-#   - faint spaghetti lines: each posterior draw × year trajectory
-#   - thicker posterior mean line per year (from m4_max_summ_mid)
-#
-# Note:
-#   group = interaction(.draw, year_group) ensures each draw-year is a separate line
-#   colour = year_group keeps year colouring consistent with earlier figures
-# ------------------------------------------------------------
-m4_max_fig1_spag <- ggplot() +
-  geom_line(
-    data = m4_max_ep_spag_long,
-    aes(
-      x = water_temp,
-      y = epred,
-      group = interaction(.draw, year_group),
-      colour = year_group
-    ),
-    linewidth = 0.4,
-    alpha = 0.15
-  ) +
-  geom_line(
-    data = m4_max_summ_mid,
-    aes(
-      x = water_temp,
-      y = estimate,
-      group = year_group,
-      colour = year_group
-    ),
-    linewidth = 0.7
-  ) +
-  scale_colour_viridis_d(option = "viridis") +
-  scale_x_continuous(
-    limits = c(19, 25),
-    breaks = c(20, 24)
-  ) +
-  scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 3),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
-  labs(
-    color= "Monitoring year",
-    x = "Surface water temperature (°C)",
-    y = "Date of peak larval abundance",
-    subtitle = "a)"
-  ) +
-  theme_bw(base_size = 18) +
-  theme(
-    panel.grid.minor = element_blank(), legend.position = "bottom"
-  )
-
-m4_max_fig1_spag
-
-
+# 
+# set.seed(123)  # reproducibility: same draws are chosen each run
+# 
+# # ------------------------------------------------------------
+# # 5a) Restrict to mean-salinity slice
+# # ------------------------------------------------------------
+# # We are using the long-format posterior predictions created earlier:
+# #   m4_max_ep_long has columns: .draw, row_id, epred, water_temp, year_group, sal_label, ...
+# #
+# # Here we keep only the mean-salinity panel, because we want spaghetti
+# # for the main “mean salinity” story figure.
+# # ------------------------------------------------------------
+# m4_max_ep_mid_long <- m4_max_ep_long %>%
+#   filter(sal_label == "Mean salinity")
+# 
+# # ------------------------------------------------------------
+# # 5b) Sample a pool of draws (limit to 2000)
+# # ------------------------------------------------------------
+# # Plotting ALL posterior draws can be huge and slow.
+# # We randomly select a pool of draws, up to 2000.
+# #
+# # Why 2000?
+# #   - Enough to estimate quantiles reliably
+# #   - Small enough to keep memory/plotting manageable
+# # ------------------------------------------------------------
+# m4_max_ci_pool_size <- min(2000, n_distinct(m4_max_ep_mid_long$.draw))
+# 
+# m4_max_ci_pool_ids <- m4_max_ep_mid_long %>%
+#   distinct(.draw) %>%
+#   slice_sample(n = m4_max_ci_pool_size) %>%  # randomly choose draw IDs
+#   pull(.draw)
+# 
+# # Filter the mean-salinity posterior predictions down to only those draws
+# m4_max_ep_ci_long <- m4_max_ep_mid_long %>%
+#   filter(.draw %in% m4_max_ci_pool_ids)
+# 
+# # ------------------------------------------------------------
+# # 5c) Define the "central 80% region" at EACH x-point
+# # ------------------------------------------------------------
+# # For each prediction point (row_id, i.e., each water_temp × year combination),
+# # we compute:
+# #   q10 = 10th percentile of epred across the pool of draws
+# #   q90 = 90th percentile of epred across the pool of draws
+# #
+# # This creates a pointwise band that covers the "central 80%" of predictions.
+# # ------------------------------------------------------------
+# m4_max_bounds80 <- m4_max_ep_ci_long %>%
+#   group_by(row_id) %>%
+#   summarise(
+#     q10 = quantile(epred, 0.10),
+#     q90 = quantile(epred, 0.90),
+#     .groups = "drop"
+#   )
+# 
+# # ------------------------------------------------------------
+# # 5d) Keep only draws that mostly fall inside the central band
+# # ------------------------------------------------------------
+# # For each draw:
+# #   - mark each point as "in80" if epred is between q10 and q90 for that row_id
+# #   - compute prop_in80 = proportion of points within the band
+# #   - keep draws with prop_in80 >= 0.95
+# #
+# # Interpretation:
+# #   These are draws whose trajectories are not "globally extreme".
+# #   They still vary, but they avoid rare huge shifts that dominate plots.
+# # ------------------------------------------------------------
+# m4_max_draw_keep <- m4_max_ep_ci_long %>%
+#   left_join(m4_max_bounds80, by = "row_id") %>%
+#   mutate(
+#     in80 = epred >= q10 & epred <= q90
+#   ) %>%
+#   group_by(.draw) %>%
+#   summarise(
+#     prop_in80 = mean(in80),
+#     .groups = "drop"
+#   ) %>%
+#   filter(prop_in80 >= 0.95)
+# 
+# 
+# # ------------------------------------------------------------
+# # 5e) Sample a fixed number of "good" draws for plotting spaghetti
+# # ------------------------------------------------------------
+# 
+# m4_max_n_spaghetti <- 150  # <-- add this
+# 
+# # how many draws are actually available to sample from?
+# m4_max_n_keep <- min(m4_max_n_spaghetti, nrow(m4_max_draw_keep))
+# 
+# m4_max_spaghetti_draw_ids <- m4_max_draw_keep %>%
+#   slice_sample(n = m4_max_n_keep) %>%
+#   pull(.draw)
+# 
+# 
+# 
+# # Pull the long epred values for only those spaghetti draws
+# m4_max_ep_spag_long <- m4_max_ep_ci_long %>%
+#   filter(.draw %in% m4_max_spaghetti_draw_ids)
+# 
+# # ------------------------------------------------------------
+# # 5f) Build the spaghetti plot
+# # ------------------------------------------------------------
+# # We plot:
+# #   - faint spaghetti lines: each posterior draw × year trajectory
+# #   - thicker posterior mean line per year (from m4_max_summ_mid)
+# #
+# # Note:
+# #   group = interaction(.draw, year_group) ensures each draw-year is a separate line
+# #   colour = year_group keeps year colouring consistent with earlier figures
+# # ------------------------------------------------------------
+# m4_max_fig1_spag <- ggplot() +
+#   geom_line(
+#     data = m4_max_ep_spag_long,
+#     aes(
+#       x = water_temp,
+#       y = epred,
+#       group = interaction(.draw, year_group),
+#       colour = year_group
+#     ),
+#     linewidth = 0.4,
+#     alpha = 0.15
+#   ) +
+#   geom_line(
+#     data = m4_max_summ_mid,
+#     aes(
+#       x = water_temp,
+#       y = estimate,
+#       group = year_group,
+#       colour = year_group
+#     ),
+#     linewidth = 0.7
+#   ) +
+#   scale_colour_viridis_d(option = "viridis") +
+#   scale_x_continuous(
+#     limits = c(19, 25),
+#     breaks = c(20, 24)
+#   ) +
+#   scale_y_continuous(
+#     breaks = scales::pretty_breaks(n = 3),
+#     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+#   ) +
+#   labs(
+#     color= "Monitoring year",
+#     x = "Surface water temperature (°C)",
+#     y = "Date of peak larval abundance",
+#     subtitle = "a)"
+#   ) +
+#   theme_bw(base_size = 18) +
+#   theme(
+#     panel.grid.minor = element_blank(), legend.position = "bottom"
+#   )
+# 
+# m4_max_fig1_spag
+# 
+# 
 
 
 # ------------------------------------------------------------
@@ -560,7 +560,7 @@ m4_max_ep2_long <- as_tibble(m4_max_ep2) %>%
 m4_max_draw_means <- m4_max_ep2_long %>%
   group_by(.draw, n_year, sal_label) %>%
   summarise(
-    epred_mean = mean(epred),   # mean over observed temps in that year
+    epred_mean = mean(epred, na.rm = TRUE),   # mean over observed temps in that year
     .groups = "drop"
   )
 
@@ -570,11 +570,11 @@ m4_max_draw_means <- m4_max_ep2_long %>%
 m4_max_int_summ <- m4_max_draw_means %>%
   group_by(n_year, sal_label) %>%
   summarise(
-    estimate = mean(epred_mean),
-    lower50  = quantile(epred_mean, 0.25),
-    upper50  = quantile(epred_mean, 0.75),
-    lower90  = quantile(epred_mean, 0.05),
-    upper90  = quantile(epred_mean, 0.95),
+    estimate = mean(epred_mean, na.rm = TRUE),
+    lower50  = quantile(epred_mean, 0.25, na.rm = TRUE),
+    upper50  = quantile(epred_mean, 0.75, na.rm = TRUE),
+    lower90  = quantile(epred_mean, 0.05, na.rm = TRUE),
+    upper90  = quantile(epred_mean, 0.95, na.rm = TRUE),
     .groups  = "drop"
   )
 View(m4_max_int_summ)
@@ -654,6 +654,7 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
 
 m4_max_fig_intercepts_mean
 
+<<<<<<< HEAD
 # Figure caption: For mean salinity conditions, the model shows how the predicted timing of peak oyster
 # larval abundance differs among years.
 # AKA (figure compares years to show whether peak larval abundance occurred earlier or later overall
@@ -663,45 +664,36 @@ m4_max_fig_intercepts_mean
 # date of peak larval abundance
 # (50% (thick) = 25th to 75th pct, 90% (thin) = 5th to 95th pct, points = mean predicted date for each year)
 
+=======
+# ============================================================
+# M4 (MAX larvae event) — Slopes-by-year (temperature effect)
+# MATCHES the M2 workflow exactly (cov/var within draw-year-sal)
+# ============================================================
+>>>>>>> 9b0c906d9c639f6c91e838014a11e778629d87b1
 
 # ------------------------------------------------------------
-# 7) Slopes-by-year (temperature effect)
-#    mean-salinity-only (styled like m4_max_fig_intercepts_mean)
+# 7a) Draw-wise slopes per year and salinity
 # ------------------------------------------------------------
-# GOAL:
-#   For each year, estimate the *within-year* temperature slope:
-#     d(Julian date) / d(temperature)
-#
-# METHOD:
-#   - Use posterior_epred predictions at observed temps (already created)
-#   - For each draw and year, regress epred ~ water_temp
-#   - Extract slope per draw-year
-#   - Summarise across draws → mean + 50% and 90% CrI
-#
-# IMPORTANT:
-#   - Uses ONLY observed temperatures per year (no sequences)
-#   - Propagates uncertainty correctly (slope computed within draw)
-# ------------------------------------------------------------
-
-# 7a) Restrict prediction grid to mean salinity
-m4_max_ep2_mean_long <- m4_max_ep2_long %>%
-  filter(sal_label == "Mean salinity")
-
-# 7b) For each draw-year, compute slope of epred ~ water_temp
-#     (This uses only the observed temps for that year.)
-m4_max_slopes_draw <- m4_max_ep2_mean_long %>%
-  group_by(.draw, n_year) %>%
+m4_max_draw_slopes <- m4_max_ep2_long %>%
+  select(.draw, n_year, sal_label, water_temp, epred) %>%
+  group_by(.draw, n_year, sal_label) %>%
   summarise(
-    slope = {
-      mod <- lm(epred ~ water_temp)
-      coef(mod)[["water_temp"]]
-    },
-    .groups = "drop"
-  )
+    n_pts     = n_distinct(water_temp),
+    wt_var    = var(water_temp, na.rm = TRUE),
+    wt_mean   = mean(water_temp, na.rm = TRUE),
+    yy_mean   = mean(epred,     na.rm = TRUE),
+    wt_yy_cov = mean((water_temp - wt_mean) * (epred - yy_mean), na.rm = TRUE),
+    slope     = wt_yy_cov / wt_var,
+    .groups   = "drop"
+  ) %>%
+  filter(n_pts >= 2, wt_var > 0, is.finite(slope)) %>%
+  select(.draw, n_year, sal_label, slope)
 
-# 7c) Summarise slopes across draws: mean + 50% and 90% CrI
-m4_max_slopes_summ <- m4_max_slopes_draw %>%
-  group_by(n_year) %>%
+# ------------------------------------------------------------
+# 7b) Summarise slopes across draws: mean + 50% and 90% CrI
+# ------------------------------------------------------------
+m4_max_slope_summ <- m4_max_draw_slopes %>%
+  group_by(n_year, sal_label) %>%
   summarise(
     estimate = mean(slope),
     lower50  = quantile(slope, 0.25),
@@ -709,30 +701,64 @@ m4_max_slopes_summ <- m4_max_slopes_draw %>%
     lower90  = quantile(slope, 0.05),
     upper90  = quantile(slope, 0.95),
     .groups  = "drop"
-  ) %>%
-  mutate(
-    year_group = factor(n_year, levels = sort(unique(m4_max_l_dat$n_year)))
   )
 
-# 7d) Plot: styled like m4_max_fig_intercepts_mean
-m4_max_fig_slopes_mean <- ggplot(
-  m4_max_slopes_summ,
-  aes(x = n_year, y = estimate, colour = year_group)
+# ------------------------------------------------------------
+# 7c) Slope figure: 3 salinity panels (like your m2 intercept/slopes)
+# ------------------------------------------------------------
+m4_max_fig_slopes_3panel <- ggplot(
+  m4_max_slope_summ,
+  aes(x = n_year, y = estimate, colour = factor(n_year), group = factor(n_year))
 ) +
-  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.6, colour = "grey40") +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
   geom_linerange(aes(ymin = lower90, ymax = upper90),
                  linewidth = 0.8, alpha = 0.55) +
   geom_linerange(aes(ymin = lower50, ymax = upper50),
                  linewidth = 2.0, alpha = 0.95) +
   geom_point(size = 2.4) +
+  facet_wrap(~ sal_label, nrow = 1) +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(
-    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+    breaks = sort(unique(m4_max_l_dat$n_year))[
+      sort(unique(m4_max_l_dat$n_year)) %% 2 == 0 &
+        sort(unique(m4_max_l_dat$n_year)) >= 2016
+    ]
   ) +
   labs(
     x = "Year",
-    y = "Change in date of peak \nlarval abundance per 1°C",
+    y = "Days change in peak \n larval abundance per 1 °C",
+    subtitle = "c)"
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+
+m4_max_fig_slopes_3panel
+
+# ------------------------------------------------------------
+# 7d) Mean-salinity-only slope figure (styled like your mean intercept panel)
+# ------------------------------------------------------------
+m4_max_fig_slopes_mean <- m4_max_slope_summ %>%
+  filter(sal_label == "Mean salinity") %>%
+  mutate(year_group = factor(n_year, levels = sort(unique(m4_max_l_dat$n_year)))) %>%
+  ggplot(aes(x = n_year, y = estimate, colour = year_group)) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4, alpha = 0.5) +
+  geom_linerange(aes(ymin = lower90, ymax = upper90, colour = year_group),
+                 linewidth = 0.8, alpha = 0.55) +
+  geom_linerange(aes(ymin = lower50, ymax = upper50, colour = year_group),
+                 linewidth = 2.0, alpha = 0.95) +
+  geom_point(size = 2.4) +
+  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+  scale_x_continuous(
+    breaks = sort(unique(m4_max_l_dat$n_year))[seq(1, length(unique(m4_max_l_dat$n_year)), by = 2)]
+  ) +
+  labs(
+    x = "Year",
+    y = "Days change in peak \n larval abundance per 1 °C",
     subtitle = "c)"
   ) +
   theme_bw(base_size = 18) +
@@ -743,6 +769,7 @@ m4_max_fig_slopes_mean <- ggplot(
 
 m4_max_fig_slopes_mean
 
+<<<<<<< HEAD
 # Figure caption: For each monitoring year (at mean salinity), the model shows how the predicted timing
 # of peak larval abundance changes with a 1°C increase in surface water temperature.
 # AKA (shows whether warmer water is associated with earlier or later peak larval abundance in each 
@@ -755,6 +782,8 @@ m4_max_fig_slopes_mean
 # positive slope = later peak under warmer conditions
 
 
+=======
+>>>>>>> 9b0c906d9c639f6c91e838014a11e778629d87b1
 # combine the double legend and center it
 
 m4_max_fig_intercepts_mean <- m4_max_fig_intercepts_mean +
@@ -782,125 +811,125 @@ fig_7_combo_abc
 # ALT spaghetti fig: year × temperature (salinity held at mean)
 # Namespaced to avoid collisions with earlier objects
 # ============================================================
-
-set.seed(123)
-
-# --- references for centering + temp quantiles (UNCENTERED vars) ---
-m4_max_alt_ref <- m4_max_l_dat %>%
-  ungroup() %>%
-  summarise(
-    n_year_mean     = mean(n_year, na.rm = TRUE),
-    water_temp_mean = mean(water_temp, na.rm = TRUE),
-    sal_mean        = mean(salinity, na.rm = TRUE),
-    temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
-    temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
-    temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE)
-  )
-
-# --- temperature level lookup table ---
-m4_max_alt_temp_levels <- tibble(
-  temp_level = factor(c("Cool", "Median", "Warm"),
-                      levels = c("Cool", "Median", "Warm")),
-  water_temp = c(m4_max_alt_ref$temp_cool,
-                 m4_max_alt_ref$temp_med,
-                 m4_max_alt_ref$temp_warm)
-)
-
-# --- prediction grid (year sequence × temp levels), salinity fixed at mean ---
-m4_max_alt_newdat_year_temp <- crossing(
-  n_year = seq(min(m4_max_l_dat$n_year, na.rm = TRUE),
-               max(m4_max_l_dat$n_year, na.rm = TRUE),
-               length.out = 200),
-  temp_level = m4_max_alt_temp_levels$temp_level
-) %>%
-  left_join(m4_max_alt_temp_levels, by = "temp_level") %>%
-  mutate(
-    salinity     = m4_max_alt_ref$sal_mean,
-    salinity.m   = salinity   - m4_max_alt_ref$sal_mean,
-    n_year.m     = n_year     - m4_max_alt_ref$n_year_mean,
-    water_temp.m = water_temp - m4_max_alt_ref$water_temp_mean
-  )
-
-# --- posterior expected draws (population-level) ---
-m4_max_alt_draws <- m4_max_temp_time_sal %>%
-  add_epred_draws(newdata = m4_max_alt_newdat_year_temp, re_formula = NA) %>%
-  ungroup() %>%
-  rename(m4_max_alt_epred = .epred)
-
-# --- summarise across draws (median + 80% interval) ---
-m4_max_alt_summ <- m4_max_alt_draws %>%
-  group_by(n_year, temp_level) %>%
-  median_qi(m4_max_alt_epred, .width = 0.80) %>%
-  ungroup()
-
-# --- thin spaghetti: sample N draws total (not per temp; consistent across temps) ---
-m4_max_alt_n_keep <- 60
-
-m4_max_alt_keep_draws <- m4_max_alt_draws %>%
-  distinct(.draw) %>%
-  slice_sample(n = min(m4_max_alt_n_keep, nrow(.)))
-
-m4_max_alt_draws_thin <- m4_max_alt_draws %>%
-  semi_join(m4_max_alt_keep_draws, by = ".draw")
-
-# --- plot ---
-m4_max_alt_fig_year3temp_spag_thin <- ggplot() +
-  geom_line(
-    data = m4_max_alt_draws_thin,
-    aes(
-      x = n_year,
-      y = m4_max_alt_epred,
-      group  = interaction(.draw, temp_level),
-      colour = temp_level
-    ),
-    linewidth = 0.35,
-    alpha = 0.10
-  ) +
-  geom_line(
-    data = m4_max_alt_summ,
-    aes(
-      x = n_year,
-      y = m4_max_alt_epred,
-      group  = temp_level,
-      colour = temp_level
-    ),
-    linewidth = 1.0
-  ) +
-  scale_colour_manual(
-    name = "Surface water \ntemperature (°C)",
-    values = c(
-      "Cool"   = "#1B9E77",  # Dark2 green
-      "Median" = "#7570B3",  # Dark2 purple
-      "Warm"   = "#D95F02"   # Dark2 orange
-    ),
-    labels = c(
-      "Cool",
-      "Median",
-      "Warm"
-    )
-  ) +
-  scale_x_continuous(
-    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
-  scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 3),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
-  labs(
-    x = "Year",
-    y = "Date of peak larval abundance",
-    subtitle = "d)"
-  ) +
-  theme_bw(base_size = 18) +
-  theme(
-    panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
-
-m4_max_alt_fig_year3temp_spag_thin
-
-
+# 
+# set.seed(123)
+# 
+# # --- references for centering + temp quantiles (UNCENTERED vars) ---
+# m4_max_alt_ref <- m4_max_l_dat %>%
+#   ungroup() %>%
+#   summarise(
+#     n_year_mean     = mean(n_year, na.rm = TRUE),
+#     water_temp_mean = mean(water_temp, na.rm = TRUE),
+#     sal_mean        = mean(salinity, na.rm = TRUE),
+#     temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
+#     temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
+#     temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE)
+#   )
+# 
+# # --- temperature level lookup table ---
+# m4_max_alt_temp_levels <- tibble(
+#   temp_level = factor(c("Cool", "Median", "Warm"),
+#                       levels = c("Cool", "Median", "Warm")),
+#   water_temp = c(m4_max_alt_ref$temp_cool,
+#                  m4_max_alt_ref$temp_med,
+#                  m4_max_alt_ref$temp_warm)
+# )
+# 
+# # --- prediction grid (year sequence × temp levels), salinity fixed at mean ---
+# m4_max_alt_newdat_year_temp <- crossing(
+#   n_year = seq(min(m4_max_l_dat$n_year, na.rm = TRUE),
+#                max(m4_max_l_dat$n_year, na.rm = TRUE),
+#                length.out = 200),
+#   temp_level = m4_max_alt_temp_levels$temp_level
+# ) %>%
+#   left_join(m4_max_alt_temp_levels, by = "temp_level") %>%
+#   mutate(
+#     salinity     = m4_max_alt_ref$sal_mean,
+#     salinity.m   = salinity   - m4_max_alt_ref$sal_mean,
+#     n_year.m     = n_year     - m4_max_alt_ref$n_year_mean,
+#     water_temp.m = water_temp - m4_max_alt_ref$water_temp_mean
+#   )
+# 
+# # --- posterior expected draws (population-level) ---
+# m4_max_alt_draws <- m4_max_temp_time_sal %>%
+#   add_epred_draws(newdata = m4_max_alt_newdat_year_temp, re_formula = NA) %>%
+#   ungroup() %>%
+#   rename(m4_max_alt_epred = .epred)
+# 
+# # --- summarise across draws (median + 80% interval) ---
+# m4_max_alt_summ <- m4_max_alt_draws %>%
+#   group_by(n_year, temp_level) %>%
+#   median_qi(m4_max_alt_epred, .width = 0.80) %>%
+#   ungroup()
+# 
+# # --- thin spaghetti: sample N draws total (not per temp; consistent across temps) ---
+# m4_max_alt_n_keep <- 60
+# 
+# m4_max_alt_keep_draws <- m4_max_alt_draws %>%
+#   distinct(.draw) %>%
+#   slice_sample(n = min(m4_max_alt_n_keep, nrow(.)))
+# 
+# m4_max_alt_draws_thin <- m4_max_alt_draws %>%
+#   semi_join(m4_max_alt_keep_draws, by = ".draw")
+# 
+# # --- plot ---
+# m4_max_alt_fig_year3temp_spag_thin <- ggplot() +
+#   geom_line(
+#     data = m4_max_alt_draws_thin,
+#     aes(
+#       x = n_year,
+#       y = m4_max_alt_epred,
+#       group  = interaction(.draw, temp_level),
+#       colour = temp_level
+#     ),
+#     linewidth = 0.35,
+#     alpha = 0.10
+#   ) +
+#   geom_line(
+#     data = m4_max_alt_summ,
+#     aes(
+#       x = n_year,
+#       y = m4_max_alt_epred,
+#       group  = temp_level,
+#       colour = temp_level
+#     ),
+#     linewidth = 1.0
+#   ) +
+#   scale_colour_manual(
+#     name = "Surface water \ntemperature (°C)",
+#     values = c(
+#       "Cool"   = "#1B9E77",  # Dark2 green
+#       "Median" = "#7570B3",  # Dark2 purple
+#       "Warm"   = "#D95F02"   # Dark2 orange
+#     ),
+#     labels = c(
+#       "Cool",
+#       "Median",
+#       "Warm"
+#     )
+#   ) +
+#   scale_x_continuous(
+#     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+#     labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+#   ) +
+#   scale_y_continuous(
+#     breaks = scales::pretty_breaks(n = 3),
+#     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+#   ) +
+#   labs(
+#     x = "Year",
+#     y = "Date of peak larval abundance",
+#     subtitle = "d)"
+#   ) +
+#   theme_bw(base_size = 18) +
+#   theme(
+#     panel.grid.minor = element_blank(),
+#     legend.position = "bottom"
+#   )
+# 
+# m4_max_alt_fig_year3temp_spag_thin
+# 
+# 
 
 # ============================================================
 # m4 MAX: Ribbon fig + slopes + intercepts (matched to m2 START style)

@@ -22,6 +22,14 @@ setwd("~/Data/OMP/")
 
 omp_dat <- read.csv("OMP_clean_2025.csv", header= TRUE)
 head(omp_dat)
+nrow(omp_dat)
+
+omp_dat %>%
+  mutate(
+    larvae_ok = larvae_total > 0,
+    julian_ok = !is.na(julian_date)
+  ) %>%
+  count(larvae_ok, julian_ok)
 
 # ============================================================
 # MODEL 2 (FIRST larvae event): 
@@ -60,21 +68,21 @@ view(m2_first_l)
 summary(m2_first_l)
 
 head(m2_first_l_dat)
-
+nrow(m2_first_l_dat)
 # ------------------------------------------------------------
 # B) Fit model (KEEP THIS NAME)
 # ------------------------------------------------------------
 
  
-# start_temp_time_sal <- brm(
-#   julian_date ~ water_temp.m * n_year.m * salinity.m +
-#     (1 + n_year.m | bay/location_clean),
-#   data    = m2_first_l_dat,
-#   iter    = 5000,
-#   warmup  = 1000,
-#   family  = gaussian(),
-#   control = list(adapt_delta = 0.999, max_treedepth = 20)
-# )
+start_temp_time_sal <- brm(
+  julian_date ~ water_temp.m * n_year.m * salinity.m +
+    (1 + n_year.m | bay/location_clean),
+  data    = m2_first_l_dat,
+  iter    = 5000,
+  warmup  = 1000,
+  family  = gaussian(),
+  control = list(adapt_delta = 0.999, max_treedepth = 20)
+)
 
 
 # -----------------------------------------------------------
@@ -214,11 +222,12 @@ m2_first_ep_long <- as_tibble(m2_first_ep) %>%
 m2_first_summ <- m2_first_ep_long %>%
   group_by(row_id, water_temp, n_year, year_group, sal_label) %>%
   summarise(
-    estimate = mean(epred),
-    lower90  = quantile(epred, 0.05),
-    upper90  = quantile(epred, 0.95),
+    estimate = mean(epred, na.rm = TRUE),
+    lower90  = quantile(epred, 0.05, na.rm = TRUE),
+    upper90  = quantile(epred, 0.95, na.rm = TRUE),
     .groups  = "drop"
   )
+
 
 # ============================================================
 # 6) FIGURE 1:
@@ -235,7 +244,7 @@ m2_first_fig1_panel <- ggplot(
     x = water_temp,
     y = estimate,
     group = year_group,
-    colour = year_group
+    colour = year_group, fill= year_group
   )
 ) +
   geom_ribbon(
@@ -245,6 +254,7 @@ m2_first_fig1_panel <- ggplot(
   ) +
   geom_line(linewidth = 0.7) +
   facet_wrap(~ sal_label, nrow = 1) +
+  scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_y_continuous(
     labels = function(x) {
@@ -341,81 +351,81 @@ m2_first_fig1_mid_start
 #   - keep draws mostly within that band
 #   - plot ~150 “typical” draws
 # ------------------------------------------------------------
-
-set.seed(123)
-
-m2_first_ep_mid_long <- m2_first_ep_long %>%
-  filter(sal_label == "Mean salinity")
-
-m2_first_ci_pool_size <- min(2000, n_distinct(m2_first_ep_mid_long$.draw))
-
-m2_first_ci_pool_ids <- m2_first_ep_mid_long %>%
-  distinct(.draw) %>%
-  slice_sample(n = m2_first_ci_pool_size) %>%
-  pull(.draw)
-
-m2_first_ep_ci_long <- m2_first_ep_mid_long %>%
-  filter(.draw %in% m2_first_ci_pool_ids)
-
-m2_first_bounds80 <- m2_first_ep_ci_long %>%
-  group_by(row_id) %>%
-  summarise(
-    q10 = quantile(epred, 0.10),
-    q90 = quantile(epred, 0.90),
-    .groups = "drop"
-  )
-
-m2_first_draw_keep <- m2_first_ep_ci_long %>%
-  left_join(m2_first_bounds80, by = "row_id") %>%
-  mutate(in80 = epred >= q10 & epred <= q90) %>%
-  group_by(.draw) %>%
-  summarise(prop_in80 = mean(in80), .groups = "drop") %>%
-  filter(prop_in80 >= 0.95)
-
-m2_first_n_spaghetti <- 150
-
-m2_first_n_keep <- min(m2_first_n_spaghetti, nrow(m2_first_draw_keep))
-
-m2_first_spaghetti_draw_ids <- m2_first_draw_keep %>%
-  slice_sample(n = m2_first_n_keep) %>%
-  pull(.draw)
-
-m2_first_ep_spag_long <- m2_first_ep_ci_long %>%
-  filter(.draw %in% m2_first_spaghetti_draw_ids)
-
-m2_first_fig1_spag <- ggplot() +
-  geom_line(
-    data = m2_first_ep_spag_long,
-    aes(
-      x = water_temp,
-      y = epred,
-      group = interaction(.draw, year_group),
-      colour = year_group
-    ),
-    linewidth = 0.4,
-    alpha = 0.15
-  ) +
-  geom_line(
-    data = m2_first_summ_mid,
-    aes(x = water_temp, y = estimate, group = factor(n_year), colour = factor(n_year)),
-    linewidth = 0.7
-  ) +
-  scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
-  scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
-  ) +
-  coord_cartesian() +
-  labs(
-    x = "Surface water temperature (°C)",
-    y = "Date of first larval detection",
-    subtitle = "a)"
-  ) +
-  theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "bottom")
-
-m2_first_fig1_spag
+# 
+# set.seed(123)
+# 
+# m2_first_ep_mid_long <- m2_first_ep_long %>%
+#   filter(sal_label == "Mean salinity")
+# 
+# m2_first_ci_pool_size <- min(2000, n_distinct(m2_first_ep_mid_long$.draw))
+# 
+# m2_first_ci_pool_ids <- m2_first_ep_mid_long %>%
+#   distinct(.draw) %>%
+#   slice_sample(n = m2_first_ci_pool_size) %>%
+#   pull(.draw)
+# 
+# m2_first_ep_ci_long <- m2_first_ep_mid_long %>%
+#   filter(.draw %in% m2_first_ci_pool_ids)
+# 
+# m2_first_bounds80 <- m2_first_ep_ci_long %>%
+#   group_by(row_id) %>%
+#   summarise(
+#     q10 = quantile(epred, 0.10,  na.rm = TRUE),
+#     q90 = quantile(epred, 0.90, na.rm = TRUE),
+#     .groups = "drop"
+#   )
+# 
+# m2_first_draw_keep <- m2_first_ep_ci_long %>%
+#   left_join(m2_first_bounds80, by = "row_id") %>%
+#   mutate(in80 = epred >= q10 & epred <= q90) %>%
+#   group_by(.draw) %>%
+#   summarise(prop_in80 = mean(in80), .groups = "drop") %>%
+#   filter(prop_in80 >= 0.95)
+# 
+# m2_first_n_spaghetti <- 150
+# 
+# m2_first_n_keep <- min(m2_first_n_spaghetti, nrow(m2_first_draw_keep))
+# 
+# m2_first_spaghetti_draw_ids <- m2_first_draw_keep %>%
+#   slice_sample(n = m2_first_n_keep) %>%
+#   pull(.draw)
+# 
+# m2_first_ep_spag_long <- m2_first_ep_ci_long %>%
+#   filter(.draw %in% m2_first_spaghetti_draw_ids)
+# 
+# m2_first_fig1_spag <- ggplot() +
+#   geom_line(
+#     data = m2_first_ep_spag_long,
+#     aes(
+#       x = water_temp,
+#       y = epred,
+#       group = interaction(.draw, year_group),
+#       colour = year_group
+#     ),
+#     linewidth = 0.4,
+#     alpha = 0.15
+#   ) +
+#   geom_line(
+#     data = m2_first_summ_mid,
+#     aes(x = water_temp, y = estimate, group = factor(n_year), colour = factor(n_year)),
+#     linewidth = 0.7
+#   ) +
+#   scale_colour_viridis_d(option = "viridis", name = "Monitoring year") +
+#   scale_y_continuous(
+#     breaks = scales::pretty_breaks(n = 6),
+#     labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")
+#   ) +
+#   coord_cartesian() +
+#   labs(
+#     x = "Surface water temperature (°C)",
+#     y = "Date of first larval detection",
+#     subtitle = "a)"
+#   ) +
+#   theme_bw(base_size = 18) +
+#   theme(panel.grid.minor = element_blank(),
+#         legend.position = "bottom")
+# 
+# m2_first_fig1_spag
 
 # ------------------------------------------------------------
 # 9) Intercepts-by-year (temperature-averaged)
@@ -457,18 +467,20 @@ m2_first_ep2_long <- as_tibble(m2_first_ep2) %>%
 
 m2_first_draw_means <- m2_first_ep2_long %>%
   group_by(.draw, n_year, sal_label) %>%
-  summarise(epred_mean = mean(epred), .groups = "drop")
+  summarise(epred_mean = mean(epred, na.rm = TRUE), .groups = "drop")
+
 
 m2_first_int_summ <- m2_first_draw_means %>%
   group_by(n_year, sal_label) %>%
   summarise(
-    estimate = round(mean(epred_mean), 2),
-    lower50  = round(quantile(epred_mean, 0.25), 2),
-    upper50  = round(quantile(epred_mean, 0.75), 2),
-    lower90  = round(quantile(epred_mean, 0.05), 2),
-    upper90  = round(quantile(epred_mean, 0.95), 2),
+    estimate = round(mean(epred_mean, na.rm = TRUE), 2),
+    lower50  = round(quantile(epred_mean, 0.25, na.rm = TRUE), 2),
+    upper50  = round(quantile(epred_mean, 0.75, na.rm = TRUE), 2),
+    lower90  = round(quantile(epred_mean, 0.05, na.rm = TRUE), 2),
+    upper90  = round(quantile(epred_mean, 0.95, na.rm = TRUE), 2),
     .groups  = "drop"
   )
+
 
 view(m2_first_int_summ)
 write.csv(m2_first_int_summ, "~/Data/Results/m2_first_int_summ.csv", row.names = FALSE)
@@ -690,135 +702,135 @@ fig_4_combo_abc
 # - tidyverse + tidybayes
 # - namespaced objects to avoid collisions
 # ============================================================
-
-set.seed(123)
-
-# --- references for centering + temp quantiles (UNCENTERED vars) ---
-m2_start_alt_ref <- m2_first_l_dat %>%
-  ungroup() %>%
-  summarise(
-    n_year_mean     = mean(n_year, na.rm = TRUE),
-    water_temp_mean = mean(water_temp, na.rm = TRUE),
-    sal_mean        = mean(salinity, na.rm = TRUE),
-    temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
-    temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
-    temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE)
-  )
-
-# --- temperature level lookup table ---
-m2_start_alt_temp_levels <- tibble(
-  temp_level = factor(c("Cool temp (25th pct)", "Median temp", "Warm temp (75th pct)"),
-                      levels = c("Cool temp (25th pct)", "Median temp", "Warm temp (75th pct)")),
-  water_temp = c(m2_start_alt_ref$temp_cool,
-                 m2_start_alt_ref$temp_med,
-                 m2_start_alt_ref$temp_warm)
-)
-
-# --- prediction grid (year sequence × temp levels), salinity fixed at mean ---
-m2_start_alt_newdat_year_temp <- crossing(
-  n_year = seq(min(m2_first_l_dat$n_year, na.rm = TRUE),
-               max(m2_first_l_dat$n_year, na.rm = TRUE),
-               length.out = 200),
-  temp_level = m2_start_alt_temp_levels$temp_level
-) %>%
-  left_join(m2_start_alt_temp_levels, by = "temp_level") %>%
-  mutate(
-    salinity     = m2_start_alt_ref$sal_mean,
-    salinity.m   = salinity   - m2_start_alt_ref$sal_mean,
-    n_year.m     = n_year     - m2_start_alt_ref$n_year_mean,
-    water_temp.m = water_temp - m2_start_alt_ref$water_temp_mean
-  )
-
-# --- posterior expected draws (population-level) ---
-m2_start_alt_draws <- start_temp_time_sal %>%
-  add_epred_draws(newdata = m2_start_alt_newdat_year_temp, re_formula = NA) %>%
-  ungroup() %>%
-  rename(m2_start_alt_epred = .epred)
-
-# --- summarise across draws (median + 80% interval) ---
-m2_start_alt_summ <- m2_start_alt_draws %>%
-  group_by(n_year, temp_level) %>%
-  median_qi(m2_start_alt_epred, .width = 0.80) %>%
-  ungroup()
-
-# --- thin spaghetti: sample N draws total (not per temp; consistent across temps) ---
-m2_start_alt_n_keep <- 60
-
-m2_start_alt_keep_draws <- m2_start_alt_draws %>%
-  distinct(.draw) %>%
-  slice_sample(n = min(m2_start_alt_n_keep, nrow(.)))
-
-m2_start_alt_draws_thin <- m2_start_alt_draws %>%
-  semi_join(m2_start_alt_keep_draws, by = ".draw")
-
-# --- optional: set y-limits to data-informed range (instead of hard-coding) ---
-m2_start_alt_ylim <- m2_first_l_dat %>%
-  summarise(
-    ymin = quantile(julian_date, 0.01, na.rm = TRUE),
-    ymax = quantile(julian_date, 0.99, na.rm = TRUE)
-  )
-
-
-# --- plot ---
-m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
-  geom_line(
-    data = m2_start_alt_draws_thin,
-    aes(
-      x = n_year, y = m2_start_alt_epred,
-      group = interaction(.draw, temp_level),
-      colour = temp_level
-    ),
-    linewidth = 0.35,
-    alpha = 0.10
-  ) +
-  geom_line(
-    data = m2_start_alt_summ,
-    aes(
-      x = n_year, y = m2_start_alt_epred,
-      group = temp_level,
-      colour = temp_level
-    ),
-    linewidth = 1.0
-  ) +
-  scale_colour_manual(
-    name   = "Surface water \n temperature (°C)",
-    values = c(
-      "Cool temp (25th pct)" = "#1B9E77",
-      "Median temp"          = "#7570B3",
-      "Warm temp (75th pct)" = "#D95F02"
-    ),
-    labels = c(
-      "Cool",
-      "Median",
-      "Warm"
-    )
-  ) +
-  scale_x_continuous(
-    breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
-  coord_cartesian(
-    ylim = quantile(
-      m2_first_l_dat$julian_date,
-      probs = c(0.01, 0.99),
-      na.rm = TRUE
-    )
-  )+
-  scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = scales::label_number(accuracy = 1)
-  ) +
-  labs(
-    x = "Year",
-    y = "Date of first larval detection",
-    subtitle = "a)"
-  ) +
-  theme_bw(base_size = 18) +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "bottom")
-
-m2_start_alt_fig_year3temp_spag_thin
-
+# 
+# set.seed(123)
+# 
+# # --- references for centering + temp quantiles (UNCENTERED vars) ---
+# m2_start_alt_ref <- m2_first_l_dat %>%
+#   ungroup() %>%
+#   summarise(
+#     n_year_mean     = mean(n_year, na.rm = TRUE),
+#     water_temp_mean = mean(water_temp, na.rm = TRUE),
+#     sal_mean        = mean(salinity, na.rm = TRUE),
+#     temp_cool       = quantile(water_temp, 0.10, na.rm = TRUE),
+#     temp_med        = quantile(water_temp, 0.50, na.rm = TRUE),
+#     temp_warm       = quantile(water_temp, 0.90, na.rm = TRUE)
+#   )
+# 
+# # --- temperature level lookup table ---
+# m2_start_alt_temp_levels <- tibble(
+#   temp_level = factor(c("Cool temp (25th pct)", "Median temp", "Warm temp (75th pct)"),
+#                       levels = c("Cool temp (25th pct)", "Median temp", "Warm temp (75th pct)")),
+#   water_temp = c(m2_start_alt_ref$temp_cool,
+#                  m2_start_alt_ref$temp_med,
+#                  m2_start_alt_ref$temp_warm)
+# )
+# 
+# # --- prediction grid (year sequence × temp levels), salinity fixed at mean ---
+# m2_start_alt_newdat_year_temp <- crossing(
+#   n_year = seq(min(m2_first_l_dat$n_year, na.rm = TRUE),
+#                max(m2_first_l_dat$n_year, na.rm = TRUE),
+#                length.out = 200),
+#   temp_level = m2_start_alt_temp_levels$temp_level
+# ) %>%
+#   left_join(m2_start_alt_temp_levels, by = "temp_level") %>%
+#   mutate(
+#     salinity     = m2_start_alt_ref$sal_mean,
+#     salinity.m   = salinity   - m2_start_alt_ref$sal_mean,
+#     n_year.m     = n_year     - m2_start_alt_ref$n_year_mean,
+#     water_temp.m = water_temp - m2_start_alt_ref$water_temp_mean
+#   )
+# 
+# # --- posterior expected draws (population-level) ---
+# m2_start_alt_draws <- start_temp_time_sal %>%
+#   add_epred_draws(newdata = m2_start_alt_newdat_year_temp, re_formula = NA) %>%
+#   ungroup() %>%
+#   rename(m2_start_alt_epred = .epred)
+# 
+# # --- summarise across draws (median + 80% interval) ---
+# m2_start_alt_summ <- m2_start_alt_draws %>%
+#   group_by(n_year, temp_level) %>%
+#   median_qi(m2_start_alt_epred, .width = 0.80) %>%
+#   ungroup()
+# 
+# # --- thin spaghetti: sample N draws total (not per temp; consistent across temps) ---
+# m2_start_alt_n_keep <- 60
+# 
+# m2_start_alt_keep_draws <- m2_start_alt_draws %>%
+#   distinct(.draw) %>%
+#   slice_sample(n = min(m2_start_alt_n_keep, nrow(.)))
+# 
+# m2_start_alt_draws_thin <- m2_start_alt_draws %>%
+#   semi_join(m2_start_alt_keep_draws, by = ".draw")
+# 
+# # --- optional: set y-limits to data-informed range (instead of hard-coding) ---
+# m2_start_alt_ylim <- m2_first_l_dat %>%
+#   summarise(
+#     ymin = quantile(julian_date, 0.01, na.rm = TRUE),
+#     ymax = quantile(julian_date, 0.99, na.rm = TRUE)
+#   )
+# 
+# 
+# # --- plot ---
+# m2_start_alt_fig_year3temp_spag_thin <- ggplot() +
+#   geom_line(
+#     data = m2_start_alt_draws_thin,
+#     aes(
+#       x = n_year, y = m2_start_alt_epred,
+#       group = interaction(.draw, temp_level),
+#       colour = temp_level
+#     ),
+#     linewidth = 0.35,
+#     alpha = 0.10
+#   ) +
+#   geom_line(
+#     data = m2_start_alt_summ,
+#     aes(
+#       x = n_year, y = m2_start_alt_epred,
+#       group = temp_level,
+#       colour = temp_level
+#     ),
+#     linewidth = 1.0
+#   ) +
+#   scale_colour_manual(
+#     name   = "Surface water \n temperature (°C)",
+#     values = c(
+#       "Cool temp (25th pct)" = "#1B9E77",
+#       "Median temp"          = "#7570B3",
+#       "Warm temp (75th pct)" = "#D95F02"
+#     ),
+#     labels = c(
+#       "Cool",
+#       "Median",
+#       "Warm"
+#     )
+#   ) +
+#   scale_x_continuous(
+#     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
+#     labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
+#   ) +
+#   coord_cartesian(
+#     ylim = quantile(
+#       m2_first_l_dat$julian_date,
+#       probs = c(0.01, 0.99),
+#       na.rm = TRUE
+#     )
+#   )+
+#   scale_y_continuous(
+#     breaks = scales::pretty_breaks(n = 6),
+#     labels = scales::label_number(accuracy = 1)
+#   ) +
+#   labs(
+#     x = "Year",
+#     y = "Date of first larval detection",
+#     subtitle = "a)"
+#   ) +
+#   theme_bw(base_size = 18) +
+#   theme(panel.grid.minor = element_blank(),
+#         legend.position = "bottom")
+# 
+# m2_start_alt_fig_year3temp_spag_thin
+# 
 
 # ============================================================
 # ALT ribbon fig: year × temperature (salinity held at mean)

@@ -27,7 +27,7 @@ mon_2025 <- read.csv("Oyster Monitoring Results (10)_2025.csv", header= TRUE)
 # head(mon_2013_2024)
 head(mon_2025)
 view(mon_2025)
-
+nrow(mon_2025)
 
 # lets prep the data for plotting
 mon_date_2025 <- mon_2025 %>% 
@@ -46,11 +46,28 @@ mon_date_2025 <- mon_2025 %>%
 
 head(mon_date_2025)
 mon_date_2025 %>% select(f_year) %>% distinct()
-
+nrow(mon_date_2025)
 # have a look at monitoring data locations
 # mon_dat <- mon_date_2013_2024 %>% bind_rows(mon_date_2025)
 
 mon_date_2025 %>% select(area, location) %>% distinct() %>% arrange(location, area)
+
+mon_date_2025 %>% filter(water_temp == 722.00)
+mon_date_2025 %>% filter(water_temp == 99.90)
+mon_date_2025 %>% filter(water_temp == 247.00)
+mon_date_2025 %>% filter(water_temp == 0.0)
+mon_date_2025 %>% filter(water_temp == 34.0)
+mon_date_2025 %>% filter(salinity == 0.0)
+mon_date_2025 %>% filter(salinity == 90.0)
+mon_date_2025 %>% filter(salinity == 50.0)
+mon_date_2025 %>% filter(salinity == 70.0)
+mon_date_2025 %>% filter(salinity == 95.0)
+mon_date_2025 %>% filter(salinity == 40.0)
+mon_date_2025 %>% filter(salinity == 85.0)
+
+
+bad_wt  <- c(722.00, 99.90, 247.00, 0.0, 34.0)
+bad_sal <- c(0.0, 90.0, 50.0, 70.0, 95.0, 40.0, 85.0)
 
 # clean it up
 # use case when to change location spelling
@@ -116,13 +133,30 @@ mon_clean <- mon_date_2025 %>%
                            #location_clean == "Oyster Bed Bridge" ~ "Rustico Bay",
                            location_clean == "Brackley Bay" ~ "Brackley Bay",
                            TRUE ~ location_clean)) %>%
-  filter(water_temp != 722.00) %>% filter(water_temp != 99.90) %>% filter(water_temp != 247.00) %>%
-  filter(water_temp != 0.0) %>% filter(water_temp != 34.0) %>% 
-  filter(salinity != 0.0) %>% filter(salinity != 90.0) %>% filter(salinity != 50.0) %>%
-  filter(salinity != 70.0) %>% filter(salinity != 95.0) %>% filter(salinity != 40.0) %>%
-  filter(salinity != 85.0) 
+  # filter(water_temp != 722.00) %>% filter(water_temp != 99.90) %>% filter(water_temp != 247.00) %>%
+  # filter(water_temp != 0.0) %>% filter(water_temp != 34.0) %>% 
+  # filter(salinity != 0.0) %>% filter(salinity != 90.0) %>% filter(salinity != 50.0) %>%
+  # filter(salinity != 70.0) %>% filter(salinity != 95.0) %>% filter(salinity != 40.0) %>%
+  # filter(salinity != 85.0) 
+  # filter(
+  #   is.na(water_temp) | !(water_temp %in% bad_wt),
+  #   is.na(salinity)   | !(salinity   %in% bad_sal)
+  # )
+  # mutate(
+  #   water_temp = if_else(water_temp %in% bad_wt, NA_real_, water_temp),
+  #   salinity   = if_else(salinity   %in% bad_sal, NA_real_, salinity)
+  # )
+  rename(
+    water_temp_raw = water_temp,
+    salinity_raw   = salinity
+  ) %>%
+  mutate(
+    water_temp = if_else(water_temp_raw %in% bad_wt, NA_real_, water_temp_raw),
+    salinity   = if_else(salinity_raw   %in% bad_sal, NA_real_, salinity_raw)
+  )
 
 # any other crazy values?
+nrow(mon_clean)
 summary(mon_clean)
 mon_clean %>% filter(water_temp == 722.00)
 mon_clean %>% filter(water_temp == 99.90)
@@ -137,7 +171,7 @@ mon_clean %>% filter(salinity == 95.0)
 mon_clean %>% filter(salinity == 40.0)
 mon_clean %>% filter(salinity == 85.0)
 colnames(mon_clean)
-
+view(mon_clean)
 
 bay_list <- mon_clean %>% select(bay, location_clean) %>% distinct() %>% arrange(bay, location_clean)
 write.csv(bay_list, "~/Data/OMP/bay_list.csv", row.names = FALSE)
@@ -158,4 +192,6 @@ omp_dat %>% select(f_year) %>% distinct() %>% arrange(f_year) # 2013-2025
 omp_dat %>% select(julian_date) %>% distinct() %>% arrange(julian_date) # julian date 170 (june 18)- 254 (sept 11)
 omp_dat %>% select(water_temp) %>% distinct() %>% arrange(water_temp) # 0 - 34 -- units = deg C
 omp_dat %>% select(salinity) %>% distinct() %>% arrange(salinity) # 0 - 30.1 -- units = ppt (parts per thousand)
+omp_dat %>% filter(location_clean == "Tracadie Bay")
+
 
