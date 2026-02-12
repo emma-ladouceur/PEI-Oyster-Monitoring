@@ -56,16 +56,16 @@ m4_max_l_dat %>% filter(bay == "Tracadie Bay")
 # ============================================================
 # 
 #--- Fit model (keep these names exactly as requested) ---
-m4_max_temp_time_sal <- brm(
-  julian_date ~ water_temp.m * n_year.m * salinity.m +
-    #(1 + water_temp.m * n_year.m || bay/location_clean),
-    (1 + n_year.m | bay/location_clean),
-  data    = m4_max_l_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = gaussian(),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# m4_max_temp_time_sal <- brm(
+#   julian_date ~ water_temp.m * n_year.m * salinity.m +
+#     #(1 + water_temp.m * n_year.m || bay/location_clean),
+#     (1 + n_year.m | bay/location_clean),
+#   data    = m4_max_l_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = gaussian(),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 # ==========================================================
 
@@ -604,8 +604,8 @@ m4_max_fig_intercepts_mean <- m4_max_int_summ %>%
     y = "Date of peak larval abundance",
     subtitle = "b)") +
   scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
+    breaks = c(189, 199, 209, 219),
+    labels = c("Jul 08", "Jul 18", "Jul 28", "Aug 7")) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
     labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
@@ -973,7 +973,7 @@ m4_max_alt_ribbon_dat <- m4_max_alt_summ90 %>%
 # ------------------------------------------------------------
 m4_max_alt_fig_year3temp_ribbons <- ggplot(m4_max_alt_ribbon_dat) +
   geom_ribbon(aes(x = n_year, ymin = m4_max_alt_low90, ymax = m4_max_alt_up90, fill = temp_level), alpha  = 0.18, colour = NA) +
-  geom_ribbon(aes(x = n_year, ymin = m4_max_alt_low50, ymax = m4_max_alt_up50, fill = temp_level), alpha  = 0.32, colour = NA) +
+# geom_ribbon(aes(x = n_year, ymin = m4_max_alt_low50, ymax = m4_max_alt_up50, fill = temp_level), alpha  = 0.32, colour = NA) +
   geom_line(aes(x = n_year, y = m4_max_alt_med, colour = temp_level), linewidth = 1.0) +
   scale_colour_manual(
     name = "Surface water \ntemperature (°C)",

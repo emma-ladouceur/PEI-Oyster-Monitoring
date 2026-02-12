@@ -55,15 +55,15 @@ nrow(la_m_dat)
 
 
 
-la_m_mod <- brm(
-  larvae_total ~ water_temp.m * n_year.m * salinity.m +
-   # s(julian_date,  k = 10) + # if turn on then see commented out lines below for s(julian)
-    (1 + n_year.m | bay/location_clean),
-  data    = la_m_dat,
-  family  = lognormal(),
-  iter    = 5000, warmup = 1000,
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# la_m_mod <- brm(
+#   larvae_total ~ water_temp.m * n_year.m * salinity.m +
+#    # s(julian_date,  k = 10) + # if turn on then see commented out lines below for s(julian)
+#     (1 + n_year.m | bay/location_clean),
+#   data    = la_m_dat,
+#   family  = lognormal(),
+#   iter    = 5000, warmup = 1000,
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 
 # ================================================
@@ -546,7 +546,7 @@ la_m_T_fig_time_temp <- ggplot(
   la_m_T_summ,
   aes(x = n_year, y = med, colour = temp_label, group = temp_label)) +
   geom_ribbon(aes(ymin = low90, ymax = up90, fill = temp_label), alpha = 0.10, colour = NA) +
-  geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
+# geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 1.1) +
   scale_colour_manual(
     name   = "Surface water \ntemperature (°C)",

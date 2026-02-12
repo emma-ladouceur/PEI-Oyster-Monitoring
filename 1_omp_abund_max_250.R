@@ -49,15 +49,15 @@ nrow(la_me_dat)
 # ==================================================
 
 
-la_me_mod <- brm(
-  larvae_above_250_microns ~ water_temp.m * n_year.m * salinity.m +
-    #s(julian_date,  k = 10) +
-    (1 + n_year.m | bay/location_clean),
-  data    = la_me_dat,
-  family  = lognormal(),
-  iter    = 5000, warmup = 1000,
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# la_me_mod <- brm(
+#   larvae_above_250_microns ~ water_temp.m * n_year.m * salinity.m +
+#     #s(julian_date,  k = 10) +
+#     (1 + n_year.m | bay/location_clean),
+#   data    = la_me_dat,
+#   family  = lognormal(),
+#   iter    = 5000, warmup = 1000,
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 
 # ================================================
@@ -520,60 +520,48 @@ la_me_T_y_min_plot <- max(1, min(la_me_T_summ$low90, na.rm = TRUE))
 la_me_T_y_max_plot <- min(la_me_T_y_max_obs * 1.1, max(la_me_T_summ$up90, na.rm = TRUE))
 
 la_me_T_fig_time_temp <- ggplot(
-  la_me_T_summ,
-  aes(x = n_year, y = med, colour = temp_label, group = temp_label)
-) +
+  la_me_T_summ, aes(x = n_year, y = med, colour = temp_label, group = temp_label)) +
   geom_ribbon(aes(ymin = low90, ymax = up90, fill = temp_label), alpha = 0.10, colour = NA) +
-  geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
+# geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 1.1) +
   scale_colour_manual(
     name   = "Surface water \ntemperature (°C)",
     values = c(
       "Cool temp (25th pct)" = "#1B9E77",
       "Median temp"          = "#7570B3",
-      "Warm temp (75th pct)" = "#D95F02"
-    ),
+      "Warm temp (75th pct)" = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
+      "Warm")) +
   scale_fill_manual(
     name   = "Surface water \ntemperature (°C)",
     values = c(
       "Cool temp (25th pct)" = "#1B9E77",
       "Median temp"          = "#7570B3",
-      "Warm temp (75th pct)" = "#D95F02"
-    ),
+      "Warm temp (75th pct)" = "#D95F02"),
     labels = c(
       "Cool",
       "Median",
-      "Warm"
-    )
-  ) +
+      "Warm")) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
-    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")
-  ) +
+    labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   scale_y_continuous(
     trans  = "log10",
     breaks = c(4, 8, 16, 32, 64, 128, 256, 512, 1024),
-    labels = scales::label_number()
-  ) +
+    labels = scales::label_number()) +
   coord_cartesian(ylim = c(la_me_T_y_min_plot, la_me_T_y_max_plot)) +
   labs(
     x = "Year",
     y = "Peak larval abundance (>250 μm)",
-    subtitle= "d)", colour= "Temp", fill= "Temp"
-  ) +
+    subtitle= "d)", colour= "Temp", fill= "Temp") +
   theme_bw(base_size = 18) +
   theme(
     strip.background = element_blank(),
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank(),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 la_me_T_fig_time_temp
 

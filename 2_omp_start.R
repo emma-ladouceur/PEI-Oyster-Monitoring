@@ -74,15 +74,15 @@ nrow(m2_first_l_dat)
 # ------------------------------------------------------------
 
  
-start_temp_time_sal <- brm(
-  julian_date ~ water_temp.m * n_year.m * salinity.m +
-    (1 + n_year.m | bay/location_clean),
-  data    = m2_first_l_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = gaussian(),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# start_temp_time_sal <- brm(
+#   julian_date ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + n_year.m | bay/location_clean),
+#   data    = m2_first_l_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = gaussian(),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 
 # -----------------------------------------------------------
@@ -500,10 +500,8 @@ m2_first_fig_intercepts_mean <- m2_first_int_summ %>%
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
     labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
-  scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") } ) +
+  scale_y_continuous( breaks = c(179, 184, 189, 194),
+                      labels = c("Jun 28", "Jul 03", "Jul 08", "Jul 13")) +
   labs(
     x = "Year",
     y = "Date of first larval detection",
@@ -522,6 +520,7 @@ m2_first_fig_intercepts_mean
 # Salinity is fixed at the mean (0 SD) = typical salinity conditions relative to each bay
 # Thick/thin vertical bars represent 50% and 90% Bayesian credible intervals around the mean prediction
 # (50% (thick) = 25th to 75th pct ,90% (thin) = 5th to 95th pct, points = mean predicted date)
+# axes vary for clarity 
 
 # ------------------------------------------------------------
 # 10) Slopes-by-year (temperature effect; temp-averaged logic analog)
@@ -877,7 +876,7 @@ m2_start_alt_ribbon_dat <- m2_start_alt_summ90 %>%
 # --- plot (ribbons + median line) ---
 m2_start_alt_fig_year3temp_ribbons <- ggplot(m2_start_alt_ribbon_dat) +
   geom_ribbon(aes(x = n_year, ymin = m2_start_alt_low90, ymax = m2_start_alt_up90, fill = temp_level), alpha = 0.18, colour = NA) +
-  geom_ribbon(aes(x = n_year, ymin = m2_start_alt_low50, ymax = m2_start_alt_up50, fill = temp_level), alpha = 0.32, colour = NA) +
+# geom_ribbon(aes(x = n_year, ymin = m2_start_alt_low50, ymax = m2_start_alt_up50, fill = temp_level), alpha = 0.32, colour = NA) +
   geom_line(aes(x = n_year, y = m2_start_alt_med, colour = temp_level), linewidth = 1.0) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),

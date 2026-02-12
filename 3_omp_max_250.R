@@ -56,15 +56,15 @@ view(m1_max_l_dat)
 
 
 # --- Fit model (keep these names exactly as requested) ---
- max_temp_time_sal <- brm(
-  julian_date ~ water_temp.m * n_year.m * salinity.m +
-    (1 + n_year.m | bay/location_clean),
-  data    = m1_max_l_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = gaussian(),
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+#  max_temp_time_sal <- brm(
+#   julian_date ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + n_year.m | bay/location_clean),
+#   data    = m1_max_l_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = gaussian(),
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 
 # ----------------------------------------------------------
@@ -236,9 +236,8 @@ m1_max_fig1_panel <- ggplot(
   scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) {
-      format(as.Date(x - 1, origin = "2000-01-01"), "%b %d") } ) +
+    breaks = c(199, 204, 209, 214, 219, 224),
+    labels = c("Jul 18", "Jul 23", "Jul 28", "Aug 02", "Aug 07", "Aug 12")) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Date of peak larval abundance (>250 μm)") +
@@ -270,8 +269,8 @@ m1_max_fig1_mid_max <- ggplot(
   scale_fill_viridis_d(option = "viridis", name = "Monitoring year") +
   scale_x_continuous(breaks = c(16, 20, 24, 28)) +
   scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
+    breaks = c(199, 204, 209, 214, 219, 224),
+    labels = c("Jul 18", "Jul 23", "Jul 28", "Aug 02", "Aug 07", "Aug 12")) +
   labs(
     x = "Surface water temperature (°C)",
     y = "Date of peak larval \nabundance (>250 μm)",
@@ -570,8 +569,8 @@ m1_max_fig_intercepts_3panel <- ggplot(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
     labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
   scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
+    breaks = c(194, 199, 204, 209, 214, 219, 224),
+    labels = c("Jul 13", "Jul 18", "Jul 23", "Jul 28", "Aug 02", "Aug 07", "Aug 12")) +
   labs(
     x = "Year",
     y = "Date of peak larval \nabundance (>250 μm)") +
@@ -604,8 +603,8 @@ m1_max_fig_intercepts_mean <- m1_max_int_summ %>%
     y = "Date of peak larval \nabundance (>250 μm)",
     subtitle = "b)") +
   scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 6),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
+    breaks = c(199, 204, 209, 214, 219),
+    labels = c("Jul 18", "Jul 23", "Jul 28", "Aug 02", "Aug 07")) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
     labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +
@@ -979,7 +978,7 @@ m1_max_alt_ribbon_dat <- m1_max_alt_summ90 %>%
 # ------------------------------------------------------------
 m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
   geom_ribbon(aes(x = n_year, ymin = m1_max_alt_low90, ymax = m1_max_alt_up90, fill = temp_level), alpha = 0.18, colour = NA) +
-  geom_ribbon(aes(x = n_year, ymin = m1_max_alt_low50, ymax = m1_max_alt_up50, fill = temp_level), alpha = 0.32, colour = NA) +
+# geom_ribbon(aes(x = n_year, ymin = m1_max_alt_low50, ymax = m1_max_alt_up50, fill = temp_level), alpha = 0.32, colour = NA) +
   geom_line(aes(x = n_year, y = m1_max_alt_med, colour = temp_level), linewidth = 1.0) +
   scale_colour_manual(
     name = "Surface water \ntemperature (°C)",
@@ -1003,8 +1002,8 @@ m1_max_alt_fig_year3temp_ribbons <- ggplot(m1_max_alt_ribbon_dat) +
       "Warm")) +
   coord_cartesian(ylim = quantile(m1_max_l_dat$julian_date, probs = c(0.01, 0.99), na.rm = TRUE)) +
   scale_y_continuous(
-    breaks = scales::pretty_breaks(n = 3),
-    labels = function(x) format(as.Date(x - 1, origin = "2000-01-01"), "%b %d")) +
+    breaks = c(199, 204, 209, 214, 219, 224),
+    labels = c("Jul 18", "Jul 23", "Jul 28", "Aug 02", "Aug 07", "Aug 12")) +
   scale_x_continuous(
     breaks = c(2012, 2014, 2016, 2018, 2020, 2022, 2024),
     labels = c("2012", "2014", "2016", "2018", "2020", "2022", "2024")) +

@@ -53,14 +53,14 @@ nrow(la_s_dat)
 # ==================================================
 
 
-la_s_mod <- brm(
-  larvae_total ~ water_temp.m * n_year.m * salinity.m +
-    (1 + n_year.m | bay/location_clean),
-  data    = la_s_dat,
-  family  = lognormal(),
-  iter    = 5000, warmup = 1000,
-  control = list(adapt_delta = 0.999, max_treedepth = 20)
-)
+# la_s_mod <- brm(
+#   larvae_total ~ water_temp.m * n_year.m * salinity.m +
+#     (1 + n_year.m | bay/location_clean),
+#   data    = la_s_dat,
+#   family  = lognormal(),
+#   iter    = 5000, warmup = 1000,
+#   control = list(adapt_delta = 0.999, max_treedepth = 20)
+# )
 
 
 # ================================================
@@ -544,7 +544,7 @@ la_s_T_fig_time_temp <- ggplot(
   aes(x = n_year, y = med, colour = temp_label, group = temp_label)
 ) +
   geom_ribbon(aes(ymin = low90, ymax = up90, fill = temp_label), alpha = 0.10, colour = NA) +
-  geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
+# geom_ribbon(aes(ymin = low50, ymax = up50, fill = temp_label), alpha = 0.18, colour = NA) +
   geom_line(linewidth = 1.1) +
   scale_colour_manual(
     name   = "Surface water \ntemperature (°C)",
@@ -714,27 +714,23 @@ la_s_T_slope_summ <- la_s_T_slope_draws %>%
 
 la_s_T_fig_slopes <- ggplot(
   la_s_T_slope_summ,
-  aes(x = temp_label, y = estimate, colour = temp_label)
-) +
+  aes(x = temp_label, y = estimate, colour = temp_label)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
   geom_linerange(aes(ymin = lower90, ymax = upper90), linewidth = 0.9, alpha = 0.6) +
   geom_linerange(aes(ymin = lower50, ymax = upper50), linewidth = 2.2) +
   geom_point(size = 3) +
   scale_colour_manual(values = c( "Cool temp (25th pct)" = "#1B9E77",  # green (Dark2)
       "Median temp"          = "#7570B3",  # purple (Dark2)
-      "Warm temp (75th pct)" = "#D95F02"   # orange (Dark2)
-    ) ) +
+      "Warm temp (75th pct)" = "#D95F02") ) +
   labs(
     x = NULL,
     y = "Change in larval abundance \n at first detection per year",
-    subtitle = "f)"
-  ) +
+    subtitle = "f)") +
   theme_bw(base_size = 18) +
   theme(
     panel.grid.minor = element_blank(),
     axis.text.x  = element_blank(),
-    legend.position = "none"
-  )
+    legend.position = "none")
 
 la_s_T_fig_slopes
 

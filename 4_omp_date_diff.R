@@ -94,14 +94,14 @@ m3_dat <- m3_first %>%
 # ------------------------------------------------------------
 
 
-oyster_first_last <- brm(
-  diff_first_last ~ n_year.m + (1 + n_year.m | bay/location_clean),
-  data    = m3_dat,
-  iter    = 5000,
-  warmup  = 1000,
-  family  = student(), #or gaussian
-  control = list(adapt_delta = 0.99)
-)
+# oyster_first_last <- brm(
+#   diff_first_last ~ n_year.m + (1 + n_year.m | bay/location_clean),
+#   data    = m3_dat,
+#   iter    = 5000,
+#   warmup  = 1000,
+#   family  = student(), #or gaussian
+#   control = list(adapt_delta = 0.99)
+# )
 
 
 # ===========================================================
