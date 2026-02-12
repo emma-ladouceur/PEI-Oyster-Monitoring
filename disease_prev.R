@@ -36,11 +36,13 @@ disease_dat %>% select(Location, `Sample.Source`, `Sampling.Season`,`Site.Status
 colnames(disease_dat)
 
 disease_prep <- disease_dat %>%
-  mutate(samp_source = `Sample.Source`,
-         samp_seas = `Sampling.Season`,
-         msx_p = (`MSX.Prevalence....`/100),
-         dermo_p = (`Dermo.Prevalance....`/100),
-         ) 
+  mutate(
+    samp_source = `Sample.Source`,
+    samp_seas   = factor(`Sampling.Season`,
+                         levels = c("Spring", "Fall")),  # <— order here
+    msx_p  = (`MSX.Prevalence....` / 100),
+    dermo_p = (`Dermo.Prevalance....` / 100)
+  )
   
 
 head(disease_prep)
@@ -89,7 +91,12 @@ msx_fig <-   ggplot() +
   labs(x = '',
        y='') +
   #ylim(0,60)+
-  scale_color_manual(values =  c(	"#134b73" , "#72aeb6", "#C0C0C0"))  + 
+  scale_color_manual(values =  c(	 "#72aeb6", "#134b73" , "#C0C0C0"),
+                     breaks = c("Spring", "Fall"),   # controls order
+                     labels = c("Spring 2025", 
+                                "Fall 2026"),
+                     name = "Sampling Season" )  + 
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   #ggtitle((expression(paste(italic(alpha), '-scale', sep = ''))))+
  # scale_colour_viridis_d(option = "viridis") +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -141,7 +148,12 @@ dermo_fig <-   ggplot() +
   labs(x = '',
        y='') +
   ylim(0,60)+
-  scale_color_manual(values =  c(	"#72aeb6","#134b73" , "#C0C0C0"))  + 
+  scale_color_manual(values =  c(	"#72aeb6","#134b73" , "#C0C0C0"),
+                     breaks = c("Spring", "Fall"),   # controls order
+                     labels = c("Spring 2025", 
+                                "Fall 2026"),
+                     name = "Sampling Season" )  + 
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   #ggtitle((expression(paste(italic(alpha), '-scale', sep = ''))))+
   # scale_colour_viridis_d(option = "viridis") +
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
