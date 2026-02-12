@@ -194,4 +194,3 @@ omp_dat %>% select(water_temp) %>% distinct() %>% arrange(water_temp) # 0 - 34 -
 omp_dat %>% select(salinity) %>% distinct() %>% arrange(salinity) # 0 - 30.1 -- units = ppt (parts per thousand)
 omp_dat %>% filter(location_clean == "Tracadie Bay")
 
-
