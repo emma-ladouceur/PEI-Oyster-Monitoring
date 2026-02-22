@@ -1,5 +1,6 @@
 
 
+
 # testing out git with students!
 library(tidyverse)
 library(ggplot2)
@@ -36,20 +37,22 @@ disease_dat %>% select(Location, `Sample.Source`, `Sampling.Season`,`Site.Status
 colnames(disease_dat)
 
 disease_prep <- disease_dat %>%
-  mutate(samp_source = `Sample.Source`,
-         samp_seas = `Sampling.Season`,
-         msx_p = (`MSX.Prevalence....`/100),
-         dermo_p = (`Dermo.Prevalance....`/100),
-         ) 
-  
+  mutate(
+    samp_source = `Sample.Source`,
+    samp_seas   = factor(`Sampling.Season`,
+                         levels = c("Spring", "Fall")),  # <— order here
+    msx_p  = (`MSX.Prevalence....` / 100),
+    dermo_p = (`Dermo.Prevalance....` / 100)
+  )
+
 
 head(disease_prep)
 
 
 msx_p_mod <- brm( msx_p ~  samp_source * samp_seas + ( samp_source * samp_seas | Location) ,
-                         data = disease_prep, iter = 10000, warmup = 1000, family = zero_one_inflated_beta(),
-                         #control = list(max_treedepth = 15)
-                         control = list(adapt_delta = 0.99, max_treedepth = 15)
+                  data = disease_prep, iter = 10000, warmup = 1000, family = zero_one_inflated_beta(),
+                  #control = list(max_treedepth = 15)
+                  control = list(adapt_delta = 0.99, max_treedepth = 15)
 )
 
 save(msx_p_mod, file = "~/Dropbox/_Projects/PEI Oysters/Model_fits/Disease/msx_p_mod.Rdata")
@@ -89,9 +92,14 @@ msx_fig <-   ggplot() +
   labs(x = '',
        y='') +
   #ylim(0,60)+
-  scale_color_manual(values =  c(	"#134b73" , "#72aeb6", "#C0C0C0"))  + 
+  scale_color_manual(values =  c(	 "#72aeb6", "#134b73" , "#C0C0C0"),
+                     breaks = c("Spring", "Fall"),   # controls order
+                     labels = c("Spring 2025", 
+                                "Fall 2025"),
+                     name = "Sampling Season" )  + 
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   #ggtitle((expression(paste(italic(alpha), '-scale', sep = ''))))+
- # scale_colour_viridis_d(option = "viridis") +
+  # scale_colour_viridis_d(option = "viridis") +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
@@ -105,10 +113,20 @@ msx_fig
 
 # dermo
 view(disease_prep)
-dermo_p_mod <- brm( dermo_p ~  samp_source * samp_seas + ( samp_source * samp_seas | Location) ,
-                  data = disease_prep, iter = 10000, warmup = 1000, family = zero_one_inflated_beta(),
-                  #control = list(max_treedepth = 15)
-                  control = list(adapt_delta = 0.99, max_treedepth = 15)
+disease_prep %>%
+  summarise(
+    n = n(),
+    n0 = sum(dermo_p == 0, na.rm = TRUE),
+    n1 = sum(dermo_p == 1, na.rm = TRUE),
+    p0 = mean(dermo_p == 0, na.rm = TRUE),
+    p1 = mean(dermo_p == 1, na.rm = TRUE)
+  )
+
+dermo_p_mod <- brm( dermo_p ~  samp_source * samp_seas + ( 1 | Location) ,
+                    data = disease_prep, iter = 3000, warmup = 1000, family = zero_one_inflated_beta(),
+                    #control = list(max_treedepth = 15)
+                    control = list(adapt_delta = 0.95, max_treedepth = 12),
+                    refresh = 100
 )
 
 
@@ -141,13 +159,18 @@ dermo_fig <-   ggplot() +
   labs(x = '',
        y='') +
   ylim(0,60)+
-  scale_color_manual(values =  c(	"#72aeb6","#134b73" , "#C0C0C0"))  + 
+  scale_color_manual(values =  c(	"#72aeb6","#134b73" , "#C0C0C0"),
+                     breaks = c("Spring", "Fall"),   # controls order
+                     labels = c("Spring 2025", 
+                                "Fall 2026"),
+                     name = "Sampling Season" )  + 
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   #ggtitle((expression(paste(italic(alpha), '-scale', sep = ''))))+
   # scale_colour_viridis_d(option = "viridis") +
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                               plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="none") +
+                                 plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                                 plot.title=element_text(size=18, hjust=0.5),
+                                 strip.background = element_blank(),legend.position="none") +
   labs( subtitle= 'a)'
   ) + ylab( "Prevelence of dermo \nin 2025 Oyster Samps (%)") 
 
